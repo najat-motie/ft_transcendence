@@ -1,0 +1,17 @@
+.input {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-md);
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--border-soft);
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    outline: none;
+    width: 100%;
+    transition: border-color 0.2s ease;
+}
+  
+.input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(79, 140, 255, 0.2);
+}
