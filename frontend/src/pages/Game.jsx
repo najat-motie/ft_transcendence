@@ -6,7 +6,7 @@ function Game() {
   return (
     <main>
       <h1>Chess Game</h1>
-      <p>Game ID: {id}</p>
+      <p>Start playing.{id}</p>
     </main>
   );
 }
