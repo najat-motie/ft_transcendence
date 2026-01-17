@@ -1,0 +1,20 @@
+/* colors */
+:root {
+    --color-primary: #2563eb;   /* Main theme color */
+    --color-secondary: #facc15; /* Highlight / buttons */
+    --color-bg: #ffffff;        /* Page background */
+    --color-text: #111827;      /* Default text */
+    --color-muted: #6b7280;     /* Disabled text / hints */
+  }
+  
+  /* typography */
+:root {
+    --font-sans: 'Inter', sans-serif;     /* Default body text font */
+    --font-heading: 'Roboto Slab', serif; /* Font used for headings / titles */
+    --font-size-sm: 0.875rem;             /* Small text, e.g., captions or labels */
+    --font-size-md: 1rem;                 /* Base text size for paragraphs */
+    --font-size-lg: 1.25rem;              /* Large text, e.g., subheadings */
+    --font-size-xl: 2rem;                 /* Extra large text, e.g., main headings */
+}
+
+  
