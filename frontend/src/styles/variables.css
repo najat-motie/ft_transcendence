@@ -1,20 +1,34 @@
 /* colors */
 :root {
-    --color-primary: #2563eb;   /* Main theme color */
-    --color-secondary: #facc15; /* Highlight / buttons */
-    --color-bg: #ffffff;        /* Page background */
-    --color-text: #111827;      /* Default text */
-    --color-muted: #6b7280;     /* Disabled text / hints */
-  }
+    --color-primary: #2563eb;
+    --color-secondary: #facc15;
+    --color-bg: #ffffff;
+    --color-text: #111827;
+    --color-muted: #6b7280;
+    --border-soft: rgba(255, 255, 255, 0.08);
+    --bg-main: #0b0f1a;
+    --text-main: #e6e9f0;
+    --accent: #4f8cff;
+}
   
   /* typography */
 :root {
-    --font-sans: 'Inter', sans-serif;     /* Default body text font */
-    --font-heading: 'Roboto Slab', serif; /* Font used for headings / titles */
-    --font-size-sm: 0.875rem;             /* Small text, e.g., captions or labels */
-    --font-size-md: 1rem;                 /* Base text size for paragraphs */
-    --font-size-lg: 1.25rem;              /* Large text, e.g., subheadings */
-    --font-size-xl: 2rem;                 /* Extra large text, e.g., main headings */
+    --font-sans: 'Inter', sans-serif;
+    --font-heading: 'Roboto Slab', serif;
+    --font-size-sm: 0.875rem;
+    --font-size-md: 1rem;
+    --font-size-lg: 1.25rem;
+    --font-size-xl: 2rem;
 }
 
-  
+
+/* spacing */
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+}

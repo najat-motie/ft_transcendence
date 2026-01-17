@@ -1,0 +1,30 @@
+.navbar {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  
+    padding: var(--space-4) var(--space-6);
+    background-color: var(--bg-main);
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.navbar a {
+  text-decoration: none;
+  font-weight: 500;
+  color: var(--text-main);
+
+  padding: var(--space-2) var(--space-3);
+  border-radius: 6px;
+
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.navbar a:hover {
+  background-color: var(--border-soft);
+}
+
+.navbar a.active {
+  color: var(--accent);
+  background-color: rgba(0, 0, 0, 0.04);
+}

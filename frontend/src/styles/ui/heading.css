@@ -1,0 +1,17 @@
+.heading {
+    font-family: var(--font-heading);
+    color: var(--color-text);
+    margin-bottom: 0.5rem;
+}
+
+.heading-1 {
+  font-size: var(--font-size-xl);
+}
+
+.heading-2 {
+  font-size: var(--font-size-lg);
+}
+
+.heading-3 {
+  font-size: var(--font-size-md);
+}
