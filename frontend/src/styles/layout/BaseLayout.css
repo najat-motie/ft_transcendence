@@ -11,9 +11,10 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1.2rem 2rem;
+    padding: 0 2rem;
     background-color: var(--bg-header);
     border-bottom: 1px solid var(--border-soft);
+    /* min-height: 96px; */
 }
 
 .logo {
@@ -22,16 +23,21 @@
     color: var(--accent);
 }
 
-.logo-link {
+.logo-img {
+    height: 96px;
+    width: auto;
+}
+
+/* .logo-link {
     text-decoration: none;
     color: inherit;
     font-weight: bold;
     font-size: 1.5rem;
-}
+} */
 
-.logo-link:hover {
+/* .logo-link:hover {
     text-decoration: none;
-}
+} */
 
 .layout-content {
     flex: 1;

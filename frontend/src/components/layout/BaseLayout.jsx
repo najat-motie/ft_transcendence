@@ -2,6 +2,7 @@ import { Link, Outlet } from "react-router-dom";
 import NavBar from ".//NavBar";
 import Footer from ".//Footer";
 import '../../styles/layout/BaseLayout.css'
+import logo from "../../assets/logo.png";
 
 export default function BaseLayout() {
   return (
@@ -9,7 +10,7 @@ export default function BaseLayout() {
       <header className="layout-header">
         <div className="logo">
           <Link to="/" className="logo-link">
-            Chess
+            <img src={logo} alt="Chess logo" className="logo-img" />
           </Link>
         </div>
         <NavBar />
