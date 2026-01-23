@@ -5,17 +5,20 @@
     --color-bg: #ffffff;
     --color-text: #111827;
     --color-muted: #6b7280;
+    --text-main: #e6e9f0;
     --text-muted: #9aa4bf;
     --border-soft: rgba(255, 255, 255, 0.08);
     --bg-header: #0f1629;
     --bg-main: #0b0f1a;
+    --bg-surface: #111827;
+    --bg-elevated: #151c2f;
     --bg-footer: #0f1629;
     --text-main: #e6e9f0;
     --accent: #4f8cff;
     --accent-hover: #3a6fd8;
 }
 
-  /* typography */
+/* typography */
 :root {
     --font-sans: 'Inter', sans-serif;
     --font-heading: 'Roboto Slab', serif;
