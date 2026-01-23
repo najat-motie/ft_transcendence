@@ -1,5 +1,5 @@
 import React from "react";
-import "../../styles/ui/input.css";
+import "../styles/components.css";
 
 export default function Input({ value, onChange, placeholder = "", type = "text", className = "" }) {
   return (
