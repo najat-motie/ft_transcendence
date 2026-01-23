@@ -1,0 +1,130 @@
+/* Section 1 */
+.intro {
+    background: radial-gradient(circle at top, #162447, #0b0f1a);
+    padding: 96px 0;
+}
+
+.intro-layout {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    align-items: center;
+    gap: 64px;
+}
+
+.intro-text h1 {
+    font-size: 3rem;
+    color: var(--color-secondary);
+    margin-bottom: 16px;
+}
+
+.intro-text p {
+    max-width: 480px;
+    color: var(--text-muted);
+    margin-bottom: 32px;
+}
+
+.intro-actions {
+    display: flex;
+    gap: 16px;
+}
+
+.link {
+    color: var(--color-primary);
+}
+
+.link a {
+    padding: 0.75rem 1.75rem;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #facc15, #eab308);
+    color: #0b1220;
+    font-weight: 600;
+}
+  
+.link a:hover {
+    text-decoration: none;
+}
+
+/* subtle chess texture */
+.intro-visual {
+    height: 300px;
+    border-radius: 16px;
+    background:
+        linear-gradient(45deg, rgba(255,255,255,0.05) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(255,255,255,0.05) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.05) 75%),
+        linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.05) 75%);
+    background-size: 40px 40px;
+    opacity: 0.25;
+}
+
+/* Section 2 */
+.features {
+    background-color: var(--bg-surface);
+    padding: 80px 0;
+}
+
+.features h2 {
+    text-align: center;
+    color: var(--color-secondary);
+    margin-bottom: 48px;
+}
+
+.features-layout {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+}
+
+.feature-card {
+    background-color: var(--bg-elevated);
+    border: 1px solid var(--border-soft);
+    border-radius: 14px;
+    padding: 32px 24px;
+    text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.45);
+}
+  
+.feature-card .icon {
+    font-size: 2rem;
+    margin-bottom: 12px;
+    display: block;
+}
+
+.feature-card h3 {
+    color: var(--color-secondary);
+    margin-bottom: 8px;
+}
+
+.feature-card p {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+}
+
+/* Section 3 */
+.join-section {
+    background: linear-gradient(180deg, var(--bg-surface), var(--bg-main));
+    padding: 96px 0;
+    text-align: center;
+}
+
+.join-section h2 {
+    color: var(--color-secondary);
+    margin-bottom: 32px;
+}
+
+/* responsive */
+@media (max-width: 900px) {
+    .intro-grid {
+        grid-template-columns: 1fr;
+        gap: 48px;
+    }
+
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+}
