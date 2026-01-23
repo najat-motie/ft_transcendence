@@ -24,14 +24,3 @@
     --font-size-lg: 1.25rem;
     --font-size-xl: 2rem;
 }
-
-/* spacing */
-:root {
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 24px;
-  --space-6: 32px;
-  --space-7: 48px;
-}
