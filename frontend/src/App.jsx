@@ -2,8 +2,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import BaseLayout from "./layouts/BaseLayout";
 
 import Home from "./pages/Home";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
+import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
 import Play from "./pages/Play";
 import Spectator from "./pages/SpectatorMode";
 import Game from "./pages/Game";
