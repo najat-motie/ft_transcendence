@@ -47,7 +47,7 @@ function Login() {
               <label>Password</label>
               <Input type="password" />
               <div className="forgot-password">
-                <a href="/reset-password">Forgot password?</a>
+                <a href="/forgot-password">Forgot password?</a>
               </div>
             </div>
 
