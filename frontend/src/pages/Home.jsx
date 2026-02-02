@@ -7,10 +7,10 @@ export default function Home() {
       <section className="intro">
         <div className="container intro-layout">
           <div className="intro-text">
-            <h1>Play Chess Online</h1>
+            <h1>Play Tic-Tac-Toe Online</h1>
             <p>
-              Challenge players worldwide or sharpen your skills against
-              powerful AI opponents.
+              Challenge friends or players worldwide in quick, fun matches.
+              Sharpen your strategy and enjoy every game!
             </p>
 
             <div className="intro-actions link">
@@ -20,33 +20,18 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="intro-visual" />
-        </div>
-      </section>
-
-      <section className="features">
-        <div className="container">
-          <h2>Why Choose Our Platform?</h2>
-
-          <div className="features-layout">
-            <div className="feature-card">
-              <span className="icon">♖</span>
-              <h3>Play Online</h3>
-              <p>Compete with players from around the world in real time.</p>
-            </div>
-
-            <div className="feature-card">
-              <span className="icon">🤖</span>
-              <h3>AI Challenges</h3>
-              <p>Train against AI opponents with adaptive difficulty.</p>
-            </div>
-
-            <div className="feature-card">
-              <span className="icon">📈</span>
-              <h3>Track Progress</h3>
-              <p>Analyze your games and improve your strategy.</p>
-            </div>
+          <div className="grid">
+            <div className="cell">X</div>
+            <div className="cell">O</div>
+            <div className="cell"></div>
+            <div className="cell"></div>
+            <div className="cell">X</div>
+            <div className="cell"></div>
+            <div className="cell">O</div>
+            <div className="cell"></div>
+            <div className="cell"></div>
           </div>
+
         </div>
       </section>
 

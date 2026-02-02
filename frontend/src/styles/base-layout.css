@@ -3,8 +3,8 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: var(--bg-main);
-  color: var(--text-main);
+  background-color: #0b0f1a;
+  color: #e6e9f0;
 }
 
 .layout-header {
@@ -13,8 +13,8 @@
   align-items: center;
   padding: 0 2rem;
   gap: clamp(6rem, 20vw, 14rem);
-  background-color: var(--bg-header);
-  border-bottom: 1px solid var(--border-soft);
+  background-color: #0f1629;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   /* min-height: 96px; */
   /* background: linear-gradient(
     to bottom,
@@ -27,7 +27,7 @@
 .logo {
   font-size: 1.2rem;
   font-weight: 700;
-  color: var(--accent);
+  color:  #4f8cff;
   margin-right: 6rem;
   /* margin-left: 0.5rem; */
 }
@@ -45,24 +45,25 @@
 }
 
 .navbar a {
-  color: var(--text-muted);
+  color: #6b7280;
   opacity: 0.85;
 }
 
 .navbar a:hover {
-  color: var(--text-main);
+  /* color: var(--text-main); */
+  color: #facc15;
   text-decoration: none;
 }
 
 .login-btn {
   padding: 0.4rem 0.9rem;
-  border: 1px solid var(--accent);
+  border: 1px solid #4f8cff;
   border-radius: 6px;
-  color: var(--accent) !important;
+  color: #4f8cff !important;
 }
 
 .login-btn:hover {
-  background-color: var(--accent);
+  background-color: #4f8cff;
   color: #fff !important;
 }
 
@@ -80,8 +81,8 @@
 .layout-footer {
   /* flex-direction: column; */
   /* gap: 0.75rem; */
-  background-color: var(--bg-footer);
-  border-top: 1px solid var(--border-soft);
+  background-color: #0f1629;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   padding: 1.5rem 2rem;
   display: flex;
   align-items: center;
@@ -92,7 +93,7 @@
 .footer-copy {
   
   opacity: 0.6;
-  color: var(--text-muted);
+  color: #6b7280;
   font-size: 0.8rem;
 }
 
@@ -103,11 +104,11 @@
 }
 
 .footer-links a {
-  color: var(--text-muted);
+  color: #6b7280;
 }
 
 .footer-links a:hover {
-  color: var(--accent);
+  color: #4f8cff;
   text-decoration: none;
 }
 

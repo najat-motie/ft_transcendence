@@ -1,33 +1,9 @@
-import { NavLink } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import "../../styles/auth/login.css";
-import Input from "../../components/Input";
-import Button from "../../components/Button";
 
 function Login() {
   return (
     <div className="login-container">
-      
-      {/* LEFT SIDE */}
-      <div className="login-left">
-        <h1 className="login-title">
-          Master your strategy.
-          <br />
-          Ascend the ranks.
-        </h1>
-
-        <p className="login-description">
-          Join the ultimate community for competitive chess. Analyze games,
-          challenge masters, and participate in global tournaments.
-        </p>
-
-        <ul className="login-features subtitle">
-          <li>♖ Real-time matchmaking & tournaments</li>
-          <li>📊 Global leaderboards & ELO rating</li>
-          <li>💬 Community chat & friend system</li>
-        </ul>
-      </div>
-
-      {/* RIGHT SIDE */}
       <div className="login-right">
         <div className="login-box">
 
@@ -40,25 +16,34 @@ function Login() {
           <form className="login-form">
             <div className="form-group">
               <label>Email or Username</label>
-              <Input type="text" />
+              <input type="text" />
             </div>
 
             <div className="form-group">
               <label>Password</label>
-              <Input type="password" />
+              <input type="password" />
               <div className="forgot-password">
                 <a href="/forgot-password">Forgot password?</a>
               </div>
             </div>
 
-            <Button type="submit">Sign In</Button>
+            <button className="submit-btn" type="submit">Sign In</button>
           </form>
           
+          <div className="oauth-container">
+            <p className="oauth-text">Or continue with</p>
+            <button className="oauth-btn">Google</button>
+          </div>
+
           <div className="login-signup">
             Don’t have an account?{" "}
             <span className="create-account">
               <a href="/register">Create one</a>
             </span>
+          </div>
+          
+          <div className="auth-back">
+            <Link to="/">← Return to home page</Link>
           </div>
 
           <p className="login-footer">
