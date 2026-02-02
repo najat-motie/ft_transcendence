@@ -21,7 +21,6 @@ export default function BaseLayout() {
         </div>
         <nav className="navbar">
           <NavLink to="/play">Play</NavLink>
-          <NavLink to="/watch">Watch</NavLink>
           <NavLink to="/login" className="login-btn">Login</NavLink>
           <Link to="/settings">
             <FiSettings size={24} />
