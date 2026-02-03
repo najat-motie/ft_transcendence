@@ -15,13 +15,6 @@
   gap: clamp(6rem, 20vw, 14rem);
   background-color: #0f1629;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  /* min-height: 96px; */
-  /* background: linear-gradient(
-    to bottom,
-    rgba(11, 18, 32, 0.95),
-    rgba(11, 18, 32, 0.75)
-  );
-  backdrop-filter: blur(6px); */
 }
 
 .logo {
@@ -29,7 +22,6 @@
   font-weight: 700;
   color:  #4f8cff;
   margin-right: 6rem;
-  /* margin-left: 0.5rem; */
 }
 
 .logo-img {
@@ -37,7 +29,7 @@
   width: auto;
 }
 
-/* Navigatin bar */
+
 .navbar {
   display: flex;
   align-items: center;
@@ -50,7 +42,6 @@
 }
 
 .navbar a:hover {
-  /* color: var(--text-main); */
   color: #facc15;
   text-decoration: none;
 }
@@ -67,7 +58,7 @@
   color: #fff !important;
 }
 
-/* Content */
+
 .layout-content {
   flex: 1;
   padding: 0;
@@ -77,10 +68,8 @@
   text-align: center; */
 }
 
-/* Footer */
+
 .layout-footer {
-  /* flex-direction: column; */
-  /* gap: 0.75rem; */
   background-color: #0f1629;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   padding: 1.5rem 2rem;
@@ -113,7 +102,6 @@
 }
 
 
-/* mobile */
 @media (max-width: 768px) {
   .layout-header {
     flex-direction: column;
