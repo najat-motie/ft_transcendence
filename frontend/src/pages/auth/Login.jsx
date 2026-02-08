@@ -15,12 +15,12 @@ export default function Login() {
         <form className="auth-form">
           <div className="form-group">
             <label>Email or Username</label>
-            <input type="text" />
+            <input type="text" required />
           </div>
 
           <div className="form-group">
             <label>Password</label>
-            <input type="password" />
+            <input type="password" required />
             <div className="forgot-password">
               <a href="/forgot-password">Forgot password?</a>
             </div>
