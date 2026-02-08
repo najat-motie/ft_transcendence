@@ -15,9 +15,10 @@ export default function ForgotPassword() {
           type="email"
           className="auth-input"
           placeholder="Email address"
+          required
         />
 
-        <button className="auth-button" type="button">
+        <button className="submit-btn" type="submit">
           Send reset link
         </button>
 
