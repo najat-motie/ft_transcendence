@@ -1,0 +1,139 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  refreshTokens     RefreshToken[]
+  resetTokens       ResetToken[]
+  oauthAccounts     OAuthAccount[]
+  profile           UserProfile?
+  friendRequestsSent    FriendRequest[] @relation("sender")
+  friendRequestsReceived FriendRequest[] @relation("receiver")
+  friendships1      Friendship[] @relation("user1")
+  friendships2      Friendship[] @relation("user2")
+  messagesSent      Message[] @relation("sender")
+  messagesReceived  Message[] @relation("receiver")
+
+  @@map("users")
+}
+
+model UserProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  username  String   @unique
+  avatar    String?
+  bio       String?
+  level     Int      @default(1)
+  experience Int     @default(0)
+  wins      Int      @default(0)
+  losses    Int      @default(0)
+  rank      Int      @default(0)
+  status    String   @default("offline")
+  lastSeen  DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("user_profiles")
+}
+
+model FriendRequest {
+  id        String   @id @default(cuid())
+  senderId  String
+  sender    User     @relation("sender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId String
+  receiver  User     @relation("receiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  status    String   @default("pending")
+  message   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([senderId, receiverId])
+  @@map("friend_requests")
+}
+
+model Friendship {
+  id        String   @id @default(cuid())
+  user1Id   String
+  user1     User     @relation("user1", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2Id   String
+  user2     User     @relation("user2", fields: [user2Id], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([user1Id, user2Id])
+  @@map("friendships")
+}
+
+model Message {
+  id          String   @id @default(cuid())
+  senderId    String
+  sender      User     @relation("sender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId  String
+  receiver    User     @relation("receiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  content     String
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("messages")
+}
+
+
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("refresh_tokens")
+}
+
+model ResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("reset_tokens")
+}
+
+model OAuthAccount {
+  id        String   @id @default(cuid())
+  provider  String
+  accountId String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  data      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([provider, accountId])
+  @@map("oauth_accounts")
+}
+
+// ============================================
+// ============================================
+
+
+// ============================================
+// ============================================
+
+
+
