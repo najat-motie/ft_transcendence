@@ -1,4 +1,4 @@
-This project will be created as part of the 42 curriculum by <mark>nmotie-</mark>, <mark>abattagi</mark>, <mark>fel-aziz</mark>, <mark>jmayou</mark>.
+This project will be created as part of the 42 curriculum by <mark>nmotie-</mark>, <mark>fel-aziz</mark>, <mark>abattagi</mark>, <mark>jmayou</mark>, <mark>ien-niou</mark>.
 
 # ft_transcendence — Tic-Tac-Toe platform
 
@@ -72,17 +72,15 @@ Open your browser and go to https://localhost:5173.
 1. *nmotie-*
 
 **Assigned role(s)**:
-> Project Manager + Frontend Developer
+> Developer + Project Manager
 
 **Main Responsibilities**:
 - Frontend framework
 - Routing and page structure
 - UI design and implementation
+- Client-side form validation
+- API integration (http requests)
 - Responsive and accessible design
-- API integration (HTTP requests)
-- WebSocket client-side integration
-- Privacy and legal pages
-- README documentation
 
 **PM Responsibilities**:
 * Organizes team meetings and planning sessions.
@@ -90,10 +88,27 @@ Open your browser and go to https://localhost:5173.
 * Ensures team communication.
 * Manages risks and blockers.
 
-2. *abattagi*
+2. *fel-aziz*
 
 **Assigned roles**:
-> Product Owner + Backend Developer
+> Developer + Technical Lead
+
+**Main Responsibilities**:
+- Backend framework
+- Database design
+- ORM integration
+- API structure
+
+**TL Responsibilities**:
+* Defines technical architecture.
+* Makes technology stack decisions.
+* Ensures code quality and best practices.
+* Reviews critical code changes.
+
+3. *abattagi*
+
+**Assigned roles**:
+> Developer + Product Owner
 
 **Main Responsibilities**:
 - User management
@@ -107,35 +122,29 @@ Open your browser and go to https://localhost:5173.
 * Validates completed work.
 * Communicates with stakeholders (evaluators, peers).
 
-3. *fel-aziz*
-
-**Assigned roles**:
-> Technical Lead + Bachend & DevOps Engineer
-
-**Main Responsibilities**:
-- Backend framework
-- Database design
-- ORM integration
-- API structure
-- Docker setup and environment configuration
-
-**TL Responsibilities**:
-* Defines technical architecture.
-* Makes technology stack decisions.
-* Ensures code quality and best practices.
-* Reviews critical code changes.
-
 4. *jmayou*
 
 **Assigned roles**:
-> Game Logic Engineer
+> Developer
 
 **Main Responsibilities**:
-- Tic-Tac-Toe game rules
-- Win / draw detection logic
+- Tic-Tac-Toe game rules and logic
 - WebSocket server-side logic
 - Remote players
 - AI opponent
+
+5. *ien-niou*
+
+**Assigned roles**:
+> Developer
+
+**Main Responsibilities**:
+- Real-time features (client side)
+- State Management
+- Game customization
+- Privacy and legal pages
+- Final README documentation
+- Containerization and environment configuration
 
 ---
 
@@ -184,14 +193,14 @@ This section will include:
 | Frontend framework              | Minor |   1    | nmotie-        |       -           |
 | Backend framework               | Minor |   1    | fel-aziz       |       -           |
 | Web-based game                  | Major |   2    | jmayou         |     nmotie-       |
-| Real-time features (WebSockets) | Major |   2    | jmayou         |     nmotie-       |
-| Remote players                  | Major |   2    | jmayou         |     nmotie-       |
+| Real-time features (WebSockets) | Major |   2    | jmayou         |    ien-niou       |
+| Remote players                  | Major |   2    | jmayou         |       -           |
 | ORM for the database            | minor |   1    | fel-aziz       |       -           |
 | User management & authentication| Major |   2    | abattagi       |     fel-aziz      |
-| OAuth (google)                  | minor |   1    | abattagi       |     fel-aziz      |
+| OAuth (Google)                  | minor |   1    | abattagi       |     fel-aziz      |
 | User interaction (chat)         | major |   2    | abattagi       |     nmotie-       |
 | AI opponent                     | Major |   2    | jmayou         |       -           |
-| Game customization              | minor |   1    | nmotie-        |       -           |
+| Game customization              | minor |   1    | ien-niou       |       -           |
 
 *Total: 14+ points*
 
