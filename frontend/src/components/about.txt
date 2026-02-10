@@ -1,7 +1,0 @@
-Reusable UI components
-
-EXAMPLE:
-
-    -Buttons
-    -nav bars
-    -headers & footers
