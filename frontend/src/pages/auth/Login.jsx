@@ -1,7 +1,55 @@
-import { Link, NavLink } from "react-router-dom";
+import { useState } from "react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import "../../styles/auth/login.css";
 
-export default function Login() {
+function Login() {
+ const navigate = useNavigate();
+
+  const [identifier, setIdentifier] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    setError("");
+    setLoading(true);
+
+    try {
+      const res = await fetch("http://localhost:3000/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // credentials: "include",
+        body: JSON.stringify({
+          login: identifier,
+          password,
+        }),
+      });
+  
+      const data = await res.json();
+  
+      // if (!res.ok) {
+      //   setError(data.message || "Invalid credentials");
+      //   setLoading(false);
+      //   return;
+      // }
+
+      if (!res.ok) {
+        throw new Error(data.message || "Something went wrong");
+      }
+  
+      localStorage.setItem("token", data.token);
+      
+      navigate("/");
+      // window.location.href = "/";
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   return (
     <div className="auth-container">
       <div className="auth-box">
@@ -12,26 +60,43 @@ export default function Login() {
           <p className="auth-subtitle">Enter your details to access your account</p>
         </div>
 
-        <form className="auth-form">
+        <form className="auth-form" onSubmit={handleSubmit}>
+          {error && <p className="auth-error">{error}</p>}
+
           <div className="form-group">
             <label>Email or Username</label>
-            <input type="text" required />
+            <input 
+              type="text" 
+              onChange={(e) => setIdentifier(e.target.value)}
+              required
+            />
           </div>
 
           <div className="form-group">
             <label>Password</label>
-            <input type="password" required />
+            <input 
+              type="password"
+              onChange={(e) => setPassword(e.target.value)}
+              required 
+            />
             <div className="forgot-password">
               <a href="/forgot-password">Forgot password?</a>
             </div>
           </div>
 
-          <button className="submit-btn" type="submit">Sign In</button>
+          <button className="submit-btn" type="submit" disabled={loading}>
+            {loading ? "Signing in..." : "Sign In"}
+          </button>
         </form>
           
         <div className="oauth-container">
           <p className="oauth-text">Or continue with</p>
-          <button className="oauth-btn">Google</button>
+          <button 
+            className="oauth-btn"
+            onClick={() => window.location.href = "/api/auth/google"}
+          >
+            Google
+          </button>
         </div>
 
         <div className="auth-signup">
@@ -54,3 +119,5 @@ export default function Login() {
     </div>
   );
 }
+
+export default Login;
