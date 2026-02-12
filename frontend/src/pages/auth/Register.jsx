@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
-import "../../styles/auth/register.css";
 import { useState } from "react";
+import "../../styles/auth/register.css";
 
 export default function Register() {
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState({
     username: "",
@@ -20,14 +21,6 @@ export default function Register() {
     e.preventDefault();
     setError("");
 
-    // const password = e.target.password.value;
-    // const confirmPassword = e.target.confirmPassword.value;
-
-    // if (!e.target.checkValidity()) {
-    //   e.target.reportValidity();
-    //   return;
-    // }
-    
     if (form.username.trim().length < 3) {
       setError("Username must be at least 3 characters");
       return;
@@ -38,25 +31,40 @@ export default function Register() {
       return;
     }
 
-    // if (password !== confirmPassword) {
-    //   setError("Passwords do not match");
-    //   return;                           
-    // }
-
     if (form.password !== form.confirmPassword) {
       setError("Passwords do not match");
       return;                           
     }
+    setLoading(true);
+    
+    try {
+      const res = await fetch("http://localhost:3000/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: form.username,
+          email: form.email,
+          password: form.password,
+        }),
+      });
 
-    // form.submit();
-    setSubmitted(true);
+      // if (!res.ok) throw new Error("Registration failed");
+      if (!res.ok) {
+        throw new Error(data.message || "Something went wrong");
+      }
+
+      setSubmitted(true);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+
   };
 
   return (
     <div className="auth-container">
       <form 
-        // action="/auth/register"
-        // method="POST"
         className="auth-form" 
         onSubmit={handleSubmit}
       >
@@ -74,7 +82,6 @@ export default function Register() {
               <input
                 type="text"
                 name="username"
-                // minLength={3}
                 placeholder="Username"
                 className="auth-input"
                 value={form.username}
@@ -93,7 +100,6 @@ export default function Register() {
               <input
                 type="password"
                 name="password"
-                // minLength={8}
                 placeholder="Password"
                 className="auth-input"
                 value={form.password}
@@ -110,7 +116,9 @@ export default function Register() {
                 required
               />
 
-                <button type="submit" className="submit-btn">Register</button>
+                <button type="submit" className="submit-btn" disabled={loading}>
+                  {loading ? "Registering..." : "Register"}
+                </button>
 
               <p className="auth-back">
                 Already have an account? <Link to="/login">Login</Link>
