@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="Halo O">
+  <rect width="256" height="256" rx="36" fill="#0f1629"/>
+  <circle cx="128" cy="128" r="72" fill="none" stroke="#86ffb9" stroke-width="20"/>
+  <circle cx="128" cy="128" r="52" fill="none" stroke="#5ae8ff" stroke-width="10" opacity="0.6"/>
+</svg>

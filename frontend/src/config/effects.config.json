@@ -1,0 +1,16 @@
+{
+	"effects": [
+		{
+			"id": "glow",
+			"label": "Glow",
+			"description": "Soft highlight around marks",
+			"defaultEnabled": true
+		},
+		{
+			"id": "sparkle",
+			"label": "Sparkle",
+			"description": "Short burst on placement",
+			"defaultEnabled": false
+		}
+	]
+}

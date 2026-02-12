@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="Mint O">
+  <rect width="256" height="256" rx="36" fill="#ebfff7"/>
+  <circle cx="128" cy="128" r="72" fill="none" stroke="#1b8a6b" stroke-width="22"/>
+  <circle cx="128" cy="128" r="52" fill="none" stroke="#6dd7b5" stroke-width="10" opacity="0.7"/>
+</svg>

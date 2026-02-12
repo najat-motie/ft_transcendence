@@ -1,0 +1,54 @@
+{
+	"xSkins": [
+		{
+			"id": "t",
+			"label": "Classic X"
+		},
+		{
+			"id": "ember",
+			"label": "Ember X"
+		},
+		{
+			"id": "neon",
+			"label": "Neon X"
+		},
+		{
+			"id": "solar",
+			"label": "Solar X"
+		},
+		{
+			"id": "pulse",
+			"label": "Pulse X"
+		},
+		{
+			"id": "frost",
+			"label": "Frost X"
+		}
+	],
+	"oSkins": [
+		{
+			"id": "t",
+			"label": "Classic O"
+		},
+		{
+			"id": "orbit",
+			"label": "Orbit O"
+		},
+		{
+			"id": "wave",
+			"label": "Wave O"
+		},
+		{
+			"id": "mint",
+			"label": "Mint O"
+		},
+		{
+			"id": "halo",
+			"label": "Halo O"
+		},
+		{
+			"id": "glow",
+			"label": "Glow O"
+		}
+	]
+}
