@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
-import "../../styles/auth/register.css";
+import "../styles/register.css";
+import { apiRequest } from "../services/api";
 
 export default function Register() {
   const [error, setError] = useState("");
@@ -26,40 +27,44 @@ export default function Register() {
       return;
     }
     
-    if (form.password.length < 8) {
-      setError("Password must be at least 8 characters");
+    const password = form.password;
+
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters long");
+      return;
+    }
+    if (!/[A-Z]/.test(password)) {
+      setError("Password must contain at least one uppercase letter");
+      return;
+    }
+    if (!/[a-z]/.test(password)) {
+      setError("Password must contain at least one lowercase letter");
+      return;
+    }
+    if (!/[0-9]/.test(password)) {
+      setError("Password must contain at least one number");
+      return;
+    }
+  
+    if (password !== form.confirmPassword) {
+      setError("Passwords do not match");
       return;
     }
 
-    if (form.password !== form.confirmPassword) {
-      setError("Passwords do not match");
-      return;                           
-    }
     setLoading(true);
-    
+
     try {
-      const res = await fetch("http://localhost:3000/auth/register", {
+      await apiRequest("/auth/register", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: form.username,
-          email: form.email,
-          password: form.password,
-        }),
+        body: JSON.stringify({ email: form.email, password: form.password }),
       });
-
-      // if (!res.ok) throw new Error("Registration failed");
-      if (!res.ok) {
-        throw new Error(data.message || "Something went wrong");
-      }
-
       setSubmitted(true);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
-
+    
   };
 
   return (
@@ -91,27 +96,27 @@ export default function Register() {
               <input
                 type="email"
                 name="email"
+                value={form.email}
                 placeholder="Email address"
                 className="auth-input"
-                value={form.email}
                 onChange={handleChange}
                 required
               />
               <input
                 type="password"
                 name="password"
+                value={form.password}
                 placeholder="Password"
                 className="auth-input"
-                value={form.password}
                 onChange={handleChange}
                 required
               />
               <input
                 type="password"
                 name="confirmPassword"
+                value={form.confirmPassword}
                 placeholder="Confirm Password"
                 className="auth-input"
-                value={form.confirmPassword}
                 onChange={handleChange}
                 required
               />

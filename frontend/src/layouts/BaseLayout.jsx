@@ -1,6 +1,6 @@
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { FiSettings } from 'react-icons/fi';
-import '../styles/base-layout.css'
+import '../styles/layout.css'
 import logo from "../assets/logo.png";
 
 export default function BaseLayout() {
