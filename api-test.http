@@ -1,0 +1,131 @@
+### Friendship System - Corrected Test Flow
+### All routes use correct paths (NO /api prefix)
+### Flow: Register → Login → Create Profile → Search → Friend Requests
+
+@baseUrl = http://localhost:3000
+@accessToken = 
+@refreshToken = 
+@userId = 
+@requestId = 
+
+### ============================================
+### STEP 1: User Alice - Register
+### ============================================
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "alice@example.com",
+  "password": "TestPassword123"
+}
+
+### STEP 2: User Alice - Login (save accessToken)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "alice@example.com",
+  "password": "TestPassword123"
+}
+
+### STEP 3: User Alice - Create Profile
+POST {{baseUrl}}/profile
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "username": "alice_user",
+  "bio": "Hi, I'm Alice!"
+}
+
+### ============================================
+### STEP 4: User Bob - Register
+### ============================================
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "bob@example.com",
+  "password": "TestPassword123"
+}
+
+### STEP 5: User Bob - Login (save as separate token if testing simultaneously)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "bob@example.com",
+  "password": "TestPassword123"
+}
+
+### STEP 6: User Bob - Create Profile
+POST {{baseUrl}}/profile
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "username": "bob_user",
+  "bio": "Hey, I'm Bob!"
+}
+
+### ============================================
+### STEP 7: Search Users (correct path: /users/search)
+### ============================================
+GET {{baseUrl}}/users/search?q=alice
+Authorization: Bearer {{accessToken}}
+
+### ============================================
+### STEP 8: Send Friend Request
+### ============================================
+### Save userId from search results, then use it here
+POST {{baseUrl}}/friends/request/{{userId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+}
+
+### ============================================
+### STEP 9: Get Pending Friend Requests
+### ============================================
+GET {{baseUrl}}/friends/requests
+Authorization: Bearer {{accessToken}}
+
+### ============================================
+### STEP 10: Accept Friend Request
+### ============================================
+### Save requestId from pending requests
+POST {{baseUrl}}/friends/accept/{{requestId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+}
+
+### ============================================
+### STEP 11: Get Friends List
+### ============================================
+GET {{baseUrl}}/friends
+Authorization: Bearer {{accessToken}}
+
+### ============================================
+### STEP 12: Check Friendship Status
+### ============================================
+GET {{baseUrl}}/friends/check/{{userId}}
+Authorization: Bearer {{accessToken}}
+
+### ============================================
+### Alternative: Reject Friend Request
+### ============================================
+POST {{baseUrl}}/friends/reject/{{requestId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+}
+
+### ============================================
+### Alternative: Remove Friend
+### ============================================
+DELETE {{baseUrl}}/friends/{{userId}}
+Authorization: Bearer {{accessToken}}
