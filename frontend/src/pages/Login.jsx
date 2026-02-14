@@ -1,48 +1,29 @@
 import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import "../../styles/auth/login.css";
+import "../styles/login.css";
+import { apiRequest } from "../services/api";
 
 function Login() {
  const navigate = useNavigate();
 
-  const [identifier, setIdentifier] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    setError("");
     setLoading(true);
+    setError("");
 
     try {
-      const res = await fetch("http://localhost:3000/auth/login", {
+      const data = await apiRequest("/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        // credentials: "include",
-        body: JSON.stringify({
-          login: identifier,
-          password,
-        }),
+        body: JSON.stringify({ email, password }),
       });
-  
-      const data = await res.json();
-  
-      // if (!res.ok) {
-      //   setError(data.message || "Invalid credentials");
-      //   setLoading(false);
-      //   return;
-      // }
 
-      if (!res.ok) {
-        throw new Error(data.message || "Something went wrong");
-      }
-  
-      localStorage.setItem("token", data.token);
-      
+      localStorage.setItem("accessToken", data.accessToken);
       navigate("/");
-      // window.location.href = "/";
     } catch (err) {
       setError(err.message);
     } finally {
@@ -64,10 +45,12 @@ function Login() {
           {error && <p className="auth-error">{error}</p>}
 
           <div className="form-group">
-            <label>Email or Username</label>
+            <label>Email</label>
             <input 
-              type="text" 
-              onChange={(e) => setIdentifier(e.target.value)}
+              type="email" 
+              name="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
@@ -76,12 +59,14 @@ function Login() {
             <label>Password</label>
             <input 
               type="password"
+              name="password"
+              value={password}
               onChange={(e) => setPassword(e.target.value)}
               required 
             />
-            <div className="forgot-password">
+            {/* <div className="forgot-password">
               <a href="/forgot-password">Forgot password?</a>
-            </div>
+            </div> */}
           </div>
 
           <button className="submit-btn" type="submit" disabled={loading}>
