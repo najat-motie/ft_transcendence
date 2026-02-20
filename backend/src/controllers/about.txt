@@ -1,7 +1,0 @@
-Request handlers for different resources 
-
-EXAMPLE:
-    -auth
-    -game
-    -user
-    -chat

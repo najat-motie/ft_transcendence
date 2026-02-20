@@ -1,6 +1,0 @@
-Functions that run between request and response
-
-EXAMPLE:
-
-    -authentication
-    -validation
