@@ -1,0 +1,105 @@
+.profile {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: #0f172a;
+  padding: 20px;
+}
+
+.profile-container {
+  background: rgba(30, 41, 59, 0.9);
+  padding: 30px 40px;
+  border-radius: 20px;
+  max-width: 550px;
+  width: 100%;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  color: #f1f5f9;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  flex-direction: column;
+}
+
+.avatar-wrapper {
+  position: relative;
+}
+
+.avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #334155;
+}
+
+.avatar-input {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 120px;
+  height: 120px;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.user-info {
+  width: 100%;
+  text-align: center;
+}
+
+.user-info h2 {
+  margin: 0 0 8px;
+  font-size: 26px;
+}
+
+.user-info p {
+  margin: 4px 0;
+  color: #94a3b8;
+}
+
+.profile-buttons button,
+.form-buttons button {
+  margin-top: 10px;
+  padding: 8px 18px;
+  border-radius: 10px;
+  border: 1px solid #334155;
+  background: #1e293b;
+  color: #f1f5f9;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.profile-buttons button:hover,
+.form-buttons button:hover {
+  background: #334155;
+}
+
+.cancel-btn {
+  background: #334155;
+}
+
+.profile-form label {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: #94a3b8;
+}
+
+.profile-form input,
+.profile-form textarea {
+  margin-top: 5px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #334155;
+  background: #1e293b;
+  color: #f1f5f9;
+}
+
+.profile-form textarea {
+  resize: none;
+}

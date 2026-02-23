@@ -46,6 +46,14 @@
   margin-bottom: 1.5rem;
 }
 
+.auth-label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 600;
+  color: #f1f5f9;
+  font-size: 14px;
+}
+
 .auth-input {
   padding: 0.75rem 1rem;
   border-radius: 8px;
@@ -88,4 +96,21 @@ p.auth-back {
 
 .auth-back a {
   color: #3B82F6;
+}
+
+.auth-footer {
+  margin-top: 1.5rem;
+  font-size: 0.75rem;
+  color: #6B7280;
+  text-align: center;
+}
+
+.auth-footer a {
+  color: #3B82F6;
+  text-decoration: none;
+}
+
+.back-btn {
+  color: black;
+  /* background-color: white; */
 }

@@ -21,6 +21,7 @@ const verifyAccessToken = (req, res, next) => {
       return res.status(401).json({
         success: false,
         message: 'Access token expired',
+        error: 'TOKEN_EXPIRED'
       });
     }
 
@@ -53,6 +54,7 @@ const verifyRefreshToken = (req, res, next) => {
       return res.status(401).json({
         success: false,
         message: 'Refresh token expired',
+        error: 'TOKEN_EXPIRED'
       });
     }
 

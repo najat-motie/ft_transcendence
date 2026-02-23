@@ -19,7 +19,7 @@ body {
   color: #111827;
   line-height: 1.6;
   text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
+  -webkit-font-smoothing: antialiased;  
 }
 
 html,
