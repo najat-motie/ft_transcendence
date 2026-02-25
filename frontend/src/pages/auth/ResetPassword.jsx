@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { validateForm } from "../../utils/validators";
+import { validateForm } from "../../utils/validator";
 import { apiRequest } from "../../services/api";
 import "../../styles/auth/password.css";
 
@@ -19,8 +19,8 @@ export default function ResetPassword() {
     setError("");
 
     const errorMessage = validateForm({password, confirmPassword}, {
-        email: true,
         password: true,
+        confirmPassword: true,
       });
       if(errorMessage) {
         setError(errorMessage);
@@ -54,10 +54,10 @@ export default function ResetPassword() {
       <form className="auth-card" onSubmit={handleSubmit}>
         <h1 className="auth-title">Reset your password</h1>
 
-        {error && <p className="auth-error">{error}</p>}
+        {error && <p className="error">{error}</p>}
 
         {success ? (
-          <p className="auth-success">
+          <p className="success">
             Your password has been successfully updated. Redirecting...
           </p>
         ) : (

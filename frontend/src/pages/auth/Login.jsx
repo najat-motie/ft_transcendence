@@ -3,6 +3,13 @@ import { useNavigate } from "react-router-dom";
 import "../../styles/auth/login.css";
 import { apiRequest } from "../../services/api";
 
+function storeUserData(data) {
+  localStorage.setItem("user", JSON.stringify(data.user));
+  localStorage.setItem("userId", JSON.stringify(data.user.userId));
+  localStorage.setItem(`accessToken_${data.user.userId}`, data.accessToken);
+  localStorage.setItem(`refreshToken_${data.user.userId}`, data.refreshToken);
+}
+
 function Login() {
  const navigate = useNavigate();
 
@@ -22,9 +29,7 @@ function Login() {
         body: JSON.stringify({ email, password }),
       }, true);
 
-      localStorage.setItem("user", JSON.stringify(data.user));
-      localStorage.setItem(`accessToken_${data.user.userId}`, data.accessToken);
-      localStorage.setItem(`refreshToken_${data.user.userId}`, data.refreshToken);
+      storeUserData(data);
       navigate("/");
     } catch (err) {
       setError(err.message);
@@ -44,7 +49,7 @@ function Login() {
         </div>
 
         <form className="auth-form" onSubmit={handleSubmit}>
-          {error && <p className="auth-error">{error}</p>}
+          {error && <p className="error">{error}</p>}
 
           <div className="form-group">
             <label>Email</label>

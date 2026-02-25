@@ -14,7 +14,6 @@ export default function Friends() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
 
-//   // mock data
 // const [friendList, setFriendList] = useState([ 
 //   { id: 1, username: "Alice", online: true }, 
 //   { id: 2, username: "Bob", online: false },
@@ -51,16 +50,6 @@ export default function Friends() {
   useEffect(() => {
     fetchAllFriendsData();
   }, [fetchAllFriendsData]);
-
-  // useEffect(() => {
-  //   socket.on("friendAccepted", (newFriend) => {
-  //     setFriendList(prev => [...prev, newFriend]);
-  //   });
-  
-  //   return () => {
-  //     socket.off("friendAccepted");
-  //   };
-  // }, []);
 
   return (
     <section className="friends">

@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import "../../styles/game/game-modes.css";
+import "../../styles/game/lobby.css";
 
-export default function Play() {
+export default function GameLobby() {
   const navigate = useNavigate();
 
   const gameModes = [
@@ -9,32 +9,32 @@ export default function Play() {
       title: "Create Room",
       description: "Create a room and invite your friend.",
       buttonText: "Create",
-      route: "/create-room",
+      route: "/play/create-room",
     },
     {
       title: "Join Room",
       description: "Join a room using your unique room code.",
       buttonText: "Join",
-      route: "/join-room",
-    },
-    {
-      title: "Play with AI",
-      description: "Challenge yourself against an AI with human-like behavior.",
-      buttonText: "Play",
-      route: "/ai-game",
+      route: "/play/join-room",
     },
     {
       title: "Quick Match",
       description: "Get matched instantly with an online player.",
       buttonText: "Start",
-      route: "/matchmaking",
+      route: "/play/matchmaking",
     },
     {
       title: "Local Game",
       description: "Play on the same device with a friend.",
       buttonText: "Play",
-      route: "/local-game",
+      route: "/play/local-game",
     },
+    {
+      title: "With AI",
+      description: "Challenge yourself against an AI with human-like behavior.",
+      buttonText: "Play",
+      route: "/play/ai-game",
+    }
   ];
 
   return (
