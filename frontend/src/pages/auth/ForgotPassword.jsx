@@ -29,7 +29,7 @@ export default function ForgotPassword() {
   return (
     <div className="auth-container">
       <form className="auth-card" onSubmit={handleSubmit}>
-        {error && <p className="auth-error">{error}</p>}
+        {error && <p className="error">{error}</p>}
         <h1 className="auth-title">Forgot your password?</h1>
 
         <p className="auth-subtitle">
@@ -52,7 +52,7 @@ export default function ForgotPassword() {
               </button>
             </>
           ) : (
-          <p className="auth-success">
+          <p className="success">
             If an account exists with this email, a reset link has been sent.
           </p>
         )}

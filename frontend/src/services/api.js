@@ -26,11 +26,10 @@ export async function apiRequest(endpoint, options = {}, skipAuth = false) {
   let response = await makeRequest(accessToken);
   const data = await response.json();
 
-  if (!skipAuth && response.status === 401 && data.error === "TOKEN_EXPIRED") {
+  if (response.status === 401 && data.error === "TOKEN_EXPIRED") {
     if (!refreshToken) {
       logout(user.userId);
       window.location.href = "/login";
-      // setUser(null);
       throw new Error("Session expired. Please login again.");
     }
 

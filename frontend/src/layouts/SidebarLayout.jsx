@@ -10,7 +10,10 @@ export default function SideBar() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
-  const user = JSON.parse(localStorage.getItem("user") || "null");
+  const user = JSON.parse(localStorage.getItem("user")) || {
+    username: "Alice",
+    avatar: "https://i.pravatar.cc/100?img=3",
+  };
 
   const handleLogout = async () => {
     try {
@@ -20,7 +23,6 @@ export default function SideBar() {
     } finally {
       logout(user?.userId);
       navigate("/login");
-      // setUser(null);
     }
   };
 
@@ -51,7 +53,7 @@ export default function SideBar() {
                   alt="avatar"
                   className="avatar"
                 />
-                <span className="username">{user?.username || "User"}</span>
+                <span className="username">{user?.username}</span>
               </a>
 
               {open && (

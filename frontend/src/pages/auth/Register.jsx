@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import "../../styles/auth/register.css";
 import { apiRequest } from "../../services/api";
-import { validateForm } from "../../utils/validators";
+import { validateForm } from "../../utils/validator";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -37,7 +37,6 @@ export default function Register() {
   const handleContinue = () => {
     setError("");
     const errorMessage = validateForm(form, {
-      email: true,
       password: true,
       confirmPassword: true,
     });
@@ -86,7 +85,7 @@ export default function Register() {
       <form className="auth-form">
         {!submitted ? (
           <>
-            {error && <p className="auth-error">{error}</p>}
+            {error && <p className="error">{error}</p>}
 
             {step === 1 && (
               <>
@@ -188,7 +187,7 @@ export default function Register() {
             )}
           </>
         ) : (
-          <p className="auth-success">
+          <p className="success">
             Your account has been created! You can now <Link to="/login">Sign In</Link>
           </p>
         )}
