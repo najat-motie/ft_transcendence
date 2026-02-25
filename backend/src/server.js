@@ -26,12 +26,10 @@ let corsOrigin;
 if (process.env.CORS_ORIGIN) {
   corsOrigin = process.env.CORS_ORIGIN;
 } else {
-  // corsOrigin = 'http://localhost:3000';
   corsOrigin = 'http://localhost:5173';
 }
 app.use(cors({
-  // origin: corsOrigin,
-  origin: ['http://localhost:3000', 'http://localhost:5173'],
+  origin: corsOrigin,
   credentials: true,
 }));
 

@@ -1,7 +1,14 @@
 import { useState } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
-import "../styles/login.css";
-import { apiRequest } from "../services/api";
+import { useNavigate } from "react-router-dom";
+import "../../styles/auth/login.css";
+import { apiRequest } from "../../services/api";
+
+function storeUserData(data) {
+  localStorage.setItem("user", JSON.stringify(data.user));
+  localStorage.setItem("userId", JSON.stringify(data.user.userId));
+  localStorage.setItem(`accessToken_${data.user.userId}`, data.accessToken);
+  localStorage.setItem(`refreshToken_${data.user.userId}`, data.refreshToken);
+}
 
 function Login() {
  const navigate = useNavigate();
@@ -20,9 +27,9 @@ function Login() {
       const data = await apiRequest("/auth/login", {
         method: "POST",
         body: JSON.stringify({ email, password }),
-      });
+      }, true);
 
-      localStorage.setItem("accessToken", data.accessToken);
+      storeUserData(data);
       navigate("/");
     } catch (err) {
       setError(err.message);
@@ -30,7 +37,7 @@ function Login() {
       setLoading(false);
     }
   };
-  
+
   return (
     <div className="auth-container">
       <div className="auth-box">
@@ -42,7 +49,7 @@ function Login() {
         </div>
 
         <form className="auth-form" onSubmit={handleSubmit}>
-          {error && <p className="auth-error">{error}</p>}
+          {error && <p className="error">{error}</p>}
 
           <div className="form-group">
             <label>Email</label>
@@ -64,9 +71,9 @@ function Login() {
               onChange={(e) => setPassword(e.target.value)}
               required 
             />
-            {/* <div className="forgot-password">
+            <div className="forgot-password">
               <a href="/forgot-password">Forgot password?</a>
-            </div> */}
+            </div>
           </div>
 
           <button className="submit-btn" type="submit" disabled={loading}>
@@ -78,9 +85,9 @@ function Login() {
           <p className="oauth-text">Or continue with</p>
           <button 
             className="oauth-btn"
-            onClick={() => window.location.href = "/api/auth/google"}
+            onClick={() => window.location.href = "http://localhost:3000/auth/42/callback"}
           >
-            Google
+            Intra 42
           </button>
         </div>
 
@@ -90,16 +97,7 @@ function Login() {
             <a href="/register">Create one</a>
           </span>
         </div>
-          
-        <div className="auth-back">
-          <Link to="/">← Return to home page</Link>
-        </div>
-
-        <p className="auth-footer">
-          By clicking continue, you agree to our{" "}
-          <NavLink to="/terms-of-service">Terms of Service</NavLink> and{" "}
-          <NavLink to="/privacy-policy">Privacy Policy</NavLink>.
-        </p>
+    
       </div>
     </div>
   );
