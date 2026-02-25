@@ -1,11 +1,11 @@
 import { apiRequest } from "../../services/api";
 
-export default function IncomingRequests({ incomingRequests, setIncomingRequests, setFriendList }) {
+export default function IncomingRequests({ incomingRequests, setIncomingRequests, fetchAllFriendsData }) {
   const acceptIncomingRequest = async (requestId) => {
     try {
       await apiRequest(`/requests/accept/${requestId}`, { method: "POST" });
       setIncomingRequests((prev) => prev.filter((r) => r.id !== requestId));
-    //   setFriendList
+      fetchAllFriendsData();
     } catch (error) {
       console.error(error.message);
     }

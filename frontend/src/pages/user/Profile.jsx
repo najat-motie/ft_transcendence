@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../styles/user/profile.css";
 import { apiRequest } from "../../services/api";
-import { validateForm } from "../../utils/validators";
+import { validateForm } from "../../utils/validator";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -12,37 +12,36 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // mock data
   const [user, setUser] = useState({
     username: "Alice",
     email: "alice@example.com",
-    avatar: "",
+    avatar: "https://i.pravatar.cc/100?img=3",
     bio: "Just a cool player!",
   });
   const [formData, setFormData] = useState({
     username: "Alice",
     email: "alice@example.com",
-    avatar: "",
+    avatar: "https://i.pravatar.cc/100?img=3",
     bio: "Just a cool player!",
   });
 
-//   useEffect(() => {
-//     const fetchUser = async () => {
-//       try {
-//         const user = JSON.parse(localStorage.getItem("user"));
-//         const res = await apiRequest(`/profile/${user.userId}`, { method: "GET" });
-//         if (!res.ok) throw new Error("Failed to fetch user data");
-//         const data = await res.json();
-//         setUser(data);
-//         setFormData(data);
-//       } catch (error) {
-//         setError(error.message);
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-//     fetchUser();
-//   }, []);
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const user = JSON.parse(localStorage.getItem("user"));
+        const res = await apiRequest(`/profile/${user.userId}`, { method: "GET" });
+        if (!res.ok) throw new Error("Failed to fetch user data");
+        const data = await res.json();
+        setUser(data);
+        setFormData(data);
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUser();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;

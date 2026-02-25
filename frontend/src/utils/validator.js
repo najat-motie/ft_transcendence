@@ -1,21 +1,14 @@
 export function validateForm(form, options = {}) {
   const {
-    password,
     username = false,
+    password = false,
     confirmPassword = false,
-    email = false
   } = options;
-  
-  if (email) {
-    if (email && !form.email?.trim()) {
-      return "Email is required";
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(form.email)) {
-      return "Invalid email format";
-    }
+
+  if (username && !form.username?.trim()) {
+    return "Username is required";
   }
- 
+  
   if(password) {
     if (!form.password || form.password.length < 8) {
       return "Password must be at least 8 characters";
@@ -36,10 +29,6 @@ export function validateForm(form, options = {}) {
  
   if (confirmPassword && form.password !== form.confirmPassword) {
     return "Passwords do not match";
-  }
- 
-  if (username && !form.username?.trim()) {
-    return "Username is required";
   }
  
   return null;

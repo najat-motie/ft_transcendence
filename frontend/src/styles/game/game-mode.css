@@ -1,0 +1,134 @@
+.action {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: #0f172a;
+  padding: 20px;
+}
+
+.action-container {
+  text-align: center;
+  background: rgba(30, 41, 59, 0.85);
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  max-width: 500px;
+  width: 100%;
+}
+
+.action-container h2 {
+  color: #f1f5f9;
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+
+.action-container p {
+  color: #94a3b8;
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+.room-code {
+  font-size: 24px;
+  font-weight: bold;
+  color: #3b82f6;
+  background: #1e293b;
+  padding: 15px 25px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  display: inline-block;
+  letter-spacing: 2px;
+}
+
+.input-code {
+  width: 100%;
+  max-width: 350px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: bold;
+  color: #3b82f6;
+  background: #1e293b;
+  padding: 10px 20px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  display: inline-block;
+  letter-spacing: 2px;
+}
+
+.action-container h3 {
+  color: #f1f5f9;
+  margin-bottom: 10px;
+}
+
+.action-container ul {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 30px;
+}
+
+.action-container li {
+  color: #94a3b8;
+  padding: 8px 0;
+  font-size: 16px;
+}
+
+button {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #f1f5f9;
+  padding: 10px 20px;
+  margin: 5px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+button:hover {
+  background: #334155;
+}
+
+
+.matchmaking {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: #1e1e2f;
+  color: #ffffff;
+  font-family: 'Arial', sans-serif;
+}
+
+.matchmaking-container {
+  text-align: center;
+  background: #2a2a3f;
+  padding: 40px 60px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  max-width: 400px;
+  width: 90%;
+}
+
+.matchmaking-container h2 {
+  margin-bottom: 20px;
+  font-size: 28px;
+}
+
+.matchmaking-container p {
+  margin-bottom: 30px;
+  font-size: 18px;
+}
+
+.matchmaking-container button {
+  padding: 10px 25px;
+  font-size: 16px;
+  background-color: #ff4c4c;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.matchmaking-container button:hover {
+  background-color: #e04343;
+}

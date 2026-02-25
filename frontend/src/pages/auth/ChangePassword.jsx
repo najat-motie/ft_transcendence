@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { validateForm } from "../../utils/validators";
+import { validateForm } from "../../utils/validator";
 import { apiRequest } from "../../services/api";
 import "../../styles/auth/password.css";
 
@@ -46,13 +46,13 @@ export default function ChangePassword() {
         <h1 className="auth-title">Set a new password</h1>
 
         {success ? (
-          <p className="auth-success">
+          <p className="success">
             Your password has been successfully changed.{" "}
             <Link to="/profile" className="auth-back">← Back</Link>
           </p>
         ) : (
           <>
-            {error && <p className="auth-error">{error}</p>}
+            {error && <p className="error">{error}</p>}
 
             <input
               type="password"
