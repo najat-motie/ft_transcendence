@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getSocket } from "../../../services/socket";
+import { getUserFromCookie } from "../../../utils/cookies";
 import "../../../styles/game/game-room.css";
 
 export default function OnlineGame() {
@@ -11,7 +12,7 @@ export default function OnlineGame() {
   const [turn, setTurn] = useState("X");
   const [winner, setWinner] = useState(null);
 
-  const savedUser = JSON.parse(localStorage.getItem("user"));
+  const savedUser = getUserFromCookie();
 
   const handleClick = (index) => {
     // prevent clicking on filled cell or after game ends

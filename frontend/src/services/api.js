@@ -1,12 +1,14 @@
-const BASE_URL = "http://localhost:3000";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 
 import { logout } from "./auth.js";
+import { getCookie, setCookie, getUserFromCookie } from "../utils/cookies.js";
 
 export async function apiRequest(endpoint, options = {}, skipAuth = false) {
 
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  let accessToken = localStorage.getItem(`accessToken_${user.userId}`);
-  let refreshToken = localStorage.getItem(`refreshToken_${user.userId}`);
+  // Get user from cookies instead of localStorage
+  const user = getUserFromCookie() || {};
+  let accessToken = getCookie(`accessToken_${user.userId}`);
+  let refreshToken = getCookie(`refreshToken_${user.userId}`);
 
   if (!skipAuth && !user.userId) {
     throw new Error("No active user. Please login.");
@@ -23,10 +25,20 @@ export async function apiRequest(endpoint, options = {}, skipAuth = false) {
   };
 
   
-  let response = await makeRequest(accessToken);
-  const data = await response.json();
+  const parseJsonSafe = async (res) => {
+    const text = await res.text();
+    if (!text) return null;
+    try {
+      return JSON.parse(text);
+    } catch (err) {
+      throw new Error(text || "Invalid JSON response");
+    }
+  };
 
-  if (response.status === 401 && data.error === "TOKEN_EXPIRED") {
+  let response = await makeRequest(accessToken);
+  let data = await parseJsonSafe(response);
+
+  if (response.status === 401 && data?.error === "TOKEN_EXPIRED") {
     if (!refreshToken) {
       logout(user.userId);
       window.location.href = "/login";
@@ -42,24 +54,28 @@ export async function apiRequest(endpoint, options = {}, skipAuth = false) {
     });
 
     if (!refreshResponse.ok) {
-      logout();
+      logout(user.userId);
       throw new Error("Session expired. Please login again.");
     }
 
-    const refreshData = await refreshResponse.json();
+    const refreshData = await parseJsonSafe(refreshResponse);
     const newAccessToken = refreshData.accessToken;
-    localStorage.setItem(`accessToken_${user.userId}`, newAccessToken);
+    
+    // Store new tokens in cookies
+    setCookie(`accessToken_${user.userId}`, newAccessToken, 7);
     if (refreshData.refreshToken) {
-      localStorage.setItem(`refreshToken_${user.userId}`, refreshData.refreshToken);
+      setCookie(`refreshToken_${user.userId}`, refreshData.refreshToken, 7);
     }
 
     response = await makeRequest(newAccessToken);
-    return response.json();
+    data = await parseJsonSafe(response);
+    return data ?? {};
   }
 
   if (!response.ok) {
-    throw new Error(data.message || "Something went wrong");
+    const message = (data && data.message) || "Something went wrong";
+    throw new Error(message);
   }
 
-  return data;
+  return data ?? {};
 }

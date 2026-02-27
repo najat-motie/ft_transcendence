@@ -1,6 +1,9 @@
+import { deleteCookie } from "../utils/cookies";
+
 export function logout(userId) {
-    localStorage.removeItem("user");
-    localStorage.removeItem("userId");
-    localStorage.removeItem(`accessToken_${userId}`);
-    localStorage.removeItem(`refreshToken_${userId}`);
+  // Clear user data from cookies ONLY
+  deleteCookie("user");
+  deleteCookie(`accessToken_${userId}`);
+  deleteCookie(`refreshToken_${userId}`);
+  deleteCookie("userProfile");
 }

@@ -5,15 +5,15 @@ import { FiPlay } from "react-icons/fi";
 import logo from "../assets/logo.png";
 import { apiRequest } from "../services/api.js";
 import { logout } from "../services/auth.js";
+import { getUserFromCookie } from "../utils/cookies.js";
 
 export default function SideBar() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
-  const user = JSON.parse(localStorage.getItem("user")) || {
-    username: "Alice",
-    avatar: "https://i.pravatar.cc/100?img=3",
-  };
+  // Get user from cookies instead of localStorage
+  const user = getUserFromCookie();
+  const isLoggedIn = !!user;
 
   const handleLogout = async () => {
     try {
@@ -45,23 +45,26 @@ export default function SideBar() {
         </div>
 
         <div className="sidebar-bottom">
-          {user ? (
+          {isLoggedIn ? (
             <div className="user">
               <a onClick={() => setOpen(prev => !prev)}>
                 <img
-                  src={user?.avatar}
+                  src={user?.avatar || "https://i.pravatar.cc/100?img=3"}
                   alt="avatar"
                   className="avatar"
                 />
-                <span className="username">{user?.username}</span>
+                <span className="username">{user?.username || "User"}</span>
               </a>
 
               {open && (
                 <div className="dropdown-menu">
-                  <button onClick={handleLogout}>Logout</button>
                   <Link to="/profile" onClick={() => setOpen(false)}>
                     View Profile
                   </Link>
+                  <Link to="/settings" onClick={() => setOpen(false)}>
+                    Settings
+                  </Link>
+                  <button onClick={handleLogout}>Logout</button>
                 </div>
               )}
             </div>

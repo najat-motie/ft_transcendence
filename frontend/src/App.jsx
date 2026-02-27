@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Outlet, Navigate } from "react-router-dom";
 import SideBar from "./layouts/SidebarLayout";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 import Home from "./pages/Home";
 import Login from "./pages/auth/Login";
@@ -20,50 +21,43 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import CustomizePage from "./features/customize/CustomizePage";
 
-// function ProtectedRoute({ children }) {
-//   const token = localStorage.getItem("accessToken");
-//   if (!token) return <Navigate to="/login" />;
-//   return children;
-// }
-
-function ProtectedRoutes() {
-  const isAuthenticated = !!localStorage.getItem("accessToken");
-
-  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
-}
-
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Public Routes */}
         <Route path="/login" element={<Login />} />
-        <Route path="/change-password" element={<ChangePassword />} />
+        <Route path="/register" element={<Register />} />
         <Route path="/reset-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
-        <Route path="/register" element={<Register />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
+        
+        {/* Public Routes - Offline Game */}
+        <Route path="/play/local-game" element={<LocalGame />} />
+        <Route path="/play/ai-game" element={<AIGame />} />
 
-        {/* <Route path="/game" element={<ProtectedRoute><Game /></ProtectedRoute>} /> */}
-        {/* <Route element={<ProtectedRoutes />}> */}
-          <Route path="/play/online-game" element={<OnlineGame />} />
-          <Route path="/play/local-game" element={<LocalGame />} />
-          <Route path="/play/ai-game" element={<AIGame />} />
-        {/* </Route> */}
-
+        {/* Public Routes - With Sidebar */}
         <Route element={<SideBar />}>
           <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          {/* <Route path="/forgot-password" element={<ForgotPassword />} /> */}
-          {/* <Route path="/play" element={<Play />} /> */}
-          <Route path="/settings" element={<CustomizePage />} />
-          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-          <Route path="/terms-of-service" element={<TermsOfService />} />
         </Route>
 
-        <Route path="*" element={<Home />} />
-        
+        {/* Protected Routes - Online Game Only */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/play/online-game" element={<OnlineGame />} />
+        </Route>
+
+        {/* Protected Routes - With Sidebar */}
+        <Route element={<ProtectedRoute />}>
+          <Route element={<SideBar />}>
+            <Route path="/settings" element={<CustomizePage />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/friends" element={<Friends />} />
+            <Route path="/change-password" element={<ChangePassword />} />
+          </Route>
+        </Route>
+
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );

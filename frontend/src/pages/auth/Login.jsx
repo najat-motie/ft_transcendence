@@ -2,16 +2,20 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../styles/auth/login.css";
 import { apiRequest } from "../../services/api";
+import { setCookie, setUserInCookie } from "../../utils/cookies";
 
 function storeUserData(data) {
-  localStorage.setItem("user", JSON.stringify(data.user));
-  localStorage.setItem("userId", JSON.stringify(data.user.userId));
-  localStorage.setItem(`accessToken_${data.user.userId}`, data.accessToken);
-  localStorage.setItem(`refreshToken_${data.user.userId}`, data.refreshToken);
+  // Store ONLY in cookies
+  setUserInCookie(data.user, 7); // 7 days
+  setCookie(`accessToken_${data.user.userId}`, data.accessToken, 7);
+  setCookie(`refreshToken_${data.user.userId}`, data.refreshToken, 7);
 }
 
 function Login() {
  const navigate = useNavigate();
+
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+  const oauth42Url = `${apiBaseUrl}/auth/42/callback`;
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,12 +28,24 @@ function Login() {
     setError("");
 
     try {
-      const data = await apiRequest("/auth/login", {
+      const response = await apiRequest("/auth/login", {
         method: "POST",
         body: JSON.stringify({ email, password }),
       }, true);
+      const payload = response?.data || response;
+      console.log("Login successful:", payload);
+      // Persist tokens immediately so follow-up requests are authorized
+      storeUserData(payload);
 
-      storeUserData(data);
+      // Hydrate profile/KPIs for downstream pages
+      try {
+        const kpiResponse = await apiRequest(`/profile/${payload.user.userId}/kpis`, { method: "GET" });
+        const kpiData = kpiResponse?.data || kpiResponse;
+        setCookie("userProfile", JSON.stringify(kpiData), 7);
+      } catch (kpiErr) {
+        console.warn("Could not prefetch profile KPIs:", kpiErr.message);
+      }
+
       navigate("/");
     } catch (err) {
       setError(err.message);
@@ -49,7 +65,7 @@ function Login() {
         </div>
 
         <form className="auth-form" onSubmit={handleSubmit}>
-          {error && <p className="error">{error}</p>}
+          {/* {error && <p className="error">{error}</p>} */}
 
           <div className="form-group">
             <label>Email</label>
@@ -85,7 +101,7 @@ function Login() {
           <p className="oauth-text">Or continue with</p>
           <button 
             className="oauth-btn"
-            onClick={() => window.location.href = "http://localhost:3000/auth/42/callback"}
+            onClick={() => window.location.href = oauth42Url}
           >
             Intra 42
           </button>
