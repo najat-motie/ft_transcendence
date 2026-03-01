@@ -8,7 +8,8 @@
     "dev": "nodemon src/server.js",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "seed:admin": "node scripts/create-admin.js"
   },
   "keywords": [
     "authentication",

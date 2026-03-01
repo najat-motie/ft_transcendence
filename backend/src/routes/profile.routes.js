@@ -7,15 +7,11 @@ const router = express.Router();
 router.use(verifyAccessToken);
 
 router.post('/', profileController.createProfile);
-
-router.get('/:userId', profileController.getProfile);
-
 router.put('/', profileController.updateProfile);
-
 router.patch('/status', profileController.updateStatus);
-
 router.post('/stats', profileController.updateStats);
-
 router.get('/leaderboard', profileController.getLeaderboard);
+router.get('/:userId/kpis', profileController.getProfileKpis);
+router.get('/:userId', profileController.getProfile);
 
 module.exports = router;
