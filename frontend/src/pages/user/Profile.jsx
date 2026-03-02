@@ -1,46 +1,23 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../styles/user/profile.css";
+import { getUser } from "../../services/auth";
 import { apiRequest } from "../../services/api";
 import { validateForm } from "../../utils/validator";
 
 export default function Profile() {
   const navigate = useNavigate();
-//   const [user, setUser] = useState(null);
-//   const [formData, setFormData] = useState({ username: "", email: "", bio: "", avatar: "" });
+  const [user, setUser] = useState(null);
+  const [formData, setFormData] = useState(null);
   const [editMode, setEditMode] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const [user, setUser] = useState({
-    username: "Alice",
-    email: "alice@example.com",
-    avatar: "https://i.pravatar.cc/100?img=3",
-    bio: "Just a cool player!",
-  });
-  const [formData, setFormData] = useState({
-    username: "Alice",
-    email: "alice@example.com",
-    avatar: "https://i.pravatar.cc/100?img=3",
-    bio: "Just a cool player!",
-  });
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const user = JSON.parse(localStorage.getItem("user"));
-        const res = await apiRequest(`/profile/${user.userId}`, { method: "GET" });
-        if (!res.ok) throw new Error("Failed to fetch user data");
-        const data = await res.json();
-        setUser(data);
-        setFormData(data);
-      } catch (error) {
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUser();
+    const userData = getUser();
+    if (userData?.user) {
+      setUser(userData.user);
+      setFormData(userData.user);
+    }
   }, []);
 
   const handleChange = (e) => {
@@ -82,75 +59,120 @@ export default function Profile() {
     }
   };
 
-//   if (loading) return <p>Loading profile...</p>;
-//   if (!user) return <p>No user data</p>;
+  if (!user || !formData) {
+    return <p className="status-msg">Loading profile...</p>;
+  }
 
   return (
     <section className="profile">
       <div className="profile-container">
-        {error && <p className="error">{error}</p>}
+        {error && (
+          <p className="error" role="alert">
+            {error}
+          </p>
+        )}
 
         <div className="profile-header">
           <div className="avatar-wrapper">
             <img
               src={formData.avatar}
-              alt="avatar"
+              alt={`${user.username}'s avatar`}
               className="avatar"
             />
+
             {editMode && (
               <input
                 type="file"
+                name="avatar"
                 accept="image/*"
                 onChange={handleChange}
                 className="avatar-input"
+                aria-label="Upload new avatar"
               />
             )}
           </div>
 
           <div className="user-info">
             {editMode ? (
-              <div className="profile-form">
-                <label>
-                  Username
-                  <input
-                    type="text"
-                    name="username"
-                    value={formData.username}
-                    onChange={handleChange}
-                  />
-                </label>
-                <label>
-                  Email
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                  />
-                </label>
-                <label>
-                  Bio
-                  <textarea
-                    name="bio"
-                    value={formData.bio}
-                    onChange={handleChange}
-                    rows="3"
-                  />
-                </label>
+              <form
+                className="profile-form"
+                onSubmit={(e) => e.preventDefault()}
+              >
+                <label htmlFor="username">Username</label>
+                <input
+                  id="username"
+                  type="text"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleChange}
+                />
+
+                <label htmlFor="email">Email</label>
+                <input
+                  id="email"
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                />
+
+                <label htmlFor="bio">Bio</label>
+                <textarea
+                  id="bio"
+                  name="bio"
+                  value={formData.bio}
+                  onChange={handleChange}
+                  rows="3"
+                />
+
                 <div className="form-buttons">
-                  <button className="save-btn" onClick={handleSave}>Save Changes</button>
-                  <button className="cancel-btn" onClick={() => setEditMode(false)}>Cancel</button>
+                  <button
+                    type="button"
+                    className="save-btn"
+                    onClick={handleSave}
+                  >
+                    Save Changes
+                  </button>
+
+                  <button
+                    type="button"
+                    className="cancel-btn"
+                    onClick={() => {
+                      setFormData(user);
+                      setEditMode(false);
+                    }}
+                  >
+                    Cancel
+                  </button>
                 </div>
-              </div>
+              </form>
             ) : (
               <div className="profile-view">
                 <h2>{user.username}</h2>
                 <p>{user.email}</p>
                 <p>{user.bio}</p>
+
                 <div className="profile-buttons">
-                  <button onClick={() => navigate("/change-password")}>Change Password</button>
-                  <button onClick={() => setEditMode(true)}>Edit Profile</button>
-                  <button onClick={() => navigate("/friends")}>View Friends</button>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/change-password")}
+                  >
+                    Change Password
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setEditMode(true)}
+                  >
+                    Edit Profile
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => navigate("/friends")}
+                  >
+                    View Friends
+                  </button>
                 </div>
               </div>
             )}

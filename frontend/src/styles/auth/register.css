@@ -51,6 +51,7 @@
   background-color: #0f172a;
   color: #fff;
   transition: border 0.2s;
+  width: 100%;
 }
 
 .auth-input:focus {
@@ -74,16 +75,19 @@
   transform: scale(0.98);
 }
 
-p.auth-back {
+p.back-login {
   text-align: center;
   margin-top: 1rem;
   color: #ccc;
   font-size: 0.9rem;
-  text-decoration: none !important;
 }
 
-.auth-back a {
+.back-login a {
   color: #3B82F6;
+}
+
+.back-login a:hover {
+  text-decoration: underline;
 }
 
 .auth-footer {
@@ -100,5 +104,17 @@ p.auth-back {
 
 .back-btn {
   color: black;
-  /* background-color: white; */
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+@media (max-width: 480px) {
+  .auth-form {
+    padding: 1.5rem;
+  }
+
+  .auth-title {
+    font-size: 1.6rem;
+  }
 }

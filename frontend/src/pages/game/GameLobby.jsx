@@ -1,65 +1,109 @@
 import { useNavigate } from "react-router-dom";
 import "../../styles/game/lobby.css";
+import { apiRequest } from "../../services/api";
+import { getUser } from "../../services/auth";
 
 export default function GameLobby() {
   const navigate = useNavigate();
 
   const gameModes = [
     {
-      title: "Create Room",
-      description: "Create a room and invite your friend.",
-      buttonText: "Create",
-      route: "/play/create-room",
-    },
-    {
-      title: "Join Room",
-      description: "Join a room using your unique room code.",
-      buttonText: "Join",
-      route: "/play/join-room",
-    },
-    {
-      title: "Quick Match",
-      description: "Get matched instantly with an online player.",
-      buttonText: "Start",
-      route: "/play/matchmaking",
-    },
-    {
-      title: "Local Game",
+      title: "Play Local",
       description: "Play on the same device with a friend.",
       buttonText: "Play",
-      route: "/play/local-game",
+      mode: "offline",
     },
     {
-      title: "With AI",
+      title: "Play Online",
+      description: "Get matched instantly with an online player.",
+      buttonText: "Start",
+      mode: "online",
+    },
+    {
+      title: "Play With AI",
       description: "Challenge yourself against an AI with human-like behavior.",
       buttonText: "Play",
-      route: "/play/ai-game",
-    }
+      mode: "ai",
+    },
   ];
 
-  return (
-    <div className="play-page">
-      <div className="play-header">
-        <h2 className="play-title">Choose Your Game Mode</h2>
-        <p className="play-subtitle">
-          Play your way — quick matches, private rooms, AI challenges, or local battles.
-        </p>
-      </div>
+  const createMatch = async (gameMode) => {
+    try {
+      if (gameMode.mode === "online") {
+        navigate("/play/matchmaking");
+        return;
+      }
 
-      <div className="play-modes">
-        {gameModes.map((mode, index) => (
-          <div key={index} className="play-card">
-            <h3 className="play-card-title">{mode.title}</h3>
-            <p className="play-card-desc">{mode.description}</p>
-            <button
-              className="play-card-btn"
-              onClick={() => navigate(mode.route)}
+      const user = getUser();
+      if (!user) return;
+
+      let body = {};
+
+      if (gameMode.mode === "ai") {
+        body = {
+          player_id: user.user.userId,
+        };
+      } else if (gameMode.mode === "offline") {
+        body = {
+          user_token: user.accessToken,
+          player_choice: "X",
+          starting_player: "X",
+        };
+      }
+
+      const res = await apiRequest(`/${gameMode.mode}`, {
+        method: "POST",
+        body: JSON.stringify(body),
+      });
+
+      const data = await res.json();
+
+      navigate(`/play/${gameMode.mode}`, {
+        state: { wsPath: data.ws_path },
+      });
+
+    } catch (err) {
+      console.error("Failed to create match:", err);
+    }
+  };
+
+  return (
+    <main className="play-page">
+      <header className="play-header">
+        <h1 className="play-title">Choose Your Game Mode</h1>
+        <p className="play-subtitle">
+          Choose your challenge and prove your skills.
+        </p>
+      </header>
+
+      <section className="play-modes" aria-label="Game modes">
+        {gameModes.map((gameMode) => (
+          <article
+            key={gameMode.mode}
+            className="play-card"
+            aria-labelledby={`${gameMode.mode}-title`}
+          >
+            <h2
+              id={`${gameMode.mode}-title`}
+              className="play-card-title"
             >
-              {mode.buttonText}
+              {gameMode.title}
+            </h2>
+
+            <p className="play-card-desc">
+              {gameMode.description}
+            </p>
+
+            <button
+              type="button"
+              className="play-card-btn"
+              onClick={() => createMatch(gameMode)}
+            >
+              {gameMode.buttonText}
             </button>
-          </div>
+          </article>
         ))}
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

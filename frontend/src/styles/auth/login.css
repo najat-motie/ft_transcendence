@@ -2,15 +2,9 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  min-height: 100vh;
   background-color: #0B1220;
   padding: 20px;
-}
-
-@media (min-width: 1024px) {
-  .auth-container {
-    grid-template-columns: 1fr 1fr;
-  }
 }
 
 .auth-box {
@@ -40,9 +34,12 @@
   font-weight: 600;
 }
 
-.auth-subtitle {
+.auth-subtitle,
+.oauth-text,
+.auth-signup {
   font-size: 0.875rem;
-  color: #9CA3AF;
+  color: #cbd5e1;
+  text-align: center;
 }
 
 .auth-form {
@@ -66,7 +63,7 @@
   outline: none;
 }
 
-.form-group input:focus {
+.form-group input:focus-visible {
   box-shadow: 0 0 0 2px #3B82F6;
 }
 
@@ -94,7 +91,7 @@
   cursor: pointer;
   border: none;
   transition: background-color 0.3s;
-} */
+}
 
 .submit-btn:hover {
   background-color: #2563EB;
@@ -111,30 +108,19 @@
   gap: 1rem;
 }
 
-.oauth-text {
-  text-align: center;
-  font-size: 0.875rem;
-  color: #9ca3af;
-}
-
 .oauth-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-
   width: 100%;
   padding: 0.75rem 1rem;
-
   background-color: #ffffff;
   color: #1f2937;
-
   border-radius: 0.75rem;
   border: 1px solid #e5e7eb;
-
   font-size: 0.95rem;
   font-weight: 500;
-
   cursor: pointer;
   transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -150,14 +136,10 @@
 
 .auth-signup {
   margin-top: 1.5rem;
-  text-align: center;
-  font-size: 0.875rem;
-  color: #94a3b8;
 }
 
 .create-account {
   color: #818cf8;
-  cursor: pointer;
 }
 
 .create-account:hover {

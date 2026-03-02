@@ -7,7 +7,6 @@
 }
 
 html {
-  font-size: 100%;
   scroll-behavior: smooth;
 }
 
@@ -17,16 +16,8 @@ body {
   font-size: 1rem;
   background-color: #ffffff;
   color: #111827;
-  line-height: 1.6;
+  line-height: 1.5;
   text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;  
-}
-
-html,
-body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
 }
 
 img,
@@ -67,7 +58,7 @@ a {
 }
 
 a:hover {
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 button {
