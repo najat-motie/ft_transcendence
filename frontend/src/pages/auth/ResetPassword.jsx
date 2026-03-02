@@ -18,18 +18,16 @@ export default function ResetPassword() {
     e.preventDefault();
     setError("");
 
-    const errorMessage = validateForm({password, confirmPassword}, {
-        password: true,
-        confirmPassword: true,
-      });
-      if(errorMessage) {
-        setError(errorMessage);
-        setLoading(false);
-        return;
+    const errorMessage = validateForm(
+      { password, confirmPassword },
+      { password: true, confirmPassword: true }
+    );
+    if (errorMessage) {
+      setError(errorMessage);
+      return;
     }
 
     setLoading(true);
-
     try {
       await apiRequest(`/auth/reset-password/${token}`, {
         method: "POST",
@@ -38,10 +36,7 @@ export default function ResetPassword() {
 
       setSuccess(true);
 
-      setTimeout(() => {
-        navigate("/login");
-      }, 2000);
-
+      setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
       setError(err.message || "Invalid or expired token.");
     } finally {
@@ -50,11 +45,15 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="auth-container">
-      <form className="auth-card" onSubmit={handleSubmit}>
+    <main className="auth-container">
+      <form className="auth-card" onSubmit={handleSubmit} noValidate>
         <h1 className="auth-title">Reset your password</h1>
 
-        {error && <p className="error">{error}</p>}
+        {error && (
+          <p className="error" role="alert">
+            {error}
+          </p>
+        )}
 
         {success ? (
           <p className="success">
@@ -62,7 +61,11 @@ export default function ResetPassword() {
           </p>
         ) : (
           <>
+            <label htmlFor="newPassword" className="sr-only">
+              New password
+            </label>
             <input
+              id="newPassword"
               type="password"
               className="auth-input"
               placeholder="New password"
@@ -71,7 +74,11 @@ export default function ResetPassword() {
               onChange={(e) => setPassword(e.target.value)}
             />
 
+            <label htmlFor="confirmNewPassword" className="sr-only">
+              Confirm new password
+            </label>
             <input
+              id="confirmNewPassword"
               type="password"
               className="auth-input"
               placeholder="Confirm new password"
@@ -80,18 +87,23 @@ export default function ResetPassword() {
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
 
-            <button className="submit-btn" type="submit" disabled={loading}>
+            <button
+              className="submit-btn"
+              type="submit"
+              disabled={loading}
+              aria-busy={loading}
+            >
               {loading ? "Updating..." : "Reset Password"}
             </button>
+
+            {!loading && (
+              <Link to="/login" className="auth-back">
+                ← Back
+              </Link>
+            )}
           </>
         )}
-
-        {!success && (
-          <Link to="/login" className="auth-back">
-            ← Back to sign in
-          </Link>
-        )}
       </form>
-    </div>
+    </main>
   );
 }

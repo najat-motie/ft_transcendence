@@ -4,10 +4,8 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  /* background: linear-gradient(to bottom, #0b132b, #0d1b2a); */
   padding: 20px;
   color: #cbd5e1;
-  /* padding: 80px 20px 40px; */
   background: radial-gradient(circle at top, #0f1c3f 0%, #0b1220 70%);
 }
 
@@ -29,72 +27,36 @@
 
 .play-modes {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  /* grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); */
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 2rem;
   max-width: 1000px;
-  justify-items: center;
+  width: 100%;
 }
-
-.play-card:nth-child(2) {
-  grid-column: 3;
-}
-
-.play-card:nth-child(3) {
-  grid-column: 2;
-}
-
-.play-card:nth-child(4) {
-  /* grid-column: 1 / 2;
-  grid-row: 2; 
-  justify-self: end; 
-  margin-right: 10px; */
-
-  grid-column: 1;
-}
-
-.play-card:nth-child(5) {
-  grid-column: 3;
-}
-
-/* .play-card:last-child {
-  grid-column: 1 / span 2;
-} */
 
 .play-card {
-  width: 280px;
   background: rgba(30, 41, 59, 0.9);
   padding: 30px 20px;
   border-radius: 16px;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.08);
   text-align: center;
-  transition: all 0.3s ease;
-  /* transition: transform 0.3s ease, box-shadow 0.3s ease; */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-
 
 .play-card:hover {
   transform: translateY(-8px);
   box-shadow: 0 15px 25px rgba(0, 0, 0, 0.35);
 }
 
-/* .play-card:active {
-  transform: scale(0.97);
-} */
-
 .play-card-title {
   font-size: 1.5rem;
-  /* font-size: 2.5rem; */
-  /* letter-spacing: 0.5px; */
   color: #ffffff;
   margin-bottom: 12px;
 }
 
-
 .play-card-desc {
   font-size: 0.95rem;
-  color: #94a3b8;
+  color: #cbd5e1;
   margin-bottom: 20px;
 }
 
@@ -108,30 +70,32 @@
   font-weight: 600;
   font-size: 0.95rem;
   transition: 0.2s ease;
-  /* background: linear-gradient(135deg, #facc15, #fbbf24); */
-  /*box-shadow: 0 4px 14px rgba(250, 204, 21, 0.35); */
-  /* transition: all 0.25s ease; */
 }
 
-.play-card-btn:hover {
+.play-card-btn:hover,
+.play-card-btn:focus-visible {
   background-color: #eab308;
-  /* transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(250, 204, 21, 0.5); */
 }
 
-@media (max-width: 992px) {
-  .play-modes {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .play-card:nth-child(4),
-  .play-card:nth-child(5) {
-    grid-column: auto; /* flow naturally */
-  }
+.play-card-btn:focus-visible {
+  outline: 2px solid #facc15;
+  outline-offset: 2px;
 }
 
 @media (max-width: 600px) {
-  .play-modes {
-    grid-template-columns: 1fr;
+  .play-title {
+    font-size: 1.8rem;
+  }
+
+  .play-subtitle {
+    font-size: 1rem;
+  }
+
+  .play-card-title {
+    font-size: 1.25rem;
+  }
+
+  .play-header {
+    margin-bottom: 30px;
   }
 }

@@ -1,17 +1,13 @@
 const BASE_URL = "http://localhost:3000";
 
-import { logout } from "./auth.js";
+import { getUser, clearUser, setUser } from "./auth";
 
 export async function apiRequest(endpoint, options = {}, skipAuth = false) {
 
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  let accessToken = localStorage.getItem(`accessToken_${user.userId}`);
-  let refreshToken = localStorage.getItem(`refreshToken_${user.userId}`);
+  const user = getUser();
+  const accessToken = user?.accessToken;
+  const refreshToken = user?.refreshToken;
 
-  if (!skipAuth && !user.userId) {
-    throw new Error("No active user. Please login.");
-  }
-  
   const makeRequest = async (token) => {
     const headers = { "Content-Type": "application/json" };
     if (!skipAuth && token) headers["Authorization"] = `Bearer ${token}`;
@@ -28,7 +24,7 @@ export async function apiRequest(endpoint, options = {}, skipAuth = false) {
 
   if (response.status === 401 && data.error === "TOKEN_EXPIRED") {
     if (!refreshToken) {
-      logout(user.userId);
+      clearUser();
       window.location.href = "/login";
       throw new Error("Session expired. Please login again.");
     }
@@ -42,16 +38,21 @@ export async function apiRequest(endpoint, options = {}, skipAuth = false) {
     });
 
     if (!refreshResponse.ok) {
-      logout();
+      clearUser();
+      window.location.href = "/login";
       throw new Error("Session expired. Please login again.");
     }
 
     const refreshData = await refreshResponse.json();
     const newAccessToken = refreshData.accessToken;
-    localStorage.setItem(`accessToken_${user.userId}`, newAccessToken);
-    if (refreshData.refreshToken) {
-      localStorage.setItem(`refreshToken_${user.userId}`, refreshData.refreshToken);
-    }
+
+    const updatedUser = {
+      ...user,
+      accessToken: newAccessToken,
+      refreshToken: refreshData.refreshToken || refreshToken,
+    };
+    
+    setUser(updatedUser);
 
     response = await makeRequest(newAccessToken);
     return response.json();

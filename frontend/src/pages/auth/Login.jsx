@@ -1,16 +1,10 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "../../styles/auth/login.css";
+import { setUser } from "../../services//auth";
 import { apiRequest } from "../../services/api";
 
-function storeUserData(data) {
-  localStorage.setItem("user", JSON.stringify(data.user));
-  localStorage.setItem("userId", JSON.stringify(data.user.userId));
-  localStorage.setItem(`accessToken_${data.user.userId}`, data.accessToken);
-  localStorage.setItem(`refreshToken_${data.user.userId}`, data.refreshToken);
-}
-
-function Login() {
+export default function Login() {
  const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
@@ -29,7 +23,13 @@ function Login() {
         body: JSON.stringify({ email, password }),
       }, true);
 
-      storeUserData(data);
+      const userData = {
+        accessToken: data.accessToken,
+        refreshToken: data.refreshToken,
+        user: data.user
+      };
+
+      setUser(userData);
       navigate("/");
     } catch (err) {
       setError(err.message);
@@ -49,11 +49,12 @@ function Login() {
         </div>
 
         <form className="auth-form" onSubmit={handleSubmit}>
-          {error && <p className="error">{error}</p>}
+          {error && <p className="error" role="alert">{error}</p>}
 
           <div className="form-group">
-            <label>Email</label>
-            <input 
+            <label htmlFor="email">Email</label>
+            <input
+              id="email"
               type="email" 
               name="email"
               value={email}
@@ -63,8 +64,9 @@ function Login() {
           </div>
 
           <div className="form-group">
-            <label>Password</label>
+            <label htmlFor="password">Password</label>
             <input 
+              id="password"
               type="password"
               name="password"
               value={password}
@@ -72,7 +74,7 @@ function Login() {
               required 
             />
             <div className="forgot-password">
-              <a href="/forgot-password">Forgot password?</a>
+              <Link to="/reset-password">Forgot password?</Link>
             </div>
           </div>
 
@@ -85,6 +87,7 @@ function Login() {
           <p className="oauth-text">Or continue with</p>
           <button 
             className="oauth-btn"
+            type="button"
             onClick={() => window.location.href = "http://localhost:3000/auth/42/callback"}
           >
             Intra 42
@@ -102,5 +105,3 @@ function Login() {
     </div>
   );
 }
-
-export default Login;

@@ -5,7 +5,6 @@ import { apiRequest } from "../../services/api";
 import "../../styles/auth/password.css";
 
 export default function ChangePassword() {
-
   const [currentPassword, setCurrentPassword] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -17,11 +16,8 @@ export default function ChangePassword() {
     e.preventDefault();
     setError("");
 
-    const errorMessage = validateForm({password, confirmPassword}, {
-      password: true,
-      confirmPassword: true
-    });
-    if(errorMessage) {
+    const errorMessage = validateForm({ password, confirmPassword }, { password: true, confirmPassword: true });
+    if (errorMessage) {
       setError(errorMessage);
       return;
     }
@@ -41,20 +37,24 @@ export default function ChangePassword() {
   };
 
   return (
-    <div className="auth-container">
-      <form className="auth-card" onSubmit={handleSubmit}>
+    <main className="auth-container">
+      <form className="auth-card" onSubmit={handleSubmit} noValidate>
         <h1 className="auth-title">Set a new password</h1>
 
         {success ? (
           <p className="success">
-            Your password has been successfully changed.{" "}
-            <Link to="/profile" className="auth-back">← Back</Link>
+            Your password has been successfully changed.
+            <Link to="/profile" className="auth-back">
+              ← Back
+            </Link>
           </p>
         ) : (
           <>
-            {error && <p className="error">{error}</p>}
+            {error && <p className="error" role="alert">{error}</p>}
 
+            <label htmlFor="currentPassword" className="sr-only">Current password</label>
             <input
+              id="currentPassword"
               type="password"
               className="auth-input"
               placeholder="Current password"
@@ -63,7 +63,9 @@ export default function ChangePassword() {
               onChange={(e) => setCurrentPassword(e.target.value)}
             />
 
+            <label htmlFor="newPassword" className="sr-only">New password</label>
             <input
+              id="newPassword"
               type="password"
               className="auth-input"
               placeholder="New password"
@@ -72,7 +74,9 @@ export default function ChangePassword() {
               onChange={(e) => setPassword(e.target.value)}
             />
 
+            <label htmlFor="confirmNewPassword" className="sr-only">Confirm new password</label>
             <input
+              id="confirmNewPassword"
               type="password"
               className="auth-input"
               placeholder="Confirm new password"
@@ -81,13 +85,23 @@ export default function ChangePassword() {
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
 
-            <button className="submit-btn" type="submit" disabled={loading}>
+            <button
+              className="submit-btn"
+              type="submit"
+              disabled={loading}
+              aria-busy={loading}
+            >
               {loading ? "Updating..." : "Change Password"}
             </button>
+
+            {!loading && (
+              <Link to="/profile" className="auth-back">
+                ← Back
+              </Link>
+            )}
           </>
         )}
-
       </form>
-    </div>
+    </main>
   );
 }

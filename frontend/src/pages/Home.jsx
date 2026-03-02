@@ -3,9 +3,9 @@ import "../styles/home.css";
 
 export default function Home() {
   return (
-    <>
+    <main>
       <section className="intro">
-        <div className="container intro-layout">
+        <div className="home-container intro-layout">
           <div className="intro-text">
             <h1>Play Tic-Tac-Toe Online</h1>
             <p>
@@ -13,7 +13,7 @@ export default function Home() {
               Sharpen your strategy and enjoy every game!
             </p>
 
-            <div className="intro-actions link">
+            <div className="intro-actions">
               <Link to="/play">
                 Play Now
               </Link>
@@ -21,22 +21,22 @@ export default function Home() {
           </div>
 
           <div className="grid">
-            <div className="cell">X</div>
-            <div className="cell">O</div>
-            <div className="cell"></div>
-            <div className="cell"></div>
-            <div className="cell">X</div>
-            <div className="cell"></div>
-            <div className="cell">O</div>
-            <div className="cell"></div>
-            <div className="cell"></div>
+            <button className="cell">X</button>
+            <button className="cell">O</button>
+            <button className="cell"></button>
+            <button className="cell"></button>
+            <button className="cell">X</button>
+            <button className="cell"></button>
+            <button className="cell">O</button>
+            <button className="cell"></button>
+            <button className="cell"></button>
           </div>
 
         </div>
       </section>
 
       <section className="features">
-        <div className="container">
+        <div className="home-container">
           <h2>Why Play Here?</h2>
           <div className="features-layout">
             <div className="feature-card">
@@ -61,7 +61,7 @@ export default function Home() {
       </section>
       
       <section className="join-section">
-        <div className="container link">
+        <div className="home-container">
           <h2>Ready to dominate the board?</h2>
           <p>Sign up now and start winning matches today.</p> 
           <Link to="/register">
@@ -69,6 +69,6 @@ export default function Home() {
           </Link>
         </div>
       </section>
-    </>
+    </main>
   );
 }

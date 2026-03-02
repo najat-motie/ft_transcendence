@@ -26,12 +26,13 @@ export default function Register() {
   };
 
   const handleAvatarChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => setForm({ ...form, avatar: reader.result });
-      reader.readAsDataURL(file);
-    }
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () =>
+      setForm((prev) => ({ ...prev, avatar: reader.result }));
+    reader.readAsDataURL(file);
   };
 
   const handleContinue = () => {
@@ -40,37 +41,45 @@ export default function Register() {
       password: true,
       confirmPassword: true,
     });
-    if(errorMessage) {
+
+    if (errorMessage) {
       setError(errorMessage);
-      setLoading(false);
       return;
     }
+
     setStep(2);
   };
 
   const handleRegister = async () => {
     setError("");
+
     const errorMessage = validateForm(form, {
       username: true,
     });
-    if(errorMessage) {
+
+    if (errorMessage) {
       setError(errorMessage);
-      setLoading(false);
       return;
     }
 
     setLoading(true);
+
     try {
-      await apiRequest("/auth/register", {
-        method: "POST",
-        body: JSON.stringify({
-          email: form.email,
-          password: form.password,
-          username: form.username,
-          bio: form.bio,
-          avatar: form.avatar,
-        }),
-      }, true);
+      await apiRequest(
+        "/auth/register",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            email: form.email,
+            password: form.password,
+            username: form.username,
+            bio: form.bio,
+            avatar: form.avatar,
+          }),
+        },
+        true
+      );
+
       setSubmitted(true);
       navigate("/login");
     } catch (err) {
@@ -81,42 +90,65 @@ export default function Register() {
   };
 
   return (
-    <div className="auth-container">
-      <form className="auth-form">
+    <main className="auth-container">
+      <form
+        className="auth-form"
+        onSubmit={(e) => e.preventDefault()}
+        noValidate
+        aria-live="polite"
+      >
         {!submitted ? (
           <>
-            {error && <p className="error">{error}</p>}
+            {error && (
+              <p className="error" role="alert">
+                {error}
+              </p>
+            )}
 
             {step === 1 && (
               <>
                 <h1 className="auth-title">Create your account</h1>
                 <p className="auth-subtitle">
-                  Join the ultimate Tic-Tac-Toe arena and challenge players around the world.
+                  Join the ultimate Tic-Tac-Toe arena and challenge players
+                  around the world.
                 </p>
 
+                <label htmlFor="email" className="auth-label">
+                  Email
+                </label>
                 <input
+                  id="email"
                   type="email"
                   name="email"
                   value={form.email}
-                  placeholder="Email address"
                   className="auth-input"
                   onChange={handleChange}
                   required
+                  autoComplete="email"
                 />
+
+                <label htmlFor="password" className="auth-label">
+                  Password
+                </label>
                 <input
+                  id="password"
                   type="password"
                   name="password"
                   value={form.password}
-                  placeholder="Password"
                   className="auth-input"
                   onChange={handleChange}
                   required
+                  autoComplete="new-password"
                 />
+
+                <label htmlFor="confirmPassword" className="auth-label">
+                  Confirm Password
+                </label>
                 <input
+                  id="confirmPassword"
                   type="password"
                   name="confirmPassword"
                   value={form.confirmPassword}
-                  placeholder="Confirm Password"
                   className="auth-input"
                   onChange={handleChange}
                   required
@@ -130,7 +162,7 @@ export default function Register() {
                   Continue
                 </button>
 
-                <p className="auth-back">
+                <p className="back-login">
                   Already have an account? <Link to="/login">Login</Link>
                 </p>
               </>
@@ -140,18 +172,25 @@ export default function Register() {
               <>
                 <h1 className="auth-title">Create your profile</h1>
 
-                <label className="auth-label">Username</label>
+                <label htmlFor="username" className="auth-label">
+                  Username
+                </label>
                 <input
+                  id="username"
                   type="text"
                   name="username"
                   className="auth-input"
                   value={form.username}
                   onChange={handleChange}
                   required
+                  autoComplete="username"
                 />
 
-                <label className="auth-label">Bio (Optional)</label>
+                <label htmlFor="bio" className="auth-label">
+                  Bio (Optional)
+                </label>
                 <textarea
+                  id="bio"
                   name="bio"
                   className="auth-input"
                   value={form.bio}
@@ -159,8 +198,11 @@ export default function Register() {
                   rows="3"
                 />
 
-                <label className="auth-label">Avatar (Optional)</label>
+                <label htmlFor="avatar" className="auth-label">
+                  Avatar (Optional)
+                </label>
                 <input
+                  id="avatar"
                   type="file"
                   accept="image/*"
                   onChange={handleAvatarChange}
@@ -172,6 +214,7 @@ export default function Register() {
                   className="submit-btn"
                   onClick={handleRegister}
                   disabled={loading}
+                  aria-busy={loading}
                 >
                   {loading ? "Registering..." : "Register"}
                 </button>
@@ -188,7 +231,8 @@ export default function Register() {
           </>
         ) : (
           <p className="success">
-            Your account has been created! You can now <Link to="/login">Sign In</Link>
+            Your account has been created! You can now{" "}
+            <Link to="/login">Sign In</Link>
           </p>
         )}
 
@@ -200,6 +244,6 @@ export default function Register() {
           </p>
         )}
       </form>
-    </div>
+    </main>
   );
 }

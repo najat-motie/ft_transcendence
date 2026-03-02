@@ -1,19 +1,17 @@
-import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import "../styles/sidebar.css";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { FiPlay } from "react-icons/fi";
 import logo from "../assets/logo.png";
 import { apiRequest } from "../services/api.js";
-import { logout } from "../services/auth.js";
+import { getUser, clearUser } from "../services/auth";
+import "../styles/sidebar.css";
 
 export default function SideBar() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
-  const user = JSON.parse(localStorage.getItem("user")) || {
-    username: "Alice",
-    avatar: "https://i.pravatar.cc/100?img=3",
-  };
+  // const user = getUser().user;
+  const user = { username: "Alice", avatar: "https://i.pravatar.cc/100?img=3" };
 
   const handleLogout = async () => {
     try {
@@ -21,8 +19,8 @@ export default function SideBar() {
     } catch (err) {
       console.error(err);
     } finally {
-      logout(user?.userId);
-      navigate("/login");
+      clearUser();
+      navigate("/login", { replace: true });
     }
   };
 
@@ -31,14 +29,19 @@ export default function SideBar() {
       <aside className="sidebar">
         <div className="sidebar-top">
           <div className="logo">
-            <Link to="/">
-              <img src={logo} alt="tic-tac-toe logo" className="logo-img" />
-            </Link>
+            <NavLink to="/">
+              <img src={logo} alt="Tic Tac Toe logo" className="logo-img" />
+            </NavLink>
           </div>
 
-          <nav className="nav">
-            <NavLink to="/play" className="nav-item">
-              <FiPlay className="nav-icon" />
+          <nav className="nav" aria-label="Main navigation">
+            <NavLink
+              to="/play"
+              className={({ isActive }) =>
+                isActive ? "nav-item active" : "nav-item"
+              }
+            >
+              <FiPlay className="nav-icon" aria-hidden="true" />
               <span>Play</span>
             </NavLink>
           </nav>
@@ -47,34 +50,44 @@ export default function SideBar() {
         <div className="sidebar-bottom">
           {user ? (
             <div className="user">
-              <a onClick={() => setOpen(prev => !prev)}>
+              <button
+                type="button"
+                className="user-toggle"
+                onClick={() => setOpen(prev => !prev)}
+                aria-expanded={open}
+                aria-haspopup="true"
+              >
                 <img
-                  src={user?.avatar}
-                  alt="avatar"
+                  src={user.avatar}
+                  alt={`${user.username} avatar`}
                   className="avatar"
                 />
-                <span className="username">{user?.username}</span>
-              </a>
+                <span className="username">{user.username}</span>
+              </button>
 
               {open && (
-                <div className="dropdown-menu">
-                  <button onClick={handleLogout}>Logout</button>
-                  <Link to="/profile" onClick={() => setOpen(false)}>
+                <div className="dropdown-menu" role="menu">
+                  <button type="button" role="menuitem" onClick={handleLogout}>
+                    Logout
+                  </button>
+                  <NavLink to="/profile" role="menuitem" onClick={() => setOpen(false)}>
                     View Profile
-                  </Link>
+                  </NavLink>
                 </div>
               )}
             </div>
           ) : (
             <div className="user-login">
-              <Link to="/login" className="login-btn">
+              <NavLink to="/login" className="login-btn">
                 Login
-              </Link>
+              </NavLink>
             </div>
           )}
 
           <div className="footer legal-links">
-            <Link to="/privacy-policy">Privacy Policy</Link> & <Link to="/terms-of-service">Terms of Service</Link>
+            <NavLink to="/privacy-policy">Privacy Policy</NavLink>
+            <span>&</span>
+            <NavLink to="/terms-of-service">Terms of Service</NavLink>
           </div>
         </div>
       </aside>

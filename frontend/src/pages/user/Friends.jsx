@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import "../../styles/user/friends.css";
 import { apiRequest } from "../../services/api";
 
@@ -14,48 +14,37 @@ export default function Friends() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
 
-// const [friendList, setFriendList] = useState([ 
-//   { id: 1, username: "Alice", online: true }, 
-//   { id: 2, username: "Bob", online: false },
-//   { id: 3, username: "Charlie", online: true }, ]);
-// const [incomingFriendRequests, setIncomingFriendRequests] = useState([ 
-//   { id: 1, username: "Alice", online: true }, 
-//   { id: 2, username: "Bob", online: false },
-//   { id: 3, username: "Charlie", online: true }, ]);
-// const [outgoingFriendRequests, setOutgoingFriendRequests] = useState([ 
-//   { id: 1, username: "Alice", online: true }, 
-//   { id: 2, username: "Bob", online: false },
-//   { id: 3, username: "Charlie", online: true }, ]);
-
-  const fetchAllFriendsData = useCallback(async () => {
+  async function fetchAllFriendsData() {
     setIsLoading(true);
     try {
       const [friendsData, incomingRequestsData, outgoingRequestsData] =
         await Promise.all([
-          apiRequest("/friends", {method: "GET"}),
-          apiRequest("/requests/incoming", {method: "GET"}),
-          apiRequest("/requests/outgoing", {method: "GET"}),
+          apiRequest("/friends", { method: "GET" }),
+          apiRequest("/requests/incoming", { method: "GET" }),
+          apiRequest("/requests/outgoing", { method: "GET" }),
         ]);
 
-      setFriendList(friendsData);
-      setIncomingFriendRequests(incomingRequestsData);
-      setOutgoingFriendRequests(outgoingRequestsData);
+      setFriendList(friendsData || []);
+      setIncomingFriendRequests(incomingRequestsData || []);
+      setOutgoingFriendRequests(outgoingRequestsData || []);
     } catch (error) {
       setErrorMessage(error.message);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }
 
   useEffect(() => {
     fetchAllFriendsData();
-  }, [fetchAllFriendsData]);
+  }, []);
 
   return (
-    <section className="friends">
+    <section className="friends" aria-labelledby="friends-title">
       <div className="friends-container">
-        {errorMessage && <p className="error">{errorMessage}</p>}
-        {isLoading && <p className="loading">Loading...</p>}
+        <h1 id="friends-title" className="sr-only">Friends Page</h1>
+
+        {errorMessage && <p className="error" role="alert">{errorMessage}</p>}
+        {isLoading && <p className="loading" role="status">Loading...</p>}
 
         <SearchUsers
           friendList={friendList}

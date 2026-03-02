@@ -1,3 +1,7 @@
+/* ============================= */
+/* Main Layout */
+/* ============================= */
+
 .friends {
   font-family: 'Inter', sans-serif;
   color: #f1f5f9;
@@ -17,6 +21,10 @@
   max-width: 600px;
 }
 
+/* ============================= */
+/* Card */
+/* ============================= */
+
 .card {
   background: rgba(30, 41, 59, 0.9);
   padding: 25px;
@@ -35,6 +43,10 @@
   padding-bottom: 5px;
 }
 
+/* ============================= */
+/* Search */
+/* ============================= */
+
 .search-bar {
   display: flex;
   gap: 10px;
@@ -48,6 +60,11 @@
   border: 1px solid #334155;
   background: #1e293b;
   color: #f1f5f9;
+}
+
+.search-bar input:focus {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
 }
 
 .search-bar button {
@@ -64,6 +81,10 @@
   background: #1d4ed8;
 }
 
+/* ============================= */
+/* Lists */
+/* ============================= */
+
 .user-list,
 .friends-list,
 .requests-list {
@@ -74,9 +95,12 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   gap: 10px;
 }
+
+/* ============================= */
+/* Items */
+/* ============================= */
 
 .user-item,
 .friend-item,
@@ -96,6 +120,10 @@
   background: #334155;
 }
 
+/* ============================= */
+/* Buttons */
+/* ============================= */
+
 .user-item button,
 .remove-btn,
 .accept-btn,
@@ -111,6 +139,17 @@
   font-size: 12px;
 }
 
+/* Focus accessibility */
+.user-item button:focus,
+.remove-btn:focus,
+.accept-btn:focus,
+.reject-btn:focus,
+.cancel-btn:focus {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+/* Add friend */
 .user-item button {
   background: #2563eb;
 }
@@ -119,28 +158,26 @@
   background: #1d4ed8;
 }
 
+/* Pending */
 .pending-btn {
   background: #94a3b8;
   cursor: not-allowed;
-  /* margin-right: 5px; */
 }
 
-.cancel-btn {
+/* Cancel / Remove / Reject */
+.cancel-btn,
+.remove-btn,
+.reject-btn {
   background: #ef4444;
 }
 
-.cancel-btn:hover {
+.cancel-btn:hover,
+.remove-btn:hover,
+.reject-btn:hover {
   background: #dc2626;
 }
 
-.remove-btn {
-  background: #ef4444;
-}
-
-.remove-btn:hover {
-  background: #dc2626;
-}
-
+/* Accept */
 .accept-btn {
   background: #22c55e;
 }
@@ -149,13 +186,9 @@
   background: #16a34a;
 }
 
-.reject-btn {
-  background: #ef4444;
-}
-
-.reject-btn:hover {
-  background: #dc2626;
-}
+/* ============================= */
+/* Friend Info */
+/* ============================= */
 
 .friend-info {
   display: flex;
@@ -168,7 +201,6 @@
   height: 14px;
   border-radius: 50%;
   flex-shrink: 0;
-  position: relative;
 }
 
 .status-dot.online {
@@ -187,12 +219,76 @@
   font-size: 16px;
 }
 
+/* ============================= */
+/* Messages */
+/* ============================= */
+
 .no-requests {
   font-style: italic;
   color: #94a3b8;
 }
 
+.loading {
+  text-align: center;
+  font-size: 14px;
+  color: #94a3b8;
+}
+
+/* ============================= */
+/* Request Actions */
+/* ============================= */
+
 .request-actions {
   display: flex;
   gap: 5px;
+}
+
+/* ============================= */
+/* Responsive */
+/* ============================= */
+
+@media (max-width: 500px) {
+  .friends-container {
+    gap: 20px;
+  }
+
+  .card {
+    padding: 18px;
+  }
+
+  .search-bar {
+    flex-direction: column;
+  }
+
+  .search-bar button {
+    width: 100%;
+  }
+
+  .user-item,
+  .friend-item,
+  .request-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .request-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+/* ============================= */
+/* Accessibility Utility */
+/* ============================= */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
 }

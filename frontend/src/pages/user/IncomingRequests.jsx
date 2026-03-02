@@ -1,6 +1,10 @@
 import { apiRequest } from "../../services/api";
 
-export default function IncomingRequests({ incomingRequests, setIncomingRequests, fetchAllFriendsData }) {
+export default function IncomingRequests({
+  incomingRequests,
+  setIncomingRequests,
+  fetchAllFriendsData,
+}) {
   const acceptIncomingRequest = async (requestId) => {
     try {
       await apiRequest(`/requests/accept/${requestId}`, { method: "POST" });
@@ -21,16 +25,32 @@ export default function IncomingRequests({ incomingRequests, setIncomingRequests
   };
 
   return (
-    <div className="card">
-      <h2>Incoming Requests</h2>
-      {incomingRequests.length === 0 && <p className="no-requests">No pending requests</p>}
+    <div className="card" role="region" aria-labelledby="incoming-title">
+      <h2 id="incoming-title">Incoming Requests</h2>
+
+      {incomingRequests.length === 0 && (
+        <p className="no-requests">No pending requests</p>
+      )}
+
       <ul className="requests-list">
         {incomingRequests.map((req) => (
           <li key={req.id} className="request-card">
             <span className="request-username">{req.username}</span>
             <div className="request-actions">
-              <button className="accept-btn" onClick={() => acceptIncomingRequest(req.id)}>Accept</button>
-              <button className="reject-btn" onClick={() => rejectIncomingRequest(req.id)}>Reject</button>
+              <button
+                className="accept-btn"
+                onClick={() => acceptIncomingRequest(req.id)}
+                aria-label={`Accept friend request from ${req.username}`}
+              >
+                Accept
+              </button>
+              <button
+                className="reject-btn"
+                onClick={() => rejectIncomingRequest(req.id)}
+                aria-label={`Reject friend request from ${req.username}`}
+              >
+                Reject
+              </button>
             </div>
           </li>
         ))}

@@ -1,6 +1,12 @@
-export function logout(userId) {
-    localStorage.removeItem("user");
-    localStorage.removeItem("userId");
-    localStorage.removeItem(`accessToken_${userId}`);
-    localStorage.removeItem(`refreshToken_${userId}`);
+export function setUser(user) {
+  sessionStorage.setItem("User", JSON.stringify(user));
+}
+
+export function getUser() {
+  const user = sessionStorage.getItem("User");
+  return user ? JSON.parse(user) : null;
+}
+
+export function clearUser() {
+  sessionStorage.removeItem("User");
 }
