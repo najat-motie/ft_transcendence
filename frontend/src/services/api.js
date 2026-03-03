@@ -1,19 +1,17 @@
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 
-import { logout } from "./auth.js";
-import { getCookie, setCookie, getUserFromCookie } from "../utils/cookies.js";
+import { getUser, logout, setUser } from "./auth.js";
 
 export async function apiRequest(endpoint, options = {}, skipAuth = false) {
-
-  // Get user from cookies instead of localStorage
-  const user = getUserFromCookie() || {};
-  let accessToken = getCookie(`accessToken_${user.userId}`);
-  let refreshToken = getCookie(`refreshToken_${user.userId}`);
+  const session = getUser();
+  const user = session?.user || {};
+  let accessToken = session?.accessToken;
+  let refreshToken = session?.refreshToken;
 
   if (!skipAuth && !user.userId) {
     throw new Error("No active user. Please login.");
   }
-  
+
   const makeRequest = async (token) => {
     const headers = { "Content-Type": "application/json" };
     if (!skipAuth && token) headers["Authorization"] = `Bearer ${token}`;
@@ -24,7 +22,6 @@ export async function apiRequest(endpoint, options = {}, skipAuth = false) {
     });
   };
 
-  
   const parseJsonSafe = async (res) => {
     const text = await res.text();
     if (!text) return null;
@@ -60,12 +57,13 @@ export async function apiRequest(endpoint, options = {}, skipAuth = false) {
 
     const refreshData = await parseJsonSafe(refreshResponse);
     const newAccessToken = refreshData.accessToken;
-    
-    // Store new tokens in cookies
-    setCookie(`accessToken_${user.userId}`, newAccessToken, 7);
-    if (refreshData.refreshToken) {
-      setCookie(`refreshToken_${user.userId}`, refreshData.refreshToken, 7);
-    }
+
+    // Store refreshed session back in cookies
+    setUser({
+      user,
+      accessToken: newAccessToken,
+      refreshToken: refreshData.refreshToken || refreshToken,
+    });
 
     response = await makeRequest(newAccessToken);
     data = await parseJsonSafe(response);

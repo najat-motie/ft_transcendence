@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Outlet, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import SideBar from "./layouts/SidebarLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -20,6 +20,8 @@ import AIGame from "./pages/game/rooms/AIGame";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import CustomizePage from "./features/customize/CustomizePage";
+import GameRoom from "./pages/game/GameRoom";
+import OnlineGameNew from "./pages/game/OnlineGame";
 
 export default function App() {
   return (
@@ -42,19 +44,24 @@ export default function App() {
           <Route path="/" element={<Home />} />
         </Route>
 
-        {/* Protected Routes - Online Game Only */}
+        {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
-          <Route path="/play/online-game" element={<OnlineGame />} />
-        </Route>
-
-        {/* Protected Routes - With Sidebar */}
-        <Route element={<ProtectedRoute />}>
+          {/* Routes that need the sidebar shell */}
           <Route element={<SideBar />}>
+            <Route path="/play" element={<Lobby />} />
+            <Route path="/play/create-room" element={<CreateRoom />} />
+            <Route path="/play/join-room" element={<JoinRoom />} />
+            <Route path="/play/matchmaking" element={<Matchmaking />} />
             <Route path="/settings" element={<CustomizePage />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/friends" element={<Friends />} />
             <Route path="/change-password" element={<ChangePassword />} />
           </Route>
+
+          {/* Fullscreen/protected game routes without sidebar */}
+          <Route path="/play/online-game" element={<OnlineGame />} />
+          <Route path="/play/online" element={<OnlineGameNew />} />
+          <Route path="/play/:mode" element={<GameRoom />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

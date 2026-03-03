@@ -1,19 +1,26 @@
+import { getUser } from "./auth.js";
+
 let socket = null;
 
-export const connectSocket = (token) => {
+export const connectSocket = (path = "") => {
+  const session = getUser();
+  const token = session?.accessToken;
+
   if (socket && socket.readyState === WebSocket.OPEN) {
     return socket;
   }
 
-  socket = new WebSocket("ws://localhost:5000");
+  socket = new WebSocket(`ws://localhost:5000${path}`);
 
   socket.onopen = () => {
-    socket.send(
-      JSON.stringify({
-        type: "authenticate",
-        token,
-      })
-    );
+    if (token) {
+      socket.send(
+        JSON.stringify({
+          type: "authenticate",
+          token,
+        })
+      );
+    }
   };
 
   socket.onerror = (error) => {
