@@ -94,9 +94,6 @@ const login = async (req, res) => {
         user: {
           userId: user.id,
           email: user.email,
-          username: user.username,
-          avatar: user.avatar,
-          bio: user.bio,
         },
       },
     });
@@ -160,7 +157,6 @@ const refresh = async (req, res) => {
       return res.status(401).json({
         success: false,
         message: 'Refresh token is invalid or expired',
-        error: 'TOKEN_EXPIRED'
       });
     }
 
