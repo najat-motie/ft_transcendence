@@ -1,0 +1,32 @@
+{
+	"themes": [
+		{
+			"id": "board",
+			"label": "Classic Board"
+		},
+		{
+			"id": "mesa",
+			"label": "Mesa Glow"
+		},
+		{
+			"id": "noir",
+			"label": "Noir Grid"
+		},
+		{
+			"id": "dark",
+			"label": "Dark Mode"
+		},
+		{
+			"id": "neo",
+			"label": "Neo Pulse"
+		},
+		{
+			"id": "aurora",
+			"label": "Aurora Fade"
+		},
+		{
+			"id": "carbon",
+			"label": "Carbon Fiber"
+		}
+	]
+}

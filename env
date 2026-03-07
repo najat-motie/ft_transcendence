@@ -1,0 +1,21 @@
+# Database Configuration
+POSTGRES_USER=transcendence
+POSTGRES_PASSWORD=transcendence_password
+POSTGRES_DB=transcendence
+DATABASE_URL=postgresql://transcendence:transcendence_password@db:5432/transcendence
+
+# Backend Configuration
+PORT=3000
+NODE_ENV=development
+CORS_ORIGIN=http://localhost:5173
+
+# JWT Configuration
+JWT_ACCESS_SECRET=81e45a029595019d2fd5cecbeab157a617488f72d4abda778418c521b3b2e2bed9f0264eafa67ecbb413f3ac6ced703c894dc1faa57ee6c89abe05ad519c08c5
+JWT_REFRESH_SECRET=035c7695ade1a6dcff50a397c18b99d9efadfd148b587bf0e1d46eb5637e939d4ba8bde28b9b099bd0faf93881d9ca58805ea140215edf09c2c59d112e217118
+JWT_ACCESS_EXPIRY=15m
+JWT_REFRESH_EXPIRY=7d
+
+# OAuth 42 Configuration (optional - get from 42 intra)
+OAUTH_42_CLIENT_ID=u-s4t2ud-01e4905017ff0376e4f008c9b5b40d05276df9e5e2d2f7928dc1c2fd63606f76
+OAUTH_42_CLIENT_SECRET=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
+OAUTH_42_CALLBACK_URL=http://localhost:3000/auth/42/callback

@@ -1,0 +1,44 @@
+.matchmaking {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: #1e1e2f;
+  color: #ffffff;
+  font-family: 'Arial', sans-serif;
+  padding: 1rem;
+}
+
+.matchmaking-container {
+  text-align: center;
+  background: #2a2a3f;
+  padding: 3rem 2rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  max-width: 400px;
+  width: 100%;
+}
+
+.matchmaking-container h2 {
+  margin-bottom: 1.5rem;
+  font-size: 2rem;
+}
+
+.matchmaking-container p {
+  margin-bottom: 2rem;
+  font-size: 1.125rem;
+}
+
+@media (max-width: 480px) {
+  .matchmaking-container {
+    padding: 2rem 1rem;
+  }
+
+  .matchmaking-container h2 {
+    font-size: 1.5rem;
+  }
+
+  .matchmaking-container p {
+    font-size: 1rem;
+  }
+}

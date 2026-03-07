@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="X skin">
+  <rect width="256" height="256" rx="36" fill="#f6efe7"/>
+  <path d="M64 64l128 128M192 64L64 192" stroke="#a55412" stroke-width="24" stroke-linecap="round"/>
+</svg>

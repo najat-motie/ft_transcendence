@@ -1,0 +1,12 @@
+{
+  "sounds": [
+    {
+      "id": "place",
+      "label": "Place"
+    },
+    {
+      "id": "win",
+      "label": "Win"
+    }
+  ]
+}

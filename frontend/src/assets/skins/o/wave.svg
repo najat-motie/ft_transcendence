@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="Wave O">
+  <rect width="256" height="256" rx="36" fill="#f1fbff"/>
+  <circle cx="128" cy="128" r="72" fill="none" stroke="#1b8aa5" stroke-width="22"/>
+  <path d="M64 138c18 14 36 14 54 0s36-14 54 0 36 14 54 0" fill="none" stroke="#4cc2db" stroke-width="10" stroke-linecap="round" opacity="0.7"/>
+</svg>
