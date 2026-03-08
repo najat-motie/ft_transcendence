@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:3000";
+const apiUrl = import.meta.env.VITE_WS_URL;
 
 import { getUser, clearUser, setUser } from "./auth";
 
@@ -12,7 +12,7 @@ export async function apiRequest(endpoint, options = {}, skipAuth = false) {
     const headers = { "Content-Type": "application/json" };
     if (!skipAuth && token) headers["Authorization"] = `Bearer ${token}`;
 
-    return fetch(`${BASE_URL}${endpoint}`, {
+    return fetch(`${apiUrl}${endpoint}`, {
       ...options,
       headers,
     });
@@ -25,11 +25,11 @@ export async function apiRequest(endpoint, options = {}, skipAuth = false) {
   if (response.status === 401 && data.error === "TOKEN_EXPIRED") {
     if (!refreshToken) {
       clearUser();
-      window.location.href = "/login";
+      window.location.replace = "/login";
       throw new Error("Session expired. Please login again.");
     }
 
-    const refreshResponse = await fetch(`${BASE_URL}/refresh`, {
+    const refreshResponse = await fetch(`${apiUrl}/refresh`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -39,7 +39,7 @@ export async function apiRequest(endpoint, options = {}, skipAuth = false) {
 
     if (!refreshResponse.ok) {
       clearUser();
-      window.location.href = "/login";
+      window.location.replace = "/login";
       throw new Error("Session expired. Please login again.");
     }
 

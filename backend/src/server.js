@@ -7,6 +7,7 @@ const authRoutes = require('./routes/auth.routes');
 const profileRoutes = require('./routes/profile.routes');
 const friendRoutes = require('./routes/friend.routes');
 const userRoutes = require('./routes/user.routes');
+const aiRoutes = require('./routes/ai.routes');
 
 const app = express();
 let PORT;
@@ -63,6 +64,7 @@ app.use('/auth', authRoutes);
 app.use('/profile', profileRoutes);
 app.use('/friends', friendRoutes);
 app.use('/users', userRoutes);
+app.use('/ai', aiRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ success: false, message: 'Route not found' });

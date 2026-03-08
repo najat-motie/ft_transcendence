@@ -1,4 +1,5 @@
 let socket = null;
+const wsUrl = import.meta.env.VITE_API_URL;
 
 export const connectSocket = (path = "") => {
 
@@ -9,7 +10,7 @@ export const connectSocket = (path = "") => {
     return socket;
   }
 
-  socket = new WebSocket(`ws://localhost:5000${path}`);
+  socket = new WebSocket(`${wsUrl}${path}`);
 
   socket.onopen = () => {
     socket.send(

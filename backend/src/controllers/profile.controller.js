@@ -1,5 +1,96 @@
 const prisma = require('../config/database');
 
+const getProfileKpis = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const profile = await prisma.userProfile.findUnique({
+      where: { userId },
+      include: {
+        user: {
+          select: { id: true, email: true, isActive: true, createdAt: true },
+        },
+      },
+    });
+
+    if (!profile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Profile not found',
+      });
+    }
+
+    const [friendsCount, pendingRequestsReceived, pendingRequestsSent, unreadMessages] = await Promise.all([
+      prisma.friendship.count({
+        where: {
+          OR: [
+            { user1Id: userId },
+            { user2Id: userId },
+          ],
+        },
+      }),
+      prisma.friendRequest.count({
+        where: { receiverId: userId, status: 'pending' },
+      }),
+      prisma.friendRequest.count({
+        where: { senderId: userId, status: 'pending' },
+      }),
+      prisma.message.count({
+        where: { receiverId: userId, isRead: false },
+      }),
+    ]);
+
+    const totalMatches = profile.wins + profile.losses;
+    const winRate = totalMatches > 0 ? Number(((profile.wins / totalMatches) * 100).toFixed(2)) : 0;
+    const accountAgeDays = profile.user?.createdAt
+      ? Math.max(0, Math.floor((Date.now() - new Date(profile.user.createdAt).getTime()) / (1000 * 60 * 60 * 24)))
+      : null;
+
+    const kpis = {
+      userId: profile.userId,
+      username: profile.username,
+      avatar: profile.avatar,
+      bio: profile.bio,
+      email: profile.user?.email,
+      status: profile.status,
+      lastSeen: profile.lastSeen,
+      rank: profile.rank,
+      level: profile.level,
+      experience: profile.experience,
+      wins: profile.wins,
+      losses: profile.losses,
+      totalMatches,
+      winRate,
+      friendsCount,
+      pendingRequestsReceived,
+      pendingRequestsSent,
+      unreadMessages,
+      accountAgeDays,
+      isActive: profile.user?.isActive,
+      createdAt: profile.user?.createdAt,
+      updatedAt: profile.updatedAt,
+    };
+
+    return res.status(200).json({
+      success: true,
+      data: kpis,
+    });
+  } catch (error) {
+    console.error('Get profile KPIs error:', error);
+    let errorMessage;
+    if (process.env.NODE_ENV === 'development') {
+      errorMessage = error.message;
+    } else {
+      errorMessage = undefined;
+    }
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch profile KPIs',
+      error: errorMessage,
+    });
+  }
+};
+
 const getProfile = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -311,4 +402,5 @@ module.exports = {
   updateStatus,
   getLeaderboard,
   updateStats,
+  getProfileKpis,
 };

@@ -1,8 +1,9 @@
 export function validateForm(form, options = {}) {
   const {
-    username = false,
     password = false,
     confirmPassword = false,
+    username = false,
+    bio = false,
   } = options;
 
   if (username && !form.username?.trim()) {
@@ -29,6 +30,10 @@ export function validateForm(form, options = {}) {
  
   if (confirmPassword && form.password !== form.confirmPassword) {
     return "Passwords do not match";
+  }
+
+  if (bio && form.bio?.length > 250) {
+    return "Bio cannot exceed 250 characters";
   }
  
   return null;

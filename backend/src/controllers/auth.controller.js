@@ -296,6 +296,31 @@ const completePasswordReset = async (req, res) => {
   }
 };
 
+const oauth42Login = async (req, res) => {
+  try {
+    const clientId = process.env.OAUTH_42_CLIENT_ID;
+    const redirectUri = process.env.OAUTH_42_CALLBACK_URL;
+    
+    if (!clientId || !redirectUri) {
+      return res.status(500).json({
+        success: false,
+        message: 'OAuth 42 is not configured',
+      });
+    }
+
+    const authUrl = `https://api.intra.42.fr/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=public`;
+    
+    return res.redirect(authUrl);
+  } catch (error) {
+    console.error('OAuth 42 login error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'OAuth login failed',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
 const oauth42Callback = async (req, res) => {
   try {
     const { code } = req.query;
@@ -316,31 +341,16 @@ const oauth42Callback = async (req, res) => {
     const accessToken = tokenService.generateAccessToken(user.id);
     const refreshToken = await tokenService.generateRefreshToken(user.id);
 
-    return res.status(200).json({
-      success: true,
-      message: 'OAuth login successful',
-      data: {
-        accessToken,
-        refreshToken,
-        user: {
-          userId: user.id,
-          email: user.email,
-        },
-      },
-    });
+    // Redirect to frontend with tokens in URL for OAuth flow
+    const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:5173';
+    const redirectUrl = `${frontendUrl}/auth/callback?accessToken=${accessToken}&refreshToken=${refreshToken}&userId=${user.id}&email=${encodeURIComponent(user.email)}`;
+    
+    return res.redirect(redirectUrl);
   } catch (error) {
     console.error('OAuth callback error:', error);
-    let errorMessage;
-    if (process.env.NODE_ENV === 'development') {
-      errorMessage = error.message;
-    } else {
-      errorMessage = undefined;
-    }
-    return res.status(500).json({
-      success: false,
-      message: 'OAuth login failed',
-      error: errorMessage,
-    });
+    const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:5173';
+    const errorMessage = encodeURIComponent('OAuth login failed. Please try again.');
+    return res.redirect(`${frontendUrl}/login?error=${errorMessage}`);
   }
 };
 
@@ -351,5 +361,6 @@ module.exports = {
   refresh,
   requestPasswordReset,
   completePasswordReset,
+  oauth42Login,
   oauth42Callback,
 };

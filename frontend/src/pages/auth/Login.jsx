@@ -88,7 +88,7 @@ export default function Login() {
           <button 
             className="oauth-btn"
             type="button"
-            onClick={() => window.location.href = "http://localhost:3000/auth/42/callback"}
+            onClick={() => window.location.href = `${import.meta.env.VITE_42_OAUTH_CALLBACK_URL}`}
           >
             Intra 42
           </button>
@@ -97,7 +97,7 @@ export default function Login() {
         <div className="auth-signup">
           Don’t have an account?{" "}
           <span className="create-account">
-            <a href="/register">Create one</a>
+            <Link to="/register">Create one</Link>
           </span>
         </div>
     

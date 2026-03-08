@@ -24,6 +24,7 @@ export default function App() {
       <Routes>
       <Route path="/" element={<Home />} />
         
+        <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/change-password" element={<ChangePassword />} />
@@ -38,7 +39,6 @@ export default function App() {
         </Route>
 
         <Route element={<SideBar />}>
-          <Route path="/" element={<Home />} />
           <Route path="/play" element={<Lobby />} />
             <Route element={<ProtectedRoute />}>
               <Route path="/profile" element={<Profile />} />

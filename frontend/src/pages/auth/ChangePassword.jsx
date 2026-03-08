@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { validateForm } from "../../utils/validator";
+import { validateForm } from "../../utils/formValidation";
 import { apiRequest } from "../../services/api";
 import "../../styles/auth/password.css";
 

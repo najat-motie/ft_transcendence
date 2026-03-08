@@ -52,6 +52,11 @@ router.post(
 );
 
 router.get(
+  '/42',
+  authController.oauth42Login
+);
+
+router.get(
   '/42/callback',
   authController.oauth42Callback
 );

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { validateForm } from "../../utils/validator";
+import { validateForm } from "../../utils/formValidation";
 import { apiRequest } from "../../services/api";
 import "../../styles/auth/password.css";
 
@@ -36,7 +36,7 @@ export default function ResetPassword() {
 
       setSuccess(true);
 
-      setTimeout(() => navigate("/login"), 2000);
+      setTimeout(() => navigate("/login", { replace: true }), 2000);
     } catch (err) {
       setError(err.message || "Invalid or expired token.");
     } finally {

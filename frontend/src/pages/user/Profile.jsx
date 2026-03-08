@@ -3,10 +3,12 @@ import { useNavigate } from "react-router-dom";
 import "../../styles/user/profile.css";
 import { getUser } from "../../services/auth";
 import { apiRequest } from "../../services/api";
-import { validateForm } from "../../utils/validator";
+import { validateForm } from "../../utils/formValidation";
+import { readImageFile } from "../../utils/fileReader";
 
 export default function Profile() {
   const navigate = useNavigate();
+
   const [user, setUser] = useState(null);
   const [formData, setFormData] = useState(null);
   const [editMode, setEditMode] = useState(false);
@@ -14,22 +16,40 @@ export default function Profile() {
 
   useEffect(() => {
     const userData = getUser();
+
     if (userData?.user) {
       setUser(userData.user);
       setFormData(userData.user);
     }
   }, []);
 
-  const handleChange = (e) => {
+  const handleChange = async (e) => {
     const { name, value, type, files } = e.target;
-  
-    if (type === "file" && files?.[0]) {
-      const file = files[0];
-      const reader = new FileReader();
-      reader.onload = () => setFormData(prev => ({ ...prev, [name]: reader.result }));
-      reader.readAsDataURL(file);
+
+    if (type === "file") {
+      const file = files?.[0];
+      if (!file) return;
+
+      try {
+        const file = e.target.files?.[0];
+        const dataUrl = await readImageFile(file);
+    
+        setFormData(prev => ({
+          ...prev,
+          [name]: dataUrl
+        }));
+    
+        setError(null);
+      } catch (err) {
+        console.error("File processing error:", err);
+        setError(err?.message || "Something went wrong");
+      }
+      
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
     }
   };
 
@@ -37,25 +57,33 @@ export default function Profile() {
     setError("");
 
     const errorMessage = validateForm(formData, {
-      Username: true,
+      username: true,
+      bio: true,
     });
-    if(errorMessage) {
+
+    if (errorMessage) {
       setError(errorMessage);
       return;
     }
 
     try {
-      const res = await apiRequest(`/users/${user.userId}`, {
-        method: "PUT",
-        body: JSON.stringify(formData)
-      });
+      const res = await apiRequest(
+        `/users/${user.userId}`,
+        {
+          method: "PUT",
+          body: JSON.stringify(formData)
+        }
+      );
+
       if (!res.ok) throw new Error("Failed to update profile");
+
       const updatedUser = await res.json();
+
       setUser(updatedUser);
       setFormData(updatedUser);
       setEditMode(false);
-    } catch (error) {
-      setError(error.message);
+    } catch (err) {
+      setError(err.message);
     }
   };
 
@@ -103,7 +131,7 @@ export default function Profile() {
                   id="username"
                   type="text"
                   name="username"
-                  value={formData.username}
+                  value={formData.username || ""}
                   onChange={handleChange}
                 />
 
@@ -112,7 +140,7 @@ export default function Profile() {
                   id="email"
                   type="email"
                   name="email"
-                  value={formData.email}
+                  value={formData.email || ""}
                   onChange={handleChange}
                 />
 
@@ -120,7 +148,7 @@ export default function Profile() {
                 <textarea
                   id="bio"
                   name="bio"
-                  value={formData.bio}
+                  value={formData.bio || ""}
                   onChange={handleChange}
                   rows="3"
                 />
@@ -140,6 +168,7 @@ export default function Profile() {
                     onClick={() => {
                       setFormData(user);
                       setEditMode(false);
+                      setError("");
                     }}
                   >
                     Cancel
