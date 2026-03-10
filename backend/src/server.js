@@ -11,6 +11,7 @@ const userRoutes = require('./routes/user.routes');
 const aiRoutes = require('./routes/ai.routes');
 const offlineRoutes = require('./routes/offline.routes');
 const onlineRoutes = require('./routes/online.routes');
+const privateRoomRoutes = require('./routes/private-room.routes');
 const { attachOnlineGateway } = require('./ws/online.gateway');
 
 const app = express();
@@ -71,6 +72,7 @@ app.use('/users', userRoutes);
 app.use('/ai', aiRoutes);
 app.use('/', offlineRoutes);
 app.use('/', onlineRoutes);
+app.use('/', privateRoomRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ success: false, message: 'Route not found' });

@@ -8,6 +8,10 @@ const matchmakingQueue = [];
 const queuedPlayers = new Set();
 const activePlayers = new Set();
 const activeGames = new Map();
+const privateRooms = new Map();
+const privateRoomPlayers = new Set();
+const ROOM_CODE_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+const ROOM_CODE_LENGTH = 6;
 
 const createHttpError = (status, message) => {
   const error = new Error(message);
@@ -34,6 +38,59 @@ const gameServiceError = (error, fallbackMessage) => {
     error?.message ||
     fallbackMessage
   );
+};
+
+const ensurePlayerAvailable = (playerId) => {
+  if (queuedPlayers.has(playerId)) {
+    throw createHttpError(409, 'Player is already waiting in the matchmaking queue');
+  }
+
+  if (privateRoomPlayers.has(playerId)) {
+    throw createHttpError(409, 'Player is already in a private room');
+  }
+
+  if (activePlayers.has(playerId)) {
+    throw createHttpError(409, 'Player is already in an active online game');
+  }
+};
+
+const buildWaitingRoomPayload = (room, requesterId) => {
+  return {
+    success: true,
+    ready: false,
+    room_code: room.roomCode,
+    is_host: room.host.id === requesterId,
+    players: [room.host, room.guest].filter(Boolean).map((player) => ({
+      id: player.id,
+      username: player.username,
+      avatar: player.avatar,
+    })),
+  };
+};
+
+const generateRoomCode = () => {
+  let roomCode = '';
+
+  for (let index = 0; index < ROOM_CODE_LENGTH; index += 1) {
+    const randomIndex = Math.floor(Math.random() * ROOM_CODE_ALPHABET.length);
+    roomCode += ROOM_CODE_ALPHABET[randomIndex];
+  }
+
+  return roomCode;
+};
+
+const createUniqueRoomCode = () => {
+  let attempts = 0;
+
+  while (attempts < 50) {
+    const roomCode = generateRoomCode();
+    if (!privateRooms.has(roomCode)) {
+      return roomCode;
+    }
+    attempts += 1;
+  }
+
+  throw createHttpError(500, 'Failed to generate a unique room code');
 };
 
 const buildPlayersPayload = (room) => {
@@ -132,13 +189,7 @@ const pairQueuedPlayers = async () => {
 };
 
 const enqueuePlayer = (player) => {
-  if (queuedPlayers.has(player.id)) {
-    throw createHttpError(409, 'Player is already waiting in the matchmaking queue');
-  }
-
-  if (activePlayers.has(player.id)) {
-    throw createHttpError(409, 'Player is already in an active online game');
-  }
+  ensurePlayerAvailable(player.id);
 
   const deferred = createDeferred();
   const queueEntry = { player, deferred };
@@ -170,6 +221,133 @@ const cancelQueuedPlayer = (playerId) => {
 
   queueEntry.deferred.reject(createHttpError(499, 'Matchmaking request cancelled'));
   return true;
+};
+
+const createPrivateRoom = async (player) => {
+  ensurePlayerAvailable(player.id);
+
+  const roomCode = createUniqueRoomCode();
+  const room = {
+    roomCode,
+    host: player,
+    guest: null,
+    match: null,
+    deliveredTo: new Set(),
+  };
+
+  privateRooms.set(roomCode, room);
+  privateRoomPlayers.add(player.id);
+
+  return buildWaitingRoomPayload(room, player.id);
+};
+
+const joinPrivateRoom = async (player, roomCode) => {
+  ensurePlayerAvailable(player.id);
+
+  const room = privateRooms.get(roomCode);
+
+  if (!room) {
+    throw createHttpError(404, 'Room not found');
+  }
+
+  if (room.host.id === player.id) {
+    throw createHttpError(409, 'You cannot join your own room');
+  }
+
+  if (room.match) {
+    const payload = room.match[player.id];
+    if (payload) {
+      return payload;
+    }
+    throw createHttpError(409, 'Room is already full');
+  }
+
+  if (room.guest) {
+    throw createHttpError(409, 'Room is already full');
+  }
+
+  room.guest = player;
+  privateRoomPlayers.add(player.id);
+
+  try {
+    const gameRoom = await initializeGameRoom(room.host, room.guest);
+    room.match = {
+      [room.host.id]: buildMatchPayload(gameRoom, room.host.id),
+      [room.guest.id]: buildMatchPayload(gameRoom, room.guest.id),
+    };
+    room.deliveredTo.add(player.id);
+
+    privateRoomPlayers.delete(room.host.id);
+    privateRoomPlayers.delete(room.guest.id);
+
+    return room.match[player.id];
+  } catch (error) {
+    room.guest = null;
+    privateRoomPlayers.delete(player.id);
+
+    throw createHttpError(502, gameServiceError(error, 'Failed to create private room game'));
+  }
+};
+
+const getPrivateRoomStatus = (roomCode, requesterId) => {
+  const room = privateRooms.get(roomCode);
+
+  if (!room) {
+    throw createHttpError(404, 'Room not found');
+  }
+
+  if (room.host.id !== requesterId && room.guest?.id !== requesterId) {
+    throw createHttpError(403, 'You do not have access to this room');
+  }
+
+  if (!room.match) {
+    return buildWaitingRoomPayload(room, requesterId);
+  }
+
+  const payload = room.match[requesterId];
+
+  if (!payload) {
+    throw createHttpError(403, 'You do not have access to this room');
+  }
+
+  room.deliveredTo.add(requesterId);
+
+  if (
+    room.guest &&
+    room.deliveredTo.has(room.host.id) &&
+    room.deliveredTo.has(room.guest.id)
+  ) {
+    privateRooms.delete(roomCode);
+  }
+
+  return {
+    ...payload,
+    ready: true,
+    room_code: roomCode,
+  };
+};
+
+const cancelPrivateRoom = (roomCode, requesterId) => {
+  const room = privateRooms.get(roomCode);
+
+  if (!room) {
+    throw createHttpError(404, 'Room not found');
+  }
+
+  if (room.host.id !== requesterId && room.guest?.id !== requesterId) {
+    throw createHttpError(403, 'You do not have access to this room');
+  }
+
+  if (room.match) {
+    return;
+  }
+
+  privateRoomPlayers.delete(room.host.id);
+  if (room.guest) {
+    privateRoomPlayers.delete(room.guest.id);
+  }
+
+  privateRooms.delete(roomCode);
 };
 
 const getRoom = (gameId) => {
@@ -239,13 +417,17 @@ const persistFinishedRoom = async (room, finalState) => {
 };
 
 module.exports = {
+  cancelPrivateRoom,
+  createPrivateRoom,
   enqueuePlayer,
   fetchGameState,
   gameServiceError,
   persistFinishedRoom,
+  getPrivateRoomStatus,
   getPlayersPayload,
   getRoom,
   getTurnForPlayer,
+  joinPrivateRoom,
   releaseRoom,
   submitMove,
   withRoomLock,
