@@ -1,40 +1,49 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { connectSocket, getSocket} from "../../../services/socket";
+import { apiRequest } from "../../../services/api";
 import "../../../styles/game/game-mode.css";
 
 export default function Matchmaking() {
   const navigate = useNavigate();
-  const [status, setStatus] = useState("Connecting to server...");
+  const abortRef = useRef(null);
+  const [status, setStatus] = useState("Searching for an online opponent...");
+  const [isSearching, setIsSearching] = useState(true);
 
   useEffect(() => {
-    // connect to WebSocket
-    // Example:
-    // const socket = connectSocket();
-    // socket.onopen = () => { ... };
-    // socket.onmessage = (event) => { ... };
-    // socket.onerror = () => { ... };
-    // socket.onclose = () => { ... };
+    const controller = new AbortController();
+    abortRef.current = controller;
 
-    // Cleanup
+    const startMatchmaking = async () => {
+      try {
+        const match = await apiRequest("/ready-online", {
+          method: "POST",
+          signal: controller.signal,
+        });
+
+        setStatus("Match found. Joining room...");
+        setIsSearching(false);
+        navigate("/play/online", { state: match });
+      } catch (error) {
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        setStatus(error.message || "Matchmaking failed.");
+        setIsSearching(false);
+      }
+    };
+
+    startMatchmaking();
+
     return () => {
-      // cancel matchmaking and close WebSocket
-      // const activeSocket = getSocket();
-      // if (activeSocket && activeSocket.readyState === WebSocket.OPEN) {
-      //   activeSocket.send(JSON.stringify({ type: "cancelMatchmaking" }));
-      // }
-      // socket.close();
-      // socket = null;
+      controller.abort();
+      abortRef.current = null;
     };
   }, [navigate]);
 
   const handleCancel = () => {
-    // send cancel matchmaking via WebSocket
-    // const socket = getSocket();
-    // if (socket && socket.readyState === WebSocket.OPEN) {
-    //   socket.send(JSON.stringify({ type: "cancelMatchmaking" }));
-    // }
-
+    abortRef.current?.abort();
+    setIsSearching(false);
     navigate(-1);
   };
 
@@ -43,8 +52,7 @@ export default function Matchmaking() {
       <div className="matchmaking-container">
         <h2>Quick Match</h2>
         <p>{status}</p>
-
-        {isConnected && (
+        {isSearching && (
           <button type="button" onClick={handleCancel}>
             Cancel
           </button>
@@ -53,38 +61,3 @@ export default function Matchmaking() {
     </section>
   );
 }
-
-
-
-
-// import { useEffect, useState } from "react";
-// import { useNavigate } from "react-router-dom";
-// import "../../../styles/game/game-mode.css";
-
-// export default function Matchmaking() {
-//   const navigate = useNavigate();
-//   const [status, setStatus] = useState("Searching for an online opponent...");
-
-//   useEffect(() => {
-//     const timer = setTimeout(() => {
-//       setStatus("Opponent found! Starting game...");
-//       setTimeout(() => {
-//         navigate("/play/online-game");
-//       }, 2000);
-//     }, 3000);
-
-//     return () => clearTimeout(timer);
-//   }, [navigate]);
-
-//   return (
-//     <section className="matchmaking">
-//       <div className="matchmaking-container">
-//         <h2>Quick Match</h2>
-//         <p>{status}</p>
-//         <button type="button" onClick={() => navigate(-1)}>
-//           Cancel
-//         </button>
-//       </div>
-//     </section>
-//   );
-// }

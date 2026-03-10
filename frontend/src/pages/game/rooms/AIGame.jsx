@@ -1,105 +1,139 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../../../services/api";
+import { connectSocket, getSocket, closeSocket } from "../../../services/socket";
 import "../../../styles/game/game-room.css";
+
+const emptyBoard = [
+  ["", "", ""],
+  ["", "", ""],
+  ["", "", ""],
+];
 
 export default function AIGame() {
   const navigate = useNavigate();
+  const connectionRef = useRef(0);
 
-  const [board, setBoard] = useState(Array(9).fill(null));
+  const [board, setBoard] = useState(emptyBoard);
+  const [turn, setTurn] = useState("X");
   const [winner, setWinner] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [gameStatus, setGameStatus] = useState("starting");
+  const [statusText, setStatusText] = useState("Starting AI game...");
+  const [message, setMessage] = useState("");
 
-  const handleClick = async (index) => {
-    if (board[index] || winner || loading) return;
+  const startGame = async () => {
+    const connectionId = connectionRef.current + 1;
+    connectionRef.current = connectionId;
+
+    closeSocket();
+    setBoard(emptyBoard);
+    setTurn("X");
+    setWinner(null);
+    setGameStatus("starting");
+    setStatusText("Starting AI game...");
+    setMessage("");
 
     try {
-      setLoading(true);
+      const session = await apiRequest("/ai", { method: "POST" }, true);
 
-      const data = await apiRequest("/ai/move", {
-        method: "POST",
-        body: JSON.stringify({
-          board,
-          move: index,
-        }),
-      });
-
-      if (!data || !Array.isArray(data.board)) {
-        throw new Error("Move failed");
+      if (connectionId !== connectionRef.current) {
+        return;
       }
 
-      setBoard(data.board);
-      if (data.winner) {
-        setWinner(data.winner);
-      } else {
-        setWinner(null);
-      }
+      const socket = connectSocket(session.ws_path);
+
+      socket.onmessage = (event) => {
+        if (connectionId !== connectionRef.current) {
+          return;
+        }
+
+        const data = JSON.parse(event.data);
+
+        if (data.board) setBoard(data.board);
+        if (data.turn !== undefined) setTurn(data.turn);
+        if (data.game_status) setGameStatus(data.game_status);
+        if (data.status) setStatusText(data.status);
+        if (data.winner) setWinner(data.winner);
+        if (data.message) setMessage(data.message);
+        if (data.error) setMessage(data.error);
+      };
+
+      socket.onclose = () => {
+        if (connectionId !== connectionRef.current) {
+          return;
+        }
+        setStatusText("Disconnected from server.");
+      };
     } catch (error) {
-      console.error("Error playing move:", error);
-    } finally {
-      setLoading(false);
+      if (connectionId !== connectionRef.current) {
+        return;
+      }
+
+      setStatusText(error.message || "Failed to start AI game.");
+      setGameStatus("error");
     }
   };
 
-  const resetGame = async () => {
-    try {
-      const data = await apiRequest("/ai/reset", {
-        method: "POST",
-      });
+  useEffect(() => {
+    startGame();
 
-      if (!data || !Array.isArray(data.board)) {
-        throw new Error("Reset failed");
-      }
+    return () => {
+      connectionRef.current += 1;
+      closeSocket();
+    };
+  }, []);
 
-      setBoard(data.board);
-      if (data.winner) {
-        setWinner(data.winner);
-      } else {
-        setWinner(null);
-      }
-    } catch (error) {
-      console.error("Reset failed:", error);
+  const handleClick = (row, col) => {
+    if (board[row][col] !== "" || gameStatus !== "ongoing" || turn !== "X") return;
+
+    const socket = getSocket();
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({ row, col }));
     }
   };
 
-  let winnerBanner = null;
-  if (winner) {
-    let bannerClassName = "winner-banner";
-    let bannerText = "";
-
-    if (winner === "Tie") {
-      bannerClassName = "winner-banner tie";
-      bannerText = "It's a Tie!";
-    } else {
-      bannerText = `${winner} Wins!`;
-    }
-
-    winnerBanner = <div className={bannerClassName}>{bannerText}</div>;
-  }
+  const winnerText =
+    winner === "Tie" || gameStatus === "tie"
+      ? "It's a Tie!"
+      : winner
+        ? `${winner} Wins!`
+        : null;
 
   return (
     <section className="game-room">
       <div className="room-container">
         <h2>Challenge Yourself with an AI</h2>
-        <p>Challenge yourself against an AI powered by the backend.</p>
+        {gameStatus === "ongoing" && <p>{turn === "X" ? "Your turn" : "AI turn"}</p>}
+        {winnerText && (
+          <div className={`winner-banner ${gameStatus === "tie" ? "tie" : ""}`}>{winnerText}</div>
+        )}
 
-        {winnerBanner}
+        <p className="status">{statusText}</p>
+        {message && <p className="game-message">{message}</p>}
 
         <div className="board">
-          {board.map((cell, i) => (
-            <div
-              key={i}
-              className={`cell ${cell}`}
-              onClick={() => handleClick(i)}
-            >
-              {cell}
-            </div>
-          ))}
+          {board.map((rowArr, rowIndex) =>
+            rowArr.map((cell, colIndex) => (
+              <div
+                key={`${rowIndex}-${colIndex}`}
+                className={`cell ${cell}`}
+                onClick={() => handleClick(rowIndex, colIndex)}
+                role="button"
+                tabIndex={0}
+              >
+                {cell}
+              </div>
+            ))
+          )}
         </div>
 
         <div className="buttons">
-          <button onClick={resetGame}>Restart</button>
-          <button onClick={() => navigate("/play")}>Leave</button>
+          <button type="button" onClick={startGame}>
+            Restart
+          </button>
+          <button type="button" onClick={() => navigate("/play")}>
+            Leave
+          </button>
         </div>
       </div>
     </section>

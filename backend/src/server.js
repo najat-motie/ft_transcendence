@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const http = require('http');
 const helmet = require('helmet');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
@@ -8,6 +9,9 @@ const profileRoutes = require('./routes/profile.routes');
 const friendRoutes = require('./routes/friend.routes');
 const userRoutes = require('./routes/user.routes');
 const aiRoutes = require('./routes/ai.routes');
+const offlineRoutes = require('./routes/offline.routes');
+const onlineRoutes = require('./routes/online.routes');
+const { attachOnlineGateway } = require('./ws/online.gateway');
 
 const app = express();
 let PORT;
@@ -65,6 +69,8 @@ app.use('/profile', profileRoutes);
 app.use('/friends', friendRoutes);
 app.use('/users', userRoutes);
 app.use('/ai', aiRoutes);
+app.use('/', offlineRoutes);
+app.use('/', onlineRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ success: false, message: 'Route not found' });
@@ -91,7 +97,10 @@ app.use((err, req, res, next) => {
   });
 });
 
-const server = app.listen(PORT, () => {
+const server = http.createServer(app);
+attachOnlineGateway(server);
+
+server.listen(PORT, () => {
   let env;
   if (process.env.NODE_ENV) {
     env = process.env.NODE_ENV;

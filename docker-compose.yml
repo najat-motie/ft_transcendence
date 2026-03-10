@@ -11,6 +11,17 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      game:
+        condition: service_started
+    restart: on-failure
+    networks:
+      - ft_transcendence
+
+  game:
+    build: ./game
+    container_name: ft_game
+    ports:
+      - "8000:8000"
     restart: on-failure
     networks:
       - ft_transcendence

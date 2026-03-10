@@ -1,7 +1,7 @@
 from json import JSONDecodeError
 from typing import Literal
 
-from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, HTTPException, Response, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel, field_validator
 
 from . import tic_tac_toe_cli as game
@@ -29,12 +29,55 @@ class OfflinePayload(BaseModel):
         return stripped
 
 
+class OfflineMovePayload(BaseModel):
+    player_id: str
+    row: int
+    col: int
+
+    @field_validator("player_id", mode="before")
+    @classmethod
+    def validate_and_strip_player_id(cls, value):
+        if not isinstance(value, str):
+            raise ValueError("must be a string")
+        stripped = value.strip()
+        if stripped == "":
+            raise ValueError("must not be empty")
+        return stripped
+
+
 def websocket_is_open(websocket):
     return getattr(getattr(websocket, "client_state", None), "name", "") != "DISCONNECTED"
 
 
 def current_board():
     return [[game.table_game[h][w]["text"] for w in range(3)] for h in range(3)]
+
+
+def state_status_text(state):
+    if state["status"] == "win":
+        return "Win"
+    if state["status"] == "tie":
+        return "Tie"
+    return "Next turn"
+
+
+def build_state_payload(session, last_move=None, message=""):
+    game.bind_state(session["state"])
+    state = game.is_winning()
+    payload = {
+        "board": current_board(),
+        "status": state_status_text(state),
+        "turn": game.player if state["status"] == "ongoing" else None,
+        "game_status": state["status"],
+        "last_move": last_move,
+    }
+    if state["status"] == "win":
+        payload["winner"] = state["winner"]
+        payload["line_type"] = state["line_type"]
+        payload["cells"] = state["cells"]
+    if message:
+        payload["message"] = message
+    return payload
 
 
 def ws_state_message(note=""):
@@ -75,6 +118,63 @@ async def offline(payload: OfflinePayload):
     }
     active_player_ids.add(player_id)
     return {"ws_path": f"/ws/{game_id}"}
+
+
+@router.get("/offline/{game_id}/state")
+async def offline_state(game_id: str):
+    session = active_games.get(game_id)
+
+    if session is None:
+        raise HTTPException(status_code=404, detail="Game not found")
+
+    return build_state_payload(session)
+
+
+@router.post("/offline/{game_id}/move")
+async def offline_move(game_id: str, payload: OfflineMovePayload):
+    session = active_games.get(game_id)
+
+    if session is None:
+        raise HTTPException(status_code=404, detail="Game not found")
+
+    if payload.player_id != session["player_id"]:
+        raise HTTPException(status_code=400, detail="Unknown player_id for this game")
+
+    if not (0 <= payload.row <= 2 and 0 <= payload.col <= 2):
+        raise HTTPException(status_code=400, detail="Coordinates must be between 0 and 2")
+
+    game.bind_state(session["state"])
+    state = game.is_winning()
+
+    if state["status"] != "ongoing":
+        raise HTTPException(status_code=409, detail="Game already finished")
+
+    if game.table_game[payload.row][payload.col]["text"] != "":
+        raise HTTPException(status_code=409, detail="Cell is already occupied")
+
+    current_role = game.player
+    game.next(payload.row, payload.col)
+    game.sync_state(session["state"])
+
+    return build_state_payload(
+        session,
+        {
+            "player_id": payload.player_id,
+            "role": current_role,
+            "row": payload.row,
+            "col": payload.col,
+        },
+    )
+
+
+@router.delete("/offline/{game_id}", status_code=204)
+async def delete_offline_game(game_id: str):
+    if game_id not in active_games:
+        raise HTTPException(status_code=404, detail="Game not found")
+
+    active_player_ids.discard(active_games[game_id]["player_id"])
+    del active_games[game_id]
+    return Response(status_code=204)
 
 
 @router.websocket("/ws/{game_id}")

@@ -25,6 +25,9 @@ model User {
   friendships2      Friendship[] @relation("user2")
   messagesSent      Message[] @relation("sender")
   messagesReceived  Message[] @relation("receiver")
+  onlineMatchesAsPlayerX OnlineMatch[] @relation("online_matches_as_x")
+  onlineMatchesAsPlayerO OnlineMatch[] @relation("online_matches_as_o")
+  onlineMatchesAsWinner  OnlineMatch[] @relation("online_matches_as_winner")
 
   @@map("users")
 }
@@ -128,12 +131,28 @@ model OAuthAccount {
   @@map("oauth_accounts")
 }
 
+model OnlineMatch {
+  id         String   @id @default(cuid())
+  gameId     String   @unique
+  playerXId  String
+  playerX    User     @relation("online_matches_as_x", fields: [playerXId], references: [id], onDelete: Cascade)
+  playerOId  String
+  playerO    User     @relation("online_matches_as_o", fields: [playerOId], references: [id], onDelete: Cascade)
+  winnerId   String?
+  winner     User?    @relation("online_matches_as_winner", fields: [winnerId], references: [id], onDelete: SetNull)
+  status     String
+  finalState Json
+  finishedAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  @@map("online_matches")
+}
+
 // ============================================
 // ============================================
 
 
 // ============================================
 // ============================================
-
 
 

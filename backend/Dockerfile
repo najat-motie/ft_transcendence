@@ -10,4 +10,4 @@ COPY . /app
 
 RUN npx prisma generate
 
-CMD [ "node" , "src/server.js" ]
+CMD ["sh", "-c", "npx prisma migrate deploy && node src/server.js"]

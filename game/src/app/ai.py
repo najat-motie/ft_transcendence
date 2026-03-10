@@ -1,7 +1,7 @@
 from json import JSONDecodeError
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, HTTPException, Response, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel, field_validator
 
 from training.tictactoe_model import legal_actions, load_model, minimax_action
@@ -29,6 +29,22 @@ class AIPayload(BaseModel):
         return stripped
 
 
+class AIMovePayload(BaseModel):
+    player_id: str
+    row: int
+    col: int
+
+    @field_validator("player_id", mode="before")
+    @classmethod
+    def validate_and_strip_player_id(cls, value):
+        if not isinstance(value, str):
+            raise ValueError("must be a string")
+        stripped = value.strip()
+        if stripped == "":
+            raise ValueError("must not be empty")
+        return stripped
+
+
 MODEL = None
 MODEL_PATH = Path(__file__).resolve().parent.parent / "training" / "models" / "final_model.pkl"
 try:
@@ -46,6 +62,34 @@ def websocket_is_open(websocket):
 
 def current_board():
     return [[game.table_game[h][w]["text"] for w in range(3)] for h in range(3)]
+
+
+def state_status_text(state):
+    if state["status"] == "win":
+        return "Win"
+    if state["status"] == "tie":
+        return "Tie"
+    return "Next turn"
+
+
+def build_state_payload(session, last_move=None, ai_move=None, message=""):
+    game.bind_state(session["state"])
+    state = game.is_winning()
+    payload = {
+        "board": current_board(),
+        "status": state_status_text(state),
+        "turn": game.player if state["status"] == "ongoing" else None,
+        "game_status": state["status"],
+        "last_move": last_move,
+        "ai_move": ai_move,
+    }
+    if state["status"] == "win":
+        payload["winner"] = state["winner"]
+        payload["line_type"] = state["line_type"]
+        payload["cells"] = state["cells"]
+    if message:
+        payload["message"] = message
+    return payload
 
 
 def ws_state_message(note="", ai_move=None):
@@ -134,6 +178,85 @@ async def ai(payload: AIPayload):
     }
     active_ai_player_ids.add(player_id)
     return {"ws_path": f"/ws/ai/{game_id}"}
+
+
+@router.get("/ai/{game_id}/state")
+async def ai_state(game_id: str):
+    session = active_ai_games.get(game_id)
+
+    if session is None:
+        raise HTTPException(status_code=404, detail="Game not found")
+
+    return build_state_payload(session)
+
+
+@router.post("/ai/{game_id}/move")
+async def ai_move(game_id: str, payload: AIMovePayload):
+    session = active_ai_games.get(game_id)
+
+    if session is None:
+        raise HTTPException(status_code=404, detail="Game not found")
+
+    if payload.player_id != session["player_id"]:
+        raise HTTPException(status_code=400, detail="Unknown player_id for this game")
+
+    if not (0 <= payload.row <= 2 and 0 <= payload.col <= 2):
+        raise HTTPException(status_code=400, detail="Coordinates must be between 0 and 2")
+
+    game.bind_state(session["state"])
+    state = game.is_winning()
+
+    if state["status"] != "ongoing":
+        raise HTTPException(status_code=409, detail="Game already finished")
+
+    if game.player != session["player_choice"]:
+        raise HTTPException(status_code=409, detail="Wait for your turn. AI is playing.")
+
+    if game.table_game[payload.row][payload.col]["text"] != "":
+        raise HTTPException(status_code=409, detail="Cell is already occupied")
+
+    current_role = game.player
+    game.next(payload.row, payload.col)
+    game.sync_state(session["state"])
+
+    player_move = {
+        "player_id": payload.player_id,
+        "role": current_role,
+        "row": payload.row,
+        "col": payload.col,
+    }
+    last_move = player_move
+    ai_move_payload = None
+    message = "Move accepted."
+
+    state = game.is_winning()
+    if state["status"] == "ongoing":
+        ai_move_payload = apply_ai_turn(session)
+        game.bind_state(session["state"])
+
+        if ai_move_payload is not None:
+            last_move = {
+                "player_id": "AI",
+                "role": session["ai_choice"],
+                "row": ai_move_payload["row"],
+                "col": ai_move_payload["col"],
+            }
+            message = (
+                f"Move accepted. AI played at ({ai_move_payload['row']}, {ai_move_payload['col']})."
+            )
+
+    game.sync_state(session["state"])
+    return build_state_payload(session, last_move, ai_move_payload, message)
+
+
+@router.delete("/ai/{game_id}", status_code=204)
+async def delete_ai_game(game_id: str):
+    if game_id not in active_ai_games:
+        raise HTTPException(status_code=404, detail="Game not found")
+
+    active_ai_player_ids.discard(active_ai_games[game_id]["player_id"])
+    del active_ai_games[game_id]
+    return Response(status_code=204)
 
 
 @router.websocket("/ws/ai/{game_id}")

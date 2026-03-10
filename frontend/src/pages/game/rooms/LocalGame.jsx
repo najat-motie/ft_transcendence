@@ -1,198 +1,141 @@
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { apiRequest } from "../../../services/api";
+import { connectSocket, getSocket, closeSocket } from "../../../services/socket";
 import "../../../styles/game/game-room.css";
+
+const emptyBoard = [
+  ["", "", ""],
+  ["", "", ""],
+  ["", "", ""],
+];
 
 export default function LocalGame() {
   const navigate = useNavigate();
-  const [turn, setTurn] = useState("Player 1");
-  const [board, setBoard] = useState(Array(9).fill(null));
+  const connectionRef = useRef(0);
+
+  const [board, setBoard] = useState(emptyBoard);
+  const [turn, setTurn] = useState("X");
   const [winner, setWinner] = useState(null);
+  const [gameStatus, setGameStatus] = useState("starting");
+  const [statusText, setStatusText] = useState("Starting local game...");
+  const [message, setMessage] = useState("");
 
-  const winningCombos = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8],
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8],
-    [0, 4, 8],
-    [2, 4, 6],
-  ];
+  const startGame = async () => {
+    const connectionId = connectionRef.current + 1;
+    connectionRef.current = connectionId;
 
-  useEffect(() => {
-    for (let combo of winningCombos) {
-      const [a, b, c] = combo;
-      if (board[a] && board[a] === board[b] && board[a] === board[c]) {
-        setWinner(board[a] === "X" ? "Player 1" : "Player 2");
+    closeSocket();
+    setBoard(emptyBoard);
+    setTurn("X");
+    setWinner(null);
+    setGameStatus("starting");
+    setStatusText("Starting local game...");
+    setMessage("");
+
+    try {
+      const session = await apiRequest("/offline", { method: "POST" }, true);
+
+      if (connectionId !== connectionRef.current) {
         return;
       }
-    }
 
-    if (board.every((cell) => cell !== null)) {
-      setWinner("Tie");
-    }
-  }, [board]);
+      const socket = connectSocket(session.ws_path);
 
-  const handleClick = (index) => {
-    if (board[index] || winner) return;
-    const newBoard = [...board];
-    newBoard[index] = turn === "Player 1" ? "X" : "O";
-    setBoard(newBoard);
-    setTurn(turn === "Player 1" ? "Player 2" : "Player 1");
+      socket.onmessage = (event) => {
+        if (connectionId !== connectionRef.current) {
+          return;
+        }
+
+        const data = JSON.parse(event.data);
+
+        if (data.board) setBoard(data.board);
+        if (data.turn !== undefined) setTurn(data.turn);
+        if (data.game_status) setGameStatus(data.game_status);
+        if (data.status) setStatusText(data.status);
+        if (data.winner) setWinner(data.winner);
+        if (data.message) setMessage(data.message);
+        if (data.error) setMessage(data.error);
+      };
+
+      socket.onclose = () => {
+        if (connectionId !== connectionRef.current) {
+          return;
+        }
+        setStatusText("Disconnected from server.");
+      };
+    } catch (error) {
+      if (connectionId !== connectionRef.current) {
+        return;
+      }
+
+      setStatusText(error.message || "Failed to start local game.");
+      setGameStatus("error");
+    }
   };
 
-  const resetGame = () => {
-    setBoard(Array(9).fill(null));
-    setTurn("Player 1");
-    setWinner(null);
+  useEffect(() => {
+    startGame();
+
+    return () => {
+      connectionRef.current += 1;
+      closeSocket();
+    };
+  }, []);
+
+  const handleClick = (row, col) => {
+    if (board[row][col] !== "" || gameStatus !== "ongoing") return;
+
+    const socket = getSocket();
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({ row, col }));
+    }
   };
+
+  const winnerText =
+    winner === "Tie" || gameStatus === "tie"
+      ? "It's a Tie!"
+      : winner
+        ? `${winner} Wins!`
+        : null;
 
   return (
     <section className="game-room">
       <div className="room-container">
         <h2>Local Game</h2>
-        {!winner && <p>{turn}'s turn</p>}
-        {winner && <div className={`winner-banner ${winner === "Tie" ? "tie" : ""}`}>
-          {winner === "Tie" ? "It's a Tie!" : `${winner} Wins!`}
-        </div>}
+        {gameStatus === "ongoing" && <p>{turn} turn</p>}
+        {winnerText && (
+          <div className={`winner-banner ${gameStatus === "tie" ? "tie" : ""}`}>{winnerText}</div>
+        )}
+
+        <p className="status">{statusText}</p>
+        {message && <p className="game-message">{message}</p>}
 
         <div className="board">
-          {board.map((cell, i) => (
-            <div
-              key={i}
-              className={`cell ${cell}`}
-              onClick={() => handleClick(i)}
-            >
-              {cell}
-            </div>
-          ))}
+          {board.map((rowArr, rowIndex) =>
+            rowArr.map((cell, colIndex) => (
+              <div
+                key={`${rowIndex}-${colIndex}`}
+                className={`cell ${cell}`}
+                onClick={() => handleClick(rowIndex, colIndex)}
+                role="button"
+                tabIndex={0}
+              >
+                {cell}
+              </div>
+            ))
+          )}
         </div>
 
-        <button type="button" onClick={resetGame}>
-          Restart
-        </button>
-        <button type="button" onClick={() => navigate(-1)}>
-          Leave
-        </button>
+        <div className="buttons">
+          <button type="button" onClick={startGame}>
+            Restart
+          </button>
+          <button type="button" onClick={() => navigate(-1)}>
+            Leave
+          </button>
+        </div>
       </div>
     </section>
   );
 }
-
-
-
-
-// import { useEffect, useState } from "react";
-// import { useNavigate } from "react-router-dom";
-// import { connectSocket, getSocket } from "../../../services/socket";
-// import "../../../styles/game/game-room.css";
-
-// export default function LocalGame() {
-//   const navigate = useNavigate();
-//   const savedUser = JSON.parse(localStorage.getItem("user"));
-//   const token = localStorage.getItem(`accessToken_${savedUser.userId}`);
-
-//   const [board, setBoard] = useState(Array(9).fill(null));
-//   const [turn, setTurn] = useState("X");
-//   const [winner, setWinner] = useState(null);
-//   const [matchId, setMatchId] = useState(null);
-
-//   useEffect(() => {
-//     const socket = connectSocket(token);
-
-//     socket.onmessage = (event) => {
-//       const data = JSON.parse(event.data);
-
-//       switch (data.type) {
-//         case "localMatchCreated":
-//           setMatchId(data.matchId);
-//           setBoard(Array(9).fill(null));
-//           setTurn("X");
-//           setWinner(null);
-//           break;
-
-//         case "gameState":
-//           if (data.matchId !== matchId) return;
-//           setBoard(data.board);
-//           setTurn(data.turn);
-//           setWinner(data.winner);
-//           break;
-
-//         default:
-//           break;
-//       }
-//     };
-
-//     socket.onopen = () => {
-//       socket.send(
-//         JSON.stringify({
-//           type: "createLocalMatch",
-//         })
-//       );
-//     };
-
-//     return () => {
-//       const s = getSocket();
-//       if (s) s.onmessage = null;
-//     };
-//   }, [token, matchId]);
-
-//   const handleClick = (index) => {
-//     if (!matchId || board[index] || winner) return;
-
-//     const socket = getSocket();
-//     if (socket && socket.readyState === WebSocket.OPEN) {
-//       socket.send(
-//         JSON.stringify({
-//           type: "gameMove",
-//           matchId,
-//           index,
-//         })
-//       );
-//     }
-//   };
-
-//   const resetGame = () => {
-//     const socket = getSocket();
-//     if (socket) {
-//       socket.send(
-//         JSON.stringify({
-//           type: "resetGame",
-//           matchId,
-//         })
-//       );
-//     }
-//   };
-
-//   return (
-//     <section className="game-room">
-//       <div className="room-container">
-//         <h2>Local Hosted Game</h2>
-
-//         {!winner && <p>{turn}'s turn</p>}
-
-//         {winner && (
-//           <div className={`winner-banner ${winner === "Tie" ? "tie" : ""}`}>
-//             {winner === "Tie" ? "It's a Tie!" : `${winner} Wins!`}
-//           </div>
-//         )}
-
-//         <div className="board">
-//           {board.map((cell, i) => (
-//             <div
-//               key={i}
-//               className={`cell ${cell}`}
-//               onClick={() => handleClick(i)}
-//             >
-//               {cell}
-//             </div>
-//           ))}
-//         </div>
-//         <div className="buttonss">
-//           <button onClick={resetGame}>Restart</button>
-//           <button onClick={() => navigate(-1)}>Leave</button>
-//         </div>
-//       </div>
-//     </section>
-//   );
-// }
