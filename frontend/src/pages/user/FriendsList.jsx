@@ -24,10 +24,8 @@ export default function FriendsList({ friendList, setFriendList }) {
         {friendList.map((friend) => (
           <li key={friend.id} className="friend-item">
             <div className="friend-info">
-              <span className={`status-dot ${friend.online ? "online" : "offline"}`}></span>
               <div>
                 <span className="friend-name">{friend.username}</span>
-                <span className="friend-meta">{friend.online ? "Online now" : "Offline"}</span>
               </div>
             </div>
             <button className="remove-btn" onClick={() => removeFriend(friend.id)}>Remove</button>
