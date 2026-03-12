@@ -27,12 +27,27 @@ const broadcast = (room, payload) => {
   }
 };
 
-const closeOnlineRoom = async (room, reason) => {
+const closeOnlineRoom = async (room, reason, winnerId = null) => {
   if (room.closing) {
     return;
   }
 
   room.closing = true;
+
+  // If a winner is supplied (e.g., opponent disconnected), mark game finished and persist
+  if (!room.finished && winnerId && room.roles[winnerId]) {
+    room.finalState = {
+      game_status: 'win',
+      winner: room.roles[winnerId],
+      reason: 'opponent_disconnected',
+    };
+    room.finished = true;
+    try {
+      await onlineService.persistFinishedRoom(room, room.finalState);
+    } catch (error) {
+      console.error('Failed to persist disconnect win:', error.message);
+    }
+  }
 
   if (room.finished && room.finalState && !room.persisted) {
     try {
@@ -43,7 +58,7 @@ const closeOnlineRoom = async (room, reason) => {
   }
 
   if (reason) {
-    broadcast(room, { message: reason });
+    broadcast(room, { message: reason, final_state: room.finalState });
   }
 
   for (const socket of room.sockets.values()) {
@@ -195,7 +210,8 @@ const attachOnlineConnection = (socket, room) => {
       }
 
       if (room.sockets.size > 0) {
-        await closeOnlineRoom(room, 'A player disconnected.');
+        const remainingId = Array.from(room.sockets.keys())[0];
+        await closeOnlineRoom(room, 'A player disconnected.', remainingId);
         return;
       }
 
@@ -390,7 +406,8 @@ const attachOnlineGateway = (server) => {
   });
 
   server.on('upgrade', (request, socket, head) => {
-    const pathname = new URL(request.url, `http://${request.headers.host}`).pathname;
+    const requestUrl = new URL(request.url, `http://${request.headers.host}`);
+    const pathname = requestUrl.pathname;
     const route = resolveGatewayRoute(pathname);
 
     if (!route) {
@@ -398,17 +415,27 @@ const attachOnlineGateway = (server) => {
       return;
     }
 
+    const requireAuth = route.kind === 'online';
     try {
       const cookieHeader = request.headers.cookie || '';
       const cookies = require('cookie').parse(cookieHeader);
-      const token = cookies.jwt_access;
-      if (!token) throw new Error('No token');
-      const decoded = require('jsonwebtoken').verify(token, process.env.JWT_ACCESS_SECRET);
-      request.user = decoded;
+      const token = requestUrl.searchParams.get('token') || cookies.jwt_access;
+
+      if (token) {
+        const decoded = require('jsonwebtoken').verify(token, process.env.JWT_ACCESS_SECRET);
+        request.user = decoded;
+      } else if (requireAuth) {
+        throw new Error('No token');
+      } else {
+        request.user = { userId: 'guest' };
+      }
     } catch (error) {
-      socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
-      socket.destroy();
-      return;
+      if (requireAuth) {
+        socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+        socket.destroy();
+        return;
+      }
+      request.user = { userId: 'guest' };
     }
 
     wss.handleUpgrade(request, socket, head, (ws) => {

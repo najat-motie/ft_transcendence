@@ -159,6 +159,20 @@ const login = async (req, res) => {
     const accessToken = tokenService.generateAccessToken(user.id);
     const refreshToken = await tokenService.generateRefreshToken(user.id);
 
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 15 * 60 * 1000, // 15 minutes
+      path: '/',
+    };
+
+    res.cookie('jwt_access', accessToken, cookieOptions);
+    res.cookie('jwt_refresh', refreshToken, {
+      ...cookieOptions,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
     return res.status(200).json({
       success: true,
       message: 'Login successful',
@@ -239,6 +253,14 @@ const refresh = async (req, res) => {
     }
 
     const newAccessToken = tokenService.generateAccessToken(userId);
+
+    res.cookie('jwt_access', newAccessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 15 * 60 * 1000,
+      path: '/',
+    });
 
     return res.status(200).json({
       success: true,

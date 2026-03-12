@@ -4,8 +4,12 @@ services:
   backend:
     build: ./backend
     container_name: ft_backend
+    pull_policy: if_not_present
     env_file:
       - .env
+    environment:
+      GAME_SERVICE_URL: http://game:8000
+      SERVICE_API_KEY: super_secret_internal_key
     ports:
       - "3000:3000"
     volumes:
@@ -22,6 +26,12 @@ services:
   game:
     build: ./game
     container_name: ft_game
+    pull_policy: if_not_present
+    env_file:
+      - .env
+    environment:
+      SERVICE_API_KEY: super_secret_internal_key
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
     ports:
       - "8000:8000"
     restart: on-failure
@@ -49,6 +59,7 @@ services:
   frontend:
     build: ./frontend
     container_name: ft_frontend
+    pull_policy: if_not_present
     ports:
       - "5173:5173"
     networks:

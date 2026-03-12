@@ -1,5 +1,7 @@
 .PHONY: help build up down restart clean logs logs-backend logs-frontend logs-db shell-backend shell-frontend shell-db ps migrate migrate-dev migrate-reset db-push db-seed prune dev stop start rebuild
 
+export DOCKER_CONFIG := $(PWD)/.docker
+
 help:
 	@echo "Available commands:"
 	@echo "  make build          - Build all Docker containers"
