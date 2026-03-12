@@ -4,7 +4,7 @@ import SideBar from "./layouts/SidebarLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PageLoader from "./components/PageLoader";
 import ErrorBoundary from "./components/ErrorBoundary";
-import PrivacyPolicy from "./pages/PrivacyPolicy.jsx";
+import PrivacyPolicy from "./pages/PolicyPage.jsx";
 import TermsOfService from "./pages/TermsOfService.jsx";
 
 const Home = lazy(() => import("./pages/Home"));
