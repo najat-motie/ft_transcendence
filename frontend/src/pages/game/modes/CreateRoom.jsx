@@ -65,7 +65,12 @@ export default function CreateRoom() {
 
         if (response.ready) {
           readyRef.current = true;
-          navigate("/play/online", { state: response });
+          navigate("/play/online", {
+            state: {
+              ...response,
+              source: "create-room",
+            },
+          });
         }
       } catch (requestError) {
         if (!mountedRef.current || readyRef.current) {

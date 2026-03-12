@@ -69,7 +69,12 @@ async function getFriendsList(userId) {
   const friendships = await prisma.friendship.findMany({
     where: { OR: [{ user1Id: userId }, { user2Id: userId }] },
   });
-  const friendIds = friendships.map(f => (f.user1Id === userId ? f.user2Id : f.user1Id));
+  const friendIds = friendships.map((friendship) => {
+    if (friendship.user1Id === userId) {
+      return friendship.user2Id;
+    }
+    return friendship.user1Id;
+  });
   return prisma.userProfile.findMany({
     where: { userId: { in: friendIds } },
     select: { userId: true, username: true, name: true, avatar: true },

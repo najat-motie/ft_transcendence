@@ -1,4 +1,6 @@
+import { Link } from "react-router-dom";
 import { apiRequest } from "../../services/api";
+import defaultAvatar from "../../assets/default-avatar.svg";
 
 export default function FriendsList({ friendList, setFriendList }) {
   const removeFriend = async (friendId) => {
@@ -24,8 +26,29 @@ export default function FriendsList({ friendList, setFriendList }) {
         {friendList.map((friend) => (
           <li key={friend.id} className="friend-item">
             <div className="friend-info">
+              <div style={{ position: "relative", flexShrink: 0 }}>
+                <img
+                  src={friend.avatar || defaultAvatar}
+                  alt={friend.username}
+                  style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover", display: "block" }}
+                />
+                <span
+                  className={`status-dot ${friend.online ? "online" : "offline"}`}
+                  title={friend.online ? "Online" : "Offline"}
+                  style={{ position: "absolute", bottom: 0, right: 0 }}
+                />
+              </div>
               <div>
-                <span className="friend-name">{friend.username}</span>
+                <Link
+                  to={`/profile/${friend.id}`}
+                  className="friend-name"
+                  style={{ textDecoration: "none", color: "inherit" }}
+                >
+                  {friend.username}
+                </Link>
+                <span style={{ display: "block", fontSize: "0.75rem", opacity: 0.55 }}>
+                  {friend.online ? "Online" : "Offline"}
+                </span>
               </div>
             </div>
             <button className="remove-btn" onClick={() => removeFriend(friend.id)}>Remove</button>

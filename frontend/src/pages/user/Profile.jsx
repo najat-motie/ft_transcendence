@@ -4,6 +4,7 @@ import "../../styles/user/profile.css";
 import { apiRequest } from "../../services/api";
 import { validateForm } from "../../utils/validator";
 import { getUserFromCookie } from "../../utils/cookies";
+import defaultAvatar from "../../assets/default-avatar.svg";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -225,7 +226,7 @@ export default function Profile() {
         <div className="profile-hero">
           <div className="profile-identity-card">
             <div className="avatar-wrapper">
-              <img src={formData.avatar || "https://i.pravatar.cc/120"} alt="avatar" className="avatar" />
+              <img src={formData.avatar || defaultAvatar} alt="avatar" className="avatar" />
               {editMode && (
                 <input
                   type="file"

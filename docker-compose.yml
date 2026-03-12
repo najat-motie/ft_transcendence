@@ -19,10 +19,10 @@ services:
       OAUTH_42_CLIENT_ID: ${OAUTH_42_CLIENT_ID:-}
       OAUTH_42_CLIENT_SECRET: ${OAUTH_42_CLIENT_SECRET:-}
       OAUTH_42_CALLBACK_URL: ${OAUTH_42_CALLBACK_URL:-https://localhost/api/auth/42/callback}
-      GAME_SERVICE_URL: http://game:8000
+      GAME_SERVICE_URL: https://game:8443
       SERVICE_API_KEY: super_secret_internal_key
-    ports:
-      - "3000:3000"
+    # ports:
+    #   - "3000:3000"
     volumes:
       - ./uploads:/app/uploads
     depends_on:
@@ -41,8 +41,8 @@ services:
     environment:
       SERVICE_API_KEY: super_secret_internal_key
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-}
-    ports:
-      - "8000:8000"
+    # ports:
+    #   - "8000:8000"
     restart: on-failure
     networks:
       - ft_transcendence
@@ -55,8 +55,8 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
-    ports:
-      - "5432:5432"
+    # ports:
+    #   - "5432:5432"
     networks:
       - ft_transcendence
     volumes:
@@ -74,8 +74,8 @@ services:
     environment:
       VITE_API_BASE_URL: ${VITE_API_BASE_URL:-https://localhost/api}
       VITE_WS_BASE_URL: ${VITE_WS_BASE_URL:-wss://localhost}
-    ports:
-      - "5173:5173"
+    # ports:
+    #   - "5173:5173"
     networks:
       - ft_transcendence
 

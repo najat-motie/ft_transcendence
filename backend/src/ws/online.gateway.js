@@ -34,7 +34,6 @@ const closeOnlineRoom = async (room, reason, winnerId = null) => {
 
   room.closing = true;
 
-  // If a winner is supplied (e.g., opponent disconnected), mark game finished and persist
   if (!room.finished && winnerId && room.roles[winnerId]) {
     room.finalState = {
       game_status: 'win',
@@ -183,7 +182,12 @@ const attachOnlineConnection = (socket, room) => {
 
     await onlineService.withRoomLock(room, async () => {
       if (!socket.playerId) {
-        const playerId = typeof message.player_id === 'string' ? message.player_id.trim() : '';
+        let playerId;
+        if (typeof message.player_id === 'string') {
+          playerId = message.player_id.trim();
+        } else {
+          playerId = '';
+        }
         await handleOnlineJoin(socket, room, playerId);
         return;
       }

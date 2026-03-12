@@ -22,7 +22,12 @@ export default function Matchmaking() {
 
         setStatus("Match found. Joining room...");
         setIsSearching(false);
-        navigate("/play/online", { state: match });
+        navigate("/play/online", {
+          state: {
+            ...match,
+            source: "matchmaking",
+          },
+        });
       } catch (error) {
         if (controller.signal.aborted) {
           return;

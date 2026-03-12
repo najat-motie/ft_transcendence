@@ -30,6 +30,7 @@ export default function OnlineGame() {
   const { settings } = useSettings();
   const { xSrc, oSrc, boardSrc } = resolveSkinAssets(settings);
   const match = location.state || {};
+  const source = match.source || null;
   const wsPath = match.ws_path || match.wsPath;
   const session = getUser();
   const savedUser = session?.user;
@@ -118,6 +119,27 @@ export default function OnlineGame() {
     }
   };
 
+  const handleRestart = () => {
+    closeSocket();
+
+    if (source === "matchmaking") {
+      navigate("/play/matchmaking");
+      return;
+    }
+
+    if (source === "create-room") {
+      navigate("/play/create-room");
+      return;
+    }
+
+    if (source === "join-room") {
+      navigate("/play/join-room");
+      return;
+    }
+
+    navigate("/play");
+  };
+
   if (!role) return <p className="status">Connecting to game...</p>;
 
   return (
@@ -191,7 +213,7 @@ export default function OnlineGame() {
         </div>
 
         <div className="buttons">
-          <button className="primary" onClick={() => navigate("/play")}>
+          <button className="primary" onClick={handleRestart}>
             Restart
           </button>
           <button className="primary danger" onClick={() => navigate(-1)}>

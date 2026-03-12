@@ -30,7 +30,12 @@ export default function JoinRoom() {
         body: JSON.stringify({ room_code: roomCode.trim().toUpperCase() }),
       });
 
-      navigate("/play/online", { state: match });
+      navigate("/play/online", {
+        state: {
+          ...match,
+          source: "join-room",
+        },
+      });
     } catch (requestError) {
       setError(requestError.message || "Failed to join room");
       setIsJoining(false);

@@ -1,6 +1,6 @@
 const prisma = require('../config/database');
 
-const ASSET_BASE_URL = process.env.ASSET_BASE_URL || process.env.API_BASE_URL || 'http://localhost:3000';
+const ASSET_BASE_URL = process.env.ASSET_BASE_URL || process.env.API_BASE_URL || 'https://localhost';
 const formatAvatarUrl = (avatarPath) => {
   if (!avatarPath) return null;
   if (/^https?:\/\//i.test(avatarPath)) return avatarPath;

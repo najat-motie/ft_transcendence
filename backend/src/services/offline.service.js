@@ -1,12 +1,16 @@
 const axios = require('axios');
+const https = require('https');
 const axiosClient = axios.create({
+  httpsAgent: new https.Agent({
+    rejectUnauthorized: false,
+  }),
   headers: {
     'x-api-key': process.env.SERVICE_API_KEY || 'super_secret_internal_key'
   }
 });
 const { randomUUID } = require('crypto');
 
-const GAME_SERVICE_URL = process.env.GAME_SERVICE_URL || 'http://localhost:8000';
+const GAME_SERVICE_URL = process.env.GAME_SERVICE_URL || 'https://localhost:8443';
 const activeOfflineGames = new Map();
 
 const createHttpError = (status, message) => {

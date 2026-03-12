@@ -34,8 +34,14 @@ const persistCompletedOnlineMatch = async ({ gameId, playerXId, playerOId, final
     }
 
     const winnerId = resolveWinnerId({ playerXId, playerOId, finalState });
-    const loserId =
-      winnerId === playerXId ? playerOId : winnerId === playerOId ? playerXId : null;
+    let loserId;
+    if (winnerId === playerXId) {
+      loserId = playerOId;
+    } else if (winnerId === playerOId) {
+      loserId = playerXId;
+    } else {
+      loserId = null;
+    }
 
     const match = await tx.onlineMatch.create({
       data: {

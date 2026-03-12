@@ -15,6 +15,7 @@ const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
 const ChangePassword = lazy(() => import("./pages/auth/ChangePassword"));
 const OAuthCallback = lazy(() => import("./pages/auth/OAuthCallback"));
 const Profile = lazy(() => import("./pages/user/Profile"));
+const UserProfileView = lazy(() => import("./pages/user/UserProfileView"));
 const Friends = lazy(() => import("./pages/user/Friends"));
 const Lobby = lazy(() => import("./pages/game/GameLobby"));
 const OnlineGame = lazy(() => import("./pages/game/rooms/OnlineGame"));
@@ -61,6 +62,7 @@ export default function App() {
               <Route path="/play/matchmaking" element={<Matchmaking />} />
               <Route path="/settings" element={<CustomizePage />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/profile/:userId" element={<UserProfileView />} />
               <Route path="/friends" element={<Friends />} />
               <Route path="/change-password" element={<ChangePassword />} />
             </Route>

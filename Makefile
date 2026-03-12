@@ -1,6 +1,7 @@
 .PHONY: help build up down restart clean logs logs-backend logs-frontend logs-db shell-backend shell-frontend shell-db ps migrate migrate-dev migrate-reset db-push db-seed prune dev stop start rebuild
 
 export DOCKER_CONFIG := $(PWD)/.docker
+COMPOSE := docker compose --env-file .env
 
 help:
 	@echo "Available commands:"
@@ -33,72 +34,72 @@ help:
 	@echo "  make prune          - Remove all unused Docker resources"
 
 build:
-	docker compose build
+	$(COMPOSE) build
 
 up:
-	docker compose up -d
+	$(COMPOSE) up -d
 
 down:
-	docker compose down
+	$(COMPOSE) down
 
 restart:
-	docker compose restart
+	$(COMPOSE) restart
 
 dev:
-	docker compose up
+	$(COMPOSE) up
 
 stop:
-	docker compose stop
+	$(COMPOSE) stop
 
 start:
-	docker compose start
+	$(COMPOSE) start
 
 rebuild:
-	docker compose down
-	docker compose build --no-cache
-	docker compose up -d
+	$(COMPOSE) down
+	$(COMPOSE) build --no-cache
+	$(COMPOSE) up -d
 
 logs:
-	docker compose logs -f
+	$(COMPOSE) logs -f
 
 logs-backend:
-	docker compose logs -f backend
+	$(COMPOSE) logs -f backend
 
 logs-frontend:
-	docker compose logs -f frontend
+	$(COMPOSE) logs -f frontend
 
 logs-db:
-	docker compose logs -f db
+	$(COMPOSE) logs -f db
 
 shell-backend:
-	docker compose exec backend sh
+	$(COMPOSE) exec backend sh
 
 shell-frontend:
-	docker compose exec frontend sh
+	$(COMPOSE) exec frontend sh
 
 shell-db:
-	docker compose exec db psql -U $(shell grep POSTGRES_USER .env | cut -d '=' -f2) -d $(shell grep POSTGRES_DB .env | cut -d '=' -f2)
+	$(COMPOSE) exec db psql -U $(shell grep POSTGRES_USER .env | cut -d '=' -f2) -d $(shell grep POSTGRES_DB .env | cut -d '=' -f2)
 
 ps:
-	docker compose ps
+	$(COMPOSE) ps
 
 migrate:
-	docker compose exec backend npx prisma migrate deploy
+	$(COMPOSE) exec backend npx prisma migrate deploy
 
 migrate-dev:
-	docker compose exec backend npx prisma migrate dev
+	$(COMPOSE) exec backend npx prisma migrate dev
 
 migrate-reset:
-	docker compose exec backend npx prisma migrate reset
+	$(COMPOSE) exec backend npx prisma migrate reset
 
 db-push:
-	docker compose exec backend npx prisma db push
+	$(COMPOSE) exec backend npx prisma db push
 
 db-seed:
-	docker compose exec backend npx prisma db seed
+	$(COMPOSE) exec backend npx prisma db seed
 
 clean:
-	docker compose down -v
+	$(COMPOSE) down -v
 	docker system prune -f
 
 prune:

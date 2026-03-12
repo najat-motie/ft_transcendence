@@ -30,10 +30,16 @@ export default function AIGame() {
   const [message, setMessage] = useState("");
   const [exportUrl, setExportUrl] = useState(null);
   const [lastBoardSignature, setLastBoardSignature] = useState("");
+  const [isStarting, setIsStarting] = useState(false);
 
   const startGame = async () => {
+    if (isStarting) {
+      return;
+    }
+
     const connectionId = connectionRef.current + 1;
     connectionRef.current = connectionId;
+    setIsStarting(true);
 
     closeSocket();
     setBoard(emptyBoard);
@@ -81,6 +87,10 @@ export default function AIGame() {
 
       setStatusText(error.message || "Failed to start AI game.");
       setGameStatus("error");
+    } finally {
+      if (connectionId === connectionRef.current) {
+        setIsStarting(false);
+      }
     }
   };
 
@@ -153,7 +163,7 @@ export default function AIGame() {
               <strong>{boardLabel}</strong>
             </div>
             <div className="board-actions">
-              <button className="secondary" type="button" onClick={startGame}>
+              <button className="secondary" type="button" onClick={startGame} disabled={isStarting}>
                 Restart
               </button>
               <button className="secondary danger" type="button" onClick={() => navigate("/play")}>

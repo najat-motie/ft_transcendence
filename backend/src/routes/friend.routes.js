@@ -22,7 +22,6 @@ router.post('/accept/:requestId', acceptFriendRequest);
 
 router.post('/reject/:requestId', rejectFriendRequest);
 
-// Legacy combined list + explicit incoming/outgoing
 router.get('/requests', getFriendRequests);
 router.get('/requests/incoming', getIncomingFriendRequests);
 router.get('/requests/outgoing', getOutgoingFriendRequests);

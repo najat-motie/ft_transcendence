@@ -3,7 +3,16 @@ const crypto = require('crypto');
 const prisma = require('../config/database');
 
 async function generateUniqueUsername(desiredUsername, email) {
-  const base = (desiredUsername || (email ? email.split('@')[0] : 'player'))
+  let seedUsername;
+  if (desiredUsername) {
+    seedUsername = desiredUsername;
+  } else if (email) {
+    seedUsername = email.split('@')[0];
+  } else {
+    seedUsername = 'player';
+  }
+
+  const base = seedUsername
     .toLowerCase()
     .replace(/[^a-z0-9]/g, '')
     .slice(0, 20) || 'player';
@@ -108,7 +117,6 @@ const findOrCreateUserFrom42 = async (oauthData) => {
     },
   });
 
-  // Ensure profile exists for KPI pipeline
   await ensureUserProfile(user.id, login, oauthData.image_url || null);
 
   return user;

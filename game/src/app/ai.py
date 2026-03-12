@@ -138,7 +138,6 @@ def apply_ai_turn(session):
 
     if MODEL is not None:
         try:
-            # RLQModel's choose_action is O(1)
             action = MODEL.choose_action(board, ai_player)
         except Exception as exc:
             print(f"[ai] model inference failed: {exc}. Using minimax fallback")

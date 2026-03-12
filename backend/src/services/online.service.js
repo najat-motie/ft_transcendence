@@ -1,5 +1,9 @@
 const axios = require('axios');
+const https = require('https');
 const axiosClient = axios.create({
+  httpsAgent: new https.Agent({
+    rejectUnauthorized: false,
+  }),
   headers: {
     'x-api-key': process.env.SERVICE_API_KEY || 'super_secret_internal_key'
   }
@@ -7,7 +11,7 @@ const axiosClient = axios.create({
 const { randomUUID } = require('crypto');
 const matchService = require('./match.service');
 
-const GAME_SERVICE_URL = process.env.GAME_SERVICE_URL || 'http://localhost:8000';
+const GAME_SERVICE_URL = process.env.GAME_SERVICE_URL || 'https://localhost:8443';
 
 const matchmakingQueue = [];
 const queuedPlayers = new Set();
@@ -56,7 +60,6 @@ const ensurePlayerAvailable = (playerId) => {
         try {
           cancelPrivateRoom(roomCode, playerId);
         } catch (e) {
-          // Ignore
         }
       }
     }

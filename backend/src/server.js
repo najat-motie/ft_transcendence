@@ -18,12 +18,47 @@ const privateRoomRoutes = require('./routes/private-room.routes');
 const { attachOnlineGateway } = require('./ws/online.gateway');
 
 const app = express();
+const PRIVATE_ROOM_STATUS_PATH = /^\/room\/[A-Z0-9]{6}$/i;
+const GAME_START_PATHS = new Set(['/offline', '/ai']);
+const parsePositiveInteger = (value, fallback) => {
+  const parsed = Number.parseInt(value, 10);
+  if (Number.isFinite(parsed) && parsed > 0) {
+    return parsed;
+  }
+  return fallback;
+};
+
+const isProduction = process.env.NODE_ENV === 'production';
+let generalRateLimitDefault;
+if (isProduction) {
+  generalRateLimitDefault = 300;
+} else {
+  generalRateLimitDefault = 2000;
+}
+
+let authRateLimitDefault;
+if (isProduction) {
+  authRateLimitDefault = 10;
+} else {
+  authRateLimitDefault = 30;
+}
+
+const generalRateLimitMax = parsePositiveInteger(
+  process.env.RATE_LIMIT_MAX,
+  generalRateLimitDefault
+);
+const authRateLimitMax = parsePositiveInteger(
+  process.env.AUTH_RATE_LIMIT_MAX,
+  authRateLimitDefault
+);
 let PORT;
 if (process.env.PORT) {
   PORT = process.env.PORT;
 } else {
   PORT = 3000;
 }
+
+app.set('trust proxy', 1);
 
 const helmetOptions = {
   contentSecurityPolicy: false,
@@ -40,7 +75,7 @@ let corsOrigin;
 if (process.env.CORS_ORIGIN) {
   corsOrigin = process.env.CORS_ORIGIN;
 } else {
-  corsOrigin = 'http://localhost:5173';
+  corsOrigin = 'https://localhost';
 }
 app.use(cors({
   origin: corsOrigin,
@@ -54,19 +89,26 @@ app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: generalRateLimitMax,
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => (
+    req.path === '/health' ||
+    (req.method === 'POST' && GAME_START_PATHS.has(req.path)) ||
+    (req.method === 'GET' && PRIVATE_ROOM_STATUS_PATH.test(req.path))
+  ),
 });
 
 app.use(limiter);
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5,
+  max: authRateLimitMax,
   skipSuccessfulRequests: true,
   message: 'Too many login attempts, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 app.get('/health', (req, res) => {
@@ -113,7 +155,6 @@ app.use((err, req, res, next) => {
 const server = http.createServer(app);
 attachOnlineGateway(server);
 
-// Only start the server if this file is run directly (not imported for testing)
 if (process.env.NODE_ENV !== 'test') {
   server.listen(PORT, () => {
     let env;
@@ -142,5 +183,4 @@ if (process.env.NODE_ENV !== 'test') {
   });
 }
 
-// Export app for testing
 module.exports = app;

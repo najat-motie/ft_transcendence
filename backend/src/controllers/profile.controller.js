@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const prisma = require('../config/database');
 
-const ASSET_BASE_URL = process.env.ASSET_BASE_URL || process.env.API_BASE_URL || 'http://localhost:3000';
+const ASSET_BASE_URL = process.env.ASSET_BASE_URL || process.env.API_BASE_URL || 'https://localhost';
 const AVATAR_DIR = path.join(__dirname, '..', '..', 'uploads', 'avatars');
 
 const formatAvatarUrl = (avatarPath) => {
@@ -79,10 +79,22 @@ const getProfileKpis = async (req, res) => {
     ]);
 
     const totalMatches = profile.wins + profile.losses;
-    const winRate = totalMatches > 0 ? Number(((profile.wins / totalMatches) * 100).toFixed(2)) : 0;
-    const accountAgeDays = profile.user?.createdAt
-      ? Math.max(0, Math.floor((Date.now() - new Date(profile.user.createdAt).getTime()) / (1000 * 60 * 60 * 24)))
-      : null;
+    let winRate;
+    if (totalMatches > 0) {
+      winRate = Number(((profile.wins / totalMatches) * 100).toFixed(2));
+    } else {
+      winRate = 0;
+    }
+
+    let accountAgeDays;
+    if (profile.user?.createdAt) {
+      accountAgeDays = Math.max(
+        0,
+        Math.floor((Date.now() - new Date(profile.user.createdAt).getTime()) / (1000 * 60 * 60 * 24))
+      );
+    } else {
+      accountAgeDays = null;
+    }
 
     const kpis = {
       userId: profile.userId,

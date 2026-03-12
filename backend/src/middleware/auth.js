@@ -7,8 +7,12 @@ const verifyAccessToken = (req, res, next) => {
 
     if (authHeader && authHeader.startsWith('Bearer ')) {
       token = authHeader.slice(7);
-    } else if (req.cookies && req.cookies.accessToken) {
-      token = req.cookies.accessToken;
+    } else if (req.cookies) {
+      if (req.cookies.jwt_access) {
+        token = req.cookies.jwt_access;
+      } else if (req.cookies.accessToken) {
+        token = req.cookies.accessToken;
+      }
     }
 
     if (!token) {
@@ -44,8 +48,12 @@ const verifyRefreshToken = (req, res, next) => {
 
     if (authHeader && authHeader.startsWith('Bearer ')) {
       token = authHeader.slice(7);
-    } else if (req.cookies && req.cookies.refreshToken) {
-      token = req.cookies.refreshToken;
+    } else if (req.cookies) {
+      if (req.cookies.jwt_refresh) {
+        token = req.cookies.jwt_refresh;
+      } else if (req.cookies.refreshToken) {
+        token = req.cookies.refreshToken;
+      }
     }
 
     if (!token) {

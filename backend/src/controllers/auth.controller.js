@@ -7,7 +7,11 @@ const tokenService = require('../services/token.service');
 const oauthService = require('../services/oauth.service');
 
 const AVATAR_DIR = path.join(__dirname, '..', '..', 'uploads', 'avatars');
-const ASSET_BASE_URL = process.env.ASSET_BASE_URL || process.env.API_BASE_URL || 'http://localhost:3000';
+const ASSET_BASE_URL = process.env.ASSET_BASE_URL || process.env.API_BASE_URL || 'https://localhost';
+
+function isHttpsRequest(req) {
+  return req.secure || req.headers['x-forwarded-proto'] === 'https';
+}
 
 function ensureAvatarDir() {
   if (!fs.existsSync(AVATAR_DIR)) {
@@ -18,7 +22,6 @@ function ensureAvatarDir() {
 function saveAvatarIfProvided(avatarPayload) {
   if (!avatarPayload) return null;
 
-  // Accept data URLs (base64). Otherwise assume it's an existing URL/path.
   const match = avatarPayload.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
   if (!match) {
     return avatarPayload;
@@ -44,7 +47,16 @@ function formatAvatarUrl(avatarPath) {
 }
 
 async function generateUniqueUsername(tx, desiredUsername, email) {
-  const base = (desiredUsername || (email ? email.split('@')[0] : 'player'))
+  let seedUsername;
+  if (desiredUsername) {
+    seedUsername = desiredUsername;
+  } else if (email) {
+    seedUsername = email.split('@')[0];
+  } else {
+    seedUsername = 'player';
+  }
+
+  const base = seedUsername
     .toLowerCase()
     .replace(/[^a-z0-9]/g, '')
     .slice(0, 20) || 'player';
@@ -55,7 +67,6 @@ async function generateUniqueUsername(tx, desiredUsername, email) {
     if (!existing) return candidate;
     candidate = `${base}${crypto.randomInt(100, 9999)}`;
   }
-  // Fallback with cuid-like suffix
   return `${base}-${crypto.randomBytes(3).toString('hex')}`;
 }
 
@@ -159,9 +170,14 @@ const login = async (req, res) => {
     const accessToken = tokenService.generateAccessToken(user.id);
     const refreshToken = await tokenService.generateRefreshToken(user.id);
 
+    await prisma.userProfile.updateMany({
+      where: { userId: user.id },
+      data: { status: 'online', lastSeen: new Date() },
+    });
+
     const cookieOptions = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isHttpsRequest(req),
       sameSite: 'lax',
       maxAge: 15 * 60 * 1000, // 15 minutes
       path: '/',
@@ -215,6 +231,13 @@ const logout = async (req, res) => {
       });
     }
 
+    if (req.user?.userId) {
+      await prisma.userProfile.updateMany({
+        where: { userId: req.user.userId },
+        data: { status: 'offline', lastSeen: new Date() },
+      }).catch(() => {});
+    }
+
     await tokenService.blacklistRefreshToken(token);
 
     return res.status(200).json({
@@ -256,7 +279,7 @@ const refresh = async (req, res) => {
 
     res.cookie('jwt_access', newAccessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isHttpsRequest(req),
       sameSite: 'lax',
       maxAge: 15 * 60 * 1000,
       path: '/',
@@ -470,7 +493,7 @@ const oauth42Login = async (req, res) => {
     const state = crypto.randomBytes(32).toString('hex');
     res.cookie('oauth_state', state, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isHttpsRequest(req),
       maxAge: 10 * 60 * 1000, // 10 minutes
     });
 
@@ -479,10 +502,16 @@ const oauth42Login = async (req, res) => {
     return res.redirect(authUrl);
   } catch (error) {
     console.error('OAuth 42 login error:', error);
+    let errorDetails;
+    if (process.env.NODE_ENV === 'development') {
+      errorDetails = error.message;
+    } else {
+      errorDetails = undefined;
+    }
     return res.status(500).json({
       success: false,
       message: 'OAuth login failed',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      error: errorDetails,
     });
   }
 };
@@ -515,28 +544,27 @@ const oauth42Callback = async (req, res) => {
     const accessToken = tokenService.generateAccessToken(user.id);
     const refreshToken = await tokenService.generateRefreshToken(user.id);
 
-    res.cookie('accessToken', accessToken, {
+    res.cookie('jwt_access', accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isHttpsRequest(req),
       sameSite: 'lax',
       maxAge: 15 * 60 * 1000, // 15 minutes
     });
 
-    res.cookie('refreshToken', refreshToken, {
+    res.cookie('jwt_refresh', refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isHttpsRequest(req),
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
-    // Redirect to frontend callback with session payload expected by the SPA
-    const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:5173';
+    const frontendUrl = process.env.CORS_ORIGIN || 'https://localhost';
     const redirectUrl = `${frontendUrl}/auth/callback?accessToken=${encodeURIComponent(accessToken)}&refreshToken=${encodeURIComponent(refreshToken)}&userId=${user.id}&email=${encodeURIComponent(user.email)}`;
     
     return res.redirect(redirectUrl);
   } catch (error) {
     console.error('OAuth callback error:', error);
-    const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:5173';
+    const frontendUrl = process.env.CORS_ORIGIN || 'https://localhost';
     const errorMessage = encodeURIComponent('OAuth login failed. Please try again.');
     return res.redirect(`${frontendUrl}/login?error=${errorMessage}`);
   }
