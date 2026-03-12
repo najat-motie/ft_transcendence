@@ -20,7 +20,7 @@ services:
       OAUTH_42_CLIENT_SECRET: ${OAUTH_42_CLIENT_SECRET:-}
       OAUTH_42_CALLBACK_URL: ${OAUTH_42_CALLBACK_URL:-https://localhost/api/auth/42/callback}
       GAME_SERVICE_URL: https://game:8443
-      SERVICE_API_KEY: super_secret_internal_key
+      SERVICE_API_KEY: ${SERVICE_API_KEY}
     # ports:
     #   - "3000:3000"
     volumes:
@@ -39,8 +39,9 @@ services:
     container_name: ft_game
     pull_policy: if_not_present
     environment:
-      SERVICE_API_KEY: super_secret_internal_key
-      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-}
+      SERVICE_API_KEY: ${SERVICE_API_KEY}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      CORS_ORIGIN: ${CORS_ORIGIN}
     # ports:
     #   - "8000:8000"
     restart: on-failure

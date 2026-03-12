@@ -3,10 +3,9 @@ import jwt
 from fastapi import HTTPException, WebSocketException, Request, WebSocket
 
 JWT_ACCESS_SECRET = os.environ.get(
-    "JWT_ACCESS_SECRET",
-    "81e45a029595019d2fd5cecbeab157a617488f72d4abda778418c521b3b2e2bed9f0264eafa67ecbb413f3ac6ced703c894dc1faa57ee6c89abe05ad519c08c5"
+    "JWT_ACCESS_SECRET"
 )
-SERVICE_API_KEY = os.environ.get("SERVICE_API_KEY", "super_secret_internal_key")
+SERVICE_API_KEY = os.environ.get("SERVICE_API_KEY")
 
 def verify_jwt_token(token: str) -> dict:
     if not token:
