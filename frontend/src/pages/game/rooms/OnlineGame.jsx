@@ -1,18 +1,21 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getSocket } from "../../../services/socket";
-import { getUserFromCookie } from "../../../utils/cookies";
-import "../../../styles/game/game-room.css";
+import { useSettings } from "../../../state/settings/settings.context";
+import boardsConfig from "../../../config/boards.config.json";
+import { resolveSkinAssets } from "../../../utils/skinAssets";
+import "../../../styles/game/room.css";
 
 export default function OnlineGame() {
   const navigate = useNavigate();
+  const { settings } = useSettings();
+  const { xSrc, oSrc, boardSrc } = resolveSkinAssets(settings);
+  const boardLabel = boardsConfig.themes.find((theme) => theme.id === settings.board.theme)?.label || "Board";
   const [players, setPlayers] = useState(null);
   const [matchId, setMatchId] = useState(null);
   const [board, setBoard] = useState(Array(9).fill(null));
   const [turn, setTurn] = useState("X");
   const [winner, setWinner] = useState(null);
-
-  const savedUser = getUserFromCookie();
 
   const handleClick = (index) => {
     // prevent clicking on filled cell or after game ends
@@ -42,7 +45,7 @@ export default function OnlineGame() {
     };
   }, []);
 
-  // if (!players || !matchId) return <p>Waiting for opponent...</p>;
+  if (!players || !matchId) return <p className="status">Waiting for opponent...</p>;
 
   return (
     <section className="game-room">
@@ -79,17 +82,40 @@ export default function OnlineGame() {
           </div>
         )}
 
-        <div className="board">
-          {board.map((cell, i) => (
-            <div key={i} className={`cell ${cell}`} onClick={() => handleClick(i)}>
-              {clel}
+        <div className="board-shell">
+          <div className="board-toolbar">
+            <div className="board-meta">
+              <span className="board-chip">Board</span>
+              <strong>{boardLabel}</strong>
             </div>
-          ))}
-        </div>
+            <div className="board-actions">
+              <button className="secondary" type="button" onClick={resetGame}>
+                Restart
+              </button>
+              <button className="secondary danger" type="button" onClick={() => navigate("/play")}>
+                Leave
+              </button>
+            </div>
+          </div>
 
-        <div className="buttons">
-          <button onClick={resetGame}>Restart</button>
-          <button onClick={() => navigate("/play")}>Leave</button>
+          <div
+            className={`board ${boardSrc ? "board-has-bg" : ""} ${
+              settings.effects.enabled && settings.effects.active.includes("glow") ? "effects-glow" : ""
+            }`}
+            style={boardSrc ? { backgroundImage: `url(${boardSrc})`, backgroundSize: "cover" } : {}}
+          >
+            {board.map((cell, i) => (
+              <button
+                key={i}
+                className={`cell ${cell || ""}`}
+                onClick={() => handleClick(i)}
+                aria-label={`Cell ${i + 1}, ${cell || "empty"}`}
+              >
+                {cell === "X" ? (xSrc ? <img src={xSrc} alt="X skin" /> : "X") : null}
+                {cell === "O" ? (oSrc ? <img src={oSrc} alt="O skin" /> : "O") : null}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="player-card">

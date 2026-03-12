@@ -2,6 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { connectSocket, getSocket, closeSocket } from "../../services/socket";
 import { getUser } from "../../services/auth";
+import { useSettings } from "../../state/settings/settings.context";
+import { exportSettings } from "../../state/settings/settings.storage";
+import { resolveSkinAssets } from "../../utils/skinAssets";
+import { playSound } from "../../utils/soundPlayer";
 import "../../styles/game/room.css";
 
 const emptyBoard = [
@@ -23,6 +27,8 @@ const mapPlayers = (players = [], currentUserId) => {
 export default function OnlineGame() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { settings } = useSettings();
+  const { xSrc, oSrc, boardSrc } = resolveSkinAssets(settings);
   const match = location.state || {};
   const wsPath = match.ws_path || match.wsPath;
   const session = getUser();
@@ -37,6 +43,28 @@ export default function OnlineGame() {
   const [statusText, setStatusText] = useState("Waiting for players...");
   const [message, setMessage] = useState("");
   const [lastMove, setLastMove] = useState(null);
+  const [exportUrl, setExportUrl] = useState(null);
+  const [lastBoardSignature, setLastBoardSignature] = useState("");
+
+  useEffect(() => {
+    const blob = new Blob([exportSettings()], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    setExportUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [settings]);
+
+  // Play sounds on move / win
+  useEffect(() => {
+    if (!settings.sound.enabled) return;
+    const signature = board.flat().join("");
+    if (signature && signature !== lastBoardSignature) {
+      playSound(settings.sound.selected, settings.sound.volume);
+      setLastBoardSignature(signature);
+    }
+    if (gameStatus === "win" || gameStatus === "tie") {
+      playSound("win", settings.sound.volume);
+    }
+  }, [board, gameStatus, lastBoardSignature, settings.sound.enabled, settings.sound.selected, settings.sound.volume]);
 
   useEffect(() => {
     if (!savedUser?.userId || !wsPath) {
@@ -139,7 +167,12 @@ export default function OnlineGame() {
           )}
         </div>
 
-        <div className="board">
+        <div
+          className={`board ${boardSrc ? "board-has-bg" : ""} ${
+            settings.effects.enabled && settings.effects.active.includes("glow") ? "effects-glow" : ""
+          }`}
+          style={boardSrc ? { backgroundImage: `url(${boardSrc})`, backgroundSize: "cover" } : {}}
+        >
           {board.map((rowArr, rowIndex) =>
             rowArr.map((cell, colIndex) => (
               <button
@@ -149,14 +182,21 @@ export default function OnlineGame() {
                 aria-label={`Row ${rowIndex + 1} Column ${colIndex + 1}, ${cell || "empty"}`}
                 disabled={cell !== "" || gameStatus !== "ongoing" || role !== turn}
               >
-                {cell}
+                {cell === "X" && xSrc ? <img src={xSrc} alt="X skin" /> : null}
+                {cell === "O" && oSrc ? <img src={oSrc} alt="O skin" /> : null}
+                {cell !== "X" && cell !== "O" ? cell : null}
               </button>
             ))
           )}
         </div>
 
-        <div className="game-buttons">
-          <button onClick={() => navigate(-1)}>Leave</button>
+        <div className="buttons">
+          <button className="primary" onClick={() => navigate("/play")}>
+            Restart
+          </button>
+          <button className="primary danger" onClick={() => navigate(-1)}>
+            Leave
+          </button>
         </div>
 
         {players.bottom && (

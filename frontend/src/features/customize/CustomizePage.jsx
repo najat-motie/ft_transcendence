@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import PreviewBoard from "./preview/PreviewBoard";
 import SkinsTab from "./tabs/SkinsTab";
-import BoardTab from "./tabs/BoardTab";
 import SoundTab from "./tabs/SoundTab";
 import EffectsTab from "./tabs/EffectsTab";
 import { useSettings } from "../../state/settings/settings.context";
@@ -10,14 +9,12 @@ import "../../styles/customize.css";
 
 const TAB_DEFS = [
 	{ id: "skins", label: "Skins" },
-	{ id: "board", label: "Board" },
 	{ id: "sound", label: "Sound" },
 	{ id: "effects", label: "Effects" },
 ];
 
 const TAB_COMPONENTS = {
 	skins: SkinsTab,
-	board: BoardTab,
 	sound: SoundTab,
 	effects: EffectsTab,
 };
@@ -32,10 +29,10 @@ export default function CustomizePage() {
 		<section className="customize-page">
 			<header className="customize-header">
 				<div>
-					<p className="customize-eyebrow">Personalize your board</p>
+					<p className="customize-eyebrow">Personalize your game</p>
 					<h1>Customize</h1>
 					<p className="customize-subtitle">
-						Dial in skins, board themes, effects, and sound. Changes apply instantly.
+						Dial in skins, effects, and sound. Changes apply instantly.
 					</p>
 				</div>
 				<div className="customize-actions">

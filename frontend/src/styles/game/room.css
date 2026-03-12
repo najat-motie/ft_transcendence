@@ -79,6 +79,49 @@
   gap: 15px;
   justify-content: center;
   margin: 1.5rem auto;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.board-shell {
+  margin: 1.5rem 0;
+}
+
+.board-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.board-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: #e2e8f0;
+}
+
+.board-chip {
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.board-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.board.board-has-bg {
+  padding: 12px;
+  border-radius: 18px;
+  background-blend-mode: screen;
+  /* box-shadow: 0 18px 30px rgba(0, 0, 0, 0.35); */
 }
 
 .cell {
@@ -94,6 +137,21 @@
   cursor: pointer;
   transition: background 0.2s ease;
   border: 1px solid #334155;
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.25);
+}
+
+.board.board-has-bg .cell {
+  background: rgba(15, 23, 42, 0.7);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.board.board-has-bg .cell:hover,
+.board.board-has-bg .cell:focus {
+  background: rgba(30, 41, 59, 0.8);
+}
+
+.effects-glow .cell {
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.55), 0 10px 18px rgba(0, 0, 0, 0.25);
 }
 
 .cell:hover,
@@ -108,6 +166,12 @@
 
 .cell.O {
   color: #f4873f;
+}
+
+.cell img {
+  width: 60%;
+  height: 60%;
+  object-fit: contain;
 }
 
 .turn-indicator {
@@ -144,23 +208,78 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-.game-buttons {
+.buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
   margin-top: 1.5rem;
 }
 
-.game-buttons button {
+.buttons button,
+.buttons a {
   padding: 0.75rem 1.5rem;
-  background: #3b82f6;
-  color: #fff;
-  border: none;
   border-radius: 10px;
+  border: none;
   cursor: pointer;
   font-weight: 600;
-  transition: background 0.2s;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
+  text-decoration: none;
 }
 
-.game-buttons button:hover {
+.buttons .primary {
+  background: #3b82f6;
+  color: #fff;
+  box-shadow: 0 10px 20px rgba(59, 130, 246, 0.25);
+}
+
+.buttons .primary:hover {
   background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.buttons .danger {
+  background: #ef4444;
+  box-shadow: 0 10px 20px rgba(239, 68, 68, 0.25);
+}
+
+.buttons .danger:hover {
+  background: #dc2626;
+}
+
+.buttons .secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+  border: 1px solid rgba(226, 232, 240, 0.12);
+}
+
+.buttons .secondary:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.buttons .ghost {
+  box-shadow: none;
+}
+
+/* Standalone secondary buttons (board actions) */
+button.secondary {
+  padding: 0.65rem 1.1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(226, 232, 240, 0.12);
+  background: rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+button.secondary:hover {
+  background: rgba(255, 255, 255, 0.14);
+  transform: translateY(-1px);
+}
+
+button.secondary.danger {
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #fecdd3;
 }
 
 @media (max-width: 480px) {

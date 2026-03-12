@@ -2,7 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../../../services/api";
 import { connectSocket, getSocket, closeSocket } from "../../../services/socket";
-import "../../../styles/game/game-room.css";
+import { useSettings } from "../../../state/settings/settings.context";
+import { exportSettings } from "../../../state/settings/settings.storage";
+import boardsConfig from "../../../config/boards.config.json";
+import { resolveSkinAssets } from "../../../utils/skinAssets";
+import { playSound } from "../../../utils/soundPlayer";
+import "../../../styles/game/room.css";
 
 const emptyBoard = [
   ["", "", ""],
@@ -13,6 +18,9 @@ const emptyBoard = [
 export default function LocalGame() {
   const navigate = useNavigate();
   const connectionRef = useRef(0);
+  const { settings } = useSettings();
+  const { xSrc, oSrc, boardSrc } = resolveSkinAssets(settings);
+  const boardLabel = boardsConfig.themes.find((theme) => theme.id === settings.board.theme)?.label || "Board";
 
   const [board, setBoard] = useState(emptyBoard);
   const [turn, setTurn] = useState("X");
@@ -20,6 +28,8 @@ export default function LocalGame() {
   const [gameStatus, setGameStatus] = useState("starting");
   const [statusText, setStatusText] = useState("Starting local game...");
   const [message, setMessage] = useState("");
+  const [exportUrl, setExportUrl] = useState(null);
+  const [lastBoardSignature, setLastBoardSignature] = useState("");
 
   const startGame = async () => {
     const connectionId = connectionRef.current + 1;
@@ -83,6 +93,25 @@ export default function LocalGame() {
     };
   }, []);
 
+  useEffect(() => {
+    const blob = new Blob([exportSettings()], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    setExportUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [settings]);
+
+  useEffect(() => {
+    if (!settings.sound.enabled) return;
+    const signature = board.flat().join("");
+    if (signature && signature !== lastBoardSignature) {
+      playSound(settings.sound.selected, settings.sound.volume);
+      setLastBoardSignature(signature);
+    }
+    if (gameStatus === "win" || gameStatus === "tie") {
+      playSound("win", settings.sound.volume);
+    }
+  }, [board, gameStatus, lastBoardSignature, settings.sound.enabled, settings.sound.selected, settings.sound.volume]);
+
   const handleClick = (row, col) => {
     if (board[row][col] !== "" || gameStatus !== "ongoing") return;
 
@@ -113,29 +142,44 @@ export default function LocalGame() {
           {message && <p className="game-message">{message}</p>}
         </div>
 
-        <div className="board">
-          {board.map((rowArr, rowIndex) =>
-            rowArr.map((cell, colIndex) => (
-              <button
-                key={`${rowIndex}-${colIndex}`}
-                className={`cell ${cell}`}
-                onClick={() => handleClick(rowIndex, colIndex)}
-                aria-label={`Row ${rowIndex + 1} Column ${colIndex + 1}, ${cell || "empty"}`}
-                disabled={cell !== "" || gameStatus !== "ongoing"}
-              >
-                {cell}
+        <div className="board-shell">
+          <div className="board-toolbar">
+            <div className="board-meta">
+              <span className="board-chip">Board</span>
+              <strong>{boardLabel}</strong>
+            </div>
+            <div className="board-actions">
+              <button className="secondary" type="button" onClick={startGame}>
+                Restart
               </button>
-            ))
-          )}
-        </div>
+              <button className="secondary danger" type="button" onClick={() => navigate(-1)}>
+                Leave
+              </button>
+            </div>
+          </div>
 
-        <div className="buttons">
-          <button type="button" onClick={startGame}>
-            Restart
-          </button>
-          <button type="button" onClick={() => navigate(-1)}>
-            Leave
-          </button>
+          <div
+            className={`board ${boardSrc ? "board-has-bg" : ""} ${
+              settings.effects.enabled && settings.effects.active.includes("glow") ? "effects-glow" : ""
+            }`}
+            style={boardSrc ? { backgroundImage: `url(${boardSrc})`, backgroundSize: "cover" } : {}}
+          >
+            {board.map((rowArr, rowIndex) =>
+              rowArr.map((cell, colIndex) => (
+                <button
+                  key={`${rowIndex}-${colIndex}`}
+                  className={`cell ${cell}`}
+                  onClick={() => handleClick(rowIndex, colIndex)}
+                  aria-label={`Row ${rowIndex + 1} Column ${colIndex + 1}, ${cell || "empty"}`}
+                  disabled={cell !== "" || gameStatus !== "ongoing"}
+                >
+                  {cell === "X" && xSrc ? <img src={xSrc} alt="X skin" /> : null}
+                  {cell === "O" && oSrc ? <img src={oSrc} alt="O skin" /> : null}
+                  {cell !== "X" && cell !== "O" ? cell : null}
+                </button>
+              ))
+            )}
+          </div>
         </div>
       </div>
     </section>

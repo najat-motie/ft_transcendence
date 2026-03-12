@@ -14,23 +14,23 @@ const defaultEffects = effectsConfig.effects
 
 export const defaultSettings: Settings = {
   skins: {
-    x: firstX,
-    o: firstO,
+    x: "ember",
+    o: "t",
     custom: {
       x: "",
       o: "",
     },
   },
   board: {
-    theme: firstBoard,
+    theme: "board",
   },
   sound: {
     enabled: true,
     volume: 0.8,
-    selected: firstSound,
+    selected: "place",
   },
   effects: {
     enabled: true,
-    active: defaultEffects,
+    active: ["glow"],
   },
 };

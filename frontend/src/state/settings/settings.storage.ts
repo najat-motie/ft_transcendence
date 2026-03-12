@@ -105,6 +105,11 @@ export const saveSettings = (settings: Settings) => {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
 };
 
+export const exportSettings = (): string => {
+  const settings = loadSettings();
+  return JSON.stringify(settings, null, 2);
+};
+
 export const resetSettings = (): Settings => {
   if (!isBrowser) {
     return { ...defaultSettings };
