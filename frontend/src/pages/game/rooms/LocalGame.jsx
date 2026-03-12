@@ -132,7 +132,11 @@ export default function LocalGame() {
     <section className="game-room">
       <div className="room-container">
         <h2>Local Game</h2>
-        {gameStatus === "ongoing" && <p>{turn} turn</p>}
+        {gameStatus === "ongoing" && (
+          <p className="turn-indicator">
+            {turn === "X" ? "Player X — your turn" : "Player O — your turn"}
+          </p>
+        )}
         {winnerText && (
           <div className={`winner-banner ${gameStatus === "tie" ? "tie" : ""}`}>{winnerText}</div>
         )}

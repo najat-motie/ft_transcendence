@@ -132,7 +132,11 @@ export default function AIGame() {
     <section className="game-room">
       <div className="room-container">
         <h2>Challenge Yourself with an AI</h2>
-        {gameStatus === "ongoing" && <p>{turn === "X" ? "Your turn" : "AI turn"}</p>}
+        {gameStatus === "ongoing" && (
+          <p className="turn-indicator">
+            {turn === "X" ? "Your turn" : "AI is thinking…"}
+          </p>
+        )}
         {winnerText && (
           <div className={`winner-banner ${gameStatus === "tie" ? "tie" : ""}`}>{winnerText}</div>
         )}

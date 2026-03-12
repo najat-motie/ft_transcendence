@@ -1,134 +1,527 @@
+/* ─────────────────────────────────────────────
+   game-mode.css – CreateRoom · JoinRoom · Matchmaking
+   ───────────────────────────────────────────── */
+
+/* ── Page shell ── */
 .action {
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   min-height: 100vh;
   background: #0f172a;
-  padding: 20px;
+  padding: clamp(1rem, 4vw, 3rem);
 }
 
 .action-container {
   text-align: center;
-  background: rgba(30, 41, 59, 0.85);
-  padding: 40px;
-  border-radius: 20px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-  max-width: 500px;
+  background: rgba(22, 33, 52, 0.92);
+  padding: clamp(1.5rem, 5vw, 2.5rem);
+  border-radius: 24px;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  max-width: 480px;
   width: 100%;
+  margin-top: clamp(2rem, 8vw, 5rem);
 }
 
 .action-container h2 {
   color: #f1f5f9;
-  font-size: 28px;
-  margin-bottom: 10px;
+  font-size: clamp(1.3rem, 3vw, 1.65rem);
+  font-weight: 700;
+  margin-bottom: 0.3rem;
 }
 
-.action-container p {
+.action-container > p {
   color: #94a3b8;
-  font-size: 16px;
-  margin-bottom: 20px;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+/* ── Room code display ── */
+.room-code-wrap {
+  margin: 0 auto 1.5rem;
+}
+
+.room-code-label {
+  display: block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+  margin-bottom: 0.45rem;
 }
 
 .room-code {
-  font-size: 24px;
-  font-weight: bold;
-  color: #3b82f6;
-  background: #1e293b;
-  padding: 15px 25px;
-  border-radius: 12px;
-  margin-bottom: 30px;
-  display: inline-block;
-  letter-spacing: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(1.5rem, 4.5vw, 2rem);
+  font-weight: 800;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  padding: 0.7rem 1.75rem;
+  border-radius: 14px;
+  letter-spacing: 0.3em;
+  font-variant-numeric: tabular-nums;
 }
 
-.input-code {
-  width: 100%;
-  max-width: 350px;
-  text-align: center;
-  font-size: 15px;
-  font-weight: bold;
-  color: #3b82f6;
-  background: #1e293b;
-  padding: 10px 20px;
-  border-radius: 12px;
-  margin-bottom: 30px;
-  display: inline-block;
-  letter-spacing: 2px;
+/* ── Animated waiting pulse ── */
+.mm-pulse-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin: 0.75rem 0 1.25rem;
 }
 
+.mm-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #38bdf8;
+  animation: mm-pulse 1.4s ease-in-out infinite;
+}
+
+.mm-pulse-dot:nth-child(2) { animation-delay: 0.2s; }
+.mm-pulse-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes mm-pulse {
+  0%, 80%, 100% { transform: scale(0.55); opacity: 0.35; }
+  40%           { transform: scale(1);    opacity: 1;    }
+}
+
+/* ── Players list ── */
 .action-container h3 {
-  color: #f1f5f9;
-  margin-bottom: 10px;
+  color: #e2e8f0;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-weight: 600;
+  margin-bottom: 0.6rem;
 }
 
 .action-container ul {
   list-style: none;
   padding: 0;
-  margin-bottom: 30px;
+  margin: 0 0 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
 }
 
-.action-container li {
-  color: #94a3b8;
-  padding: 8px 0;
-  font-size: 16px;
+.player-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  padding: 0.6rem 0.9rem;
+  color: #e2e8f0;
+  font-size: 0.875rem;
+  text-align: left;
 }
 
-button {
-  background: #1e293b;
-  border: 1px solid #334155;
+.player-item::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 5px rgba(34, 197, 94, 0.5);
+  flex-shrink: 0;
+}
+
+/* ── Join Room input ── */
+.input-label {
+  display: block;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #64748b;
+  margin-bottom: 0.45rem;
+}
+
+.input-code {
+  display: block;
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto 1.5rem;
+  text-align: center;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.25em;
   color: #f1f5f9;
-  padding: 10px 20px;
-  margin: 5px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  font-variant-numeric: tabular-nums;
+}
+
+.input-code:focus {
+  border-color: rgba(56, 189, 248, 0.55);
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.12);
+}
+
+.input-code::placeholder {
+  color: #475569;
+  letter-spacing: 0.1em;
+  font-weight: 400;
+}
+
+/* ── Error & feedback ── */
+.error {
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.22);
   border-radius: 10px;
+  padding: 0.55rem 0.85rem;
+  font-size: 0.875rem;
+  margin-bottom: 1.25rem;
+}
+
+/* ── Buttons (scoped to .action-container) ── */
+.action-container button,
+.action-container a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.6rem;
+  border-radius: 12px;
+  border: none;
   cursor: pointer;
-  transition: background 0.2s ease;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: transform 0.15s, box-shadow 0.2s, background 0.2s, opacity 0.2s;
+  text-decoration: none;
+  margin: 0.3rem;
 }
 
-button:hover {
-  background: #334155;
+.action-container button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
+.action-container button.primary,
+.action-container a.primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.28);
+}
 
+.action-container button.primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(59, 130, 246, 0.4);
+}
+
+.action-container button.ghost {
+  background: transparent;
+  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.action-container button.ghost:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #e2e8f0;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* ── Matchmaking section (shared by modes/Matchmaking) ── */
 .matchmaking {
   display: flex;
   justify-content: center;
-  align-items: center;
-  height: 100vh;
-  background: #1e1e2f;
-  color: #ffffff;
-  font-family: 'Arial', sans-serif;
+  align-items: flex-start;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(56, 189, 248, 0.14), transparent 28%),
+    radial-gradient(circle at top right, rgba(250, 204, 21, 0.1), transparent 24%),
+    linear-gradient(180deg, #0b1220 0%, #09111d 100%);
+  padding: clamp(1rem, 4vw, 3rem);
 }
 
 .matchmaking-container {
   text-align: center;
-  background: #2a2a3f;
-  padding: 40px 60px;
-  border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
-  max-width: 400px;
-  width: 90%;
+  background:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.92)),
+    radial-gradient(circle at top, rgba(56, 189, 248, 0.12), transparent 42%);
+  padding: clamp(1.35rem, 4vw, 2.4rem);
+  border-radius: 28px;
+  box-shadow: 0 24px 60px rgba(2, 6, 23, 0.45);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  max-width: 780px;
+  width: 100%;
+  margin-top: clamp(1rem, 5vw, 3rem);
+}
+
+.matchmaking-panel {
+  display: grid;
+  gap: clamp(1rem, 2vw, 1.35rem);
+}
+
+.matchmaking-kicker {
+  justify-self: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid rgba(250, 204, 21, 0.24);
+  background: rgba(250, 204, 21, 0.12);
+  color: #fde68a;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .matchmaking-container h2 {
-  margin-bottom: 20px;
-  font-size: 28px;
+  color: #f1f5f9;
+  font-size: clamp(1.75rem, 4vw, 3rem);
+  font-weight: 700;
+  margin: 0;
 }
 
-.matchmaking-container p {
-  margin-bottom: 30px;
-  font-size: 18px;
+.matchmaking-lead {
+  color: #94a3b8;
+  font-size: clamp(0.95rem, 1.5vw, 1.05rem);
+  margin: 0 auto;
+  line-height: 1.6;
+  max-width: 56ch;
 }
 
-.matchmaking-container button {
-  padding: 10px 25px;
-  font-size: 16px;
-  background-color: #ff4c4c;
-  border: none;
-  border-radius: 6px;
+.matchmaking-stage {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.95fr) minmax(0, 1.05fr);
+  gap: clamp(1rem, 3vw, 2rem);
+  align-items: center;
+}
+
+.matchmaking-radar {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  width: min(100%, 280px);
+  margin: 0 auto;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(56, 189, 248, 0.08) 0%, rgba(15, 23, 42, 0.05) 45%, transparent 68%),
+    linear-gradient(180deg, rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.2));
+}
+
+.matchmaking-radar-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(56, 189, 248, 0.16);
+  animation: mm-radar 2.8s ease-out infinite;
+}
+
+.matchmaking-radar-ring-two {
+  inset: 12%;
+  animation-delay: 0.4s;
+}
+
+.matchmaking-radar-ring-three {
+  inset: 24%;
+  animation-delay: 0.8s;
+}
+
+.matchmaking-radar-core {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #38bdf8;
+  box-shadow: 0 0 0 10px rgba(56, 189, 248, 0.12), 0 0 24px rgba(56, 189, 248, 0.75);
+}
+
+.matchmaking-status-card {
+  display: grid;
+  justify-items: start;
+  text-align: left;
+  gap: 0.65rem;
+  padding: clamp(1rem, 2.2vw, 1.4rem);
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.matchmaking-status-card strong {
+  color: #f8fafc;
+  font-size: clamp(1rem, 2vw, 1.2rem);
+}
+
+.matchmaking-status-card span {
+  color: #94a3b8;
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.mm-spinner {
+  display: block;
+  width: 44px;
+  height: 44px;
+  border: 3px solid rgba(56, 189, 248, 0.15);
+  border-top-color: #38bdf8;
+  border-radius: 50%;
+  animation: mm-rotate 0.75s linear infinite;
+  margin: 0;
+}
+
+@keyframes mm-rotate {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes mm-radar {
+  0% {
+    transform: scale(0.88);
+    opacity: 0.22;
+  }
+  65% {
+    transform: scale(1);
+    opacity: 0.65;
+  }
+  100% {
+    transform: scale(1.06);
+    opacity: 0.16;
+  }
+}
+
+.matchmaking-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.matchmaking-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  text-align: left;
+  padding: 0.95rem 1rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.matchmaking-step span {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(148, 163, 184, 0.12);
+  color: #cbd5e1;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.matchmaking-step strong {
+  display: block;
+  color: #f8fafc;
+  font-size: 0.92rem;
+  margin-bottom: 0.15rem;
+}
+
+.matchmaking-step p {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.matchmaking-step-active {
+  border-color: rgba(56, 189, 248, 0.24);
+  background: rgba(56, 189, 248, 0.08);
+}
+
+.matchmaking-step-active span {
+  background: #38bdf8;
+  color: #082f49;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.35);
+}
+
+.matchmaking-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.matchmaking-meta-card {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.95rem 1rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: left;
+}
+
+.matchmaking-meta-card strong {
+  color: #f8fafc;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.matchmaking-meta-card span {
+  color: #94a3b8;
+  font-size: 0.92rem;
+}
+
+.matchmaking-container button.ghost {
+  background: transparent;
+  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.65rem 1.5rem;
+  border-radius: 12px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.15s;
+  justify-self: center;
 }
 
-.matchmaking-container button:hover {
-  background-color: #e04343;
+.matchmaking-container button.ghost:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #e2e8f0;
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 820px) {
+  .matchmaking-stage {
+    grid-template-columns: 1fr;
+  }
+
+  .matchmaking-steps {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .matchmaking-container {
+    border-radius: 22px;
+  }
+
+  .matchmaking-meta {
+    grid-template-columns: 1fr;
+  }
+
+  .matchmaking-step,
+  .matchmaking-meta-card,
+  .matchmaking-status-card {
+    padding: 0.9rem;
+  }
+
+  .matchmaking-container button.ghost {
+    width: 100%;
+  }
 }

@@ -42,12 +42,17 @@ export default function JoinRoom() {
       <div className="action-container">
         <h2>Join Private Room</h2>
 
+        <label className="input-label" htmlFor="room-code-input">Room Code</label>
         <input
+          id="room-code-input"
           className="input-code"
           type="text"
-          placeholder="Enter Room Code"
+          placeholder="e.g. AB12CD"
           value={roomCode}
           onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
+          maxLength={6}
+          autoComplete="off"
+          spellCheck="false"
         />
 
         {error && <p className="error">{error}</p>}

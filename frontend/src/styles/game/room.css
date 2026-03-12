@@ -1,300 +1,364 @@
+/* ─────────────────────────────────────────────
+   room.css – shared game room styles
+   (AIGame · LocalGame · OnlineGame · GameRoom)
+   ───────────────────────────────────────────── */
+
 .game-room {
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   min-height: 100vh;
   background: #0f172a;
-  padding: 1rem;
+  padding: clamp(1rem, 3vw, 2rem);
 }
 
 .room-container {
   text-align: center;
-  background: rgba(30, 41, 59, 0.85);
-  padding: 2rem;
-  border-radius: 20px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-  max-width: 600px;
+  background: rgba(22, 33, 52, 0.92);
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border-radius: 24px;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  max-width: 520px;
   width: 100%;
+  margin-top: clamp(1rem, 4vw, 2.5rem);
 }
 
 .player-card {
-  background: #1e293b;
-  border: 1px solid #334155;
+  background: rgba(10, 18, 32, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 16px;
-  padding: 1rem;
-  margin: 1rem 0;
+  padding: 0.85rem 1rem;
+  margin: 0.6rem 0;
 }
 
 .player-info {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 0.75rem;
 }
 
 .player-info img {
-  width: 50px;
-  height: 50px;
-  border-radius: 12px;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
   object-fit: cover;
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
 }
 
 .player-info h4 {
-  margin: 0;
+  margin: 0 0 0.15rem;
   color: #f1f5f9;
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
 .status {
-  font-size: 14px;
+  font-size: 0.8rem;
   color: #94a3b8;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 0.4rem;
 }
 
 .dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .dot.online {
   background: #22c55e;
+  box-shadow: 0 0 6px rgba(34, 197, 94, 0.5);
 }
 
 .room-container h2 {
   color: #f1f5f9;
-  margin-bottom: 10px;
-  font-size: 28px;
+  margin-bottom: 0.3rem;
+  font-size: clamp(1.15rem, 2.5vw, 1.55rem);
+  font-weight: 700;
 }
 
-.room-container p {
+.room-container > p {
   color: #94a3b8;
-  margin-bottom: 20px;
-  font-size: 16px;
+  margin-bottom: 0.75rem;
+  font-size: 0.875rem;
 }
 
+/* ── Status & message text ── */
+.game-message {
+  color: #94a3b8;
+  font-size: 0.875rem;
+  margin: 0.4rem 0;
+  min-height: 1.2em;
+}
+
+/* ── Turn indicator pill ── */
+.turn-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  padding: 0.35rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+/* ── Board ── */
 .board {
   display: grid;
-  grid-template-columns: repeat(3, 100px);
-  gap: 15px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(8px, 1.8vw, 14px);
+  max-width: min(380px, 88vw);
+  width: 100%;
   justify-content: center;
-  margin: 1.5rem auto;
+  margin: 1rem auto;
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
 }
 
 .board-shell {
-  margin: 1.5rem 0;
+  margin: 0.75rem 0;
 }
 
 .board-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 0.75rem;
+  gap: 0.75rem;
+  margin-bottom: 0.65rem;
+  flex-wrap: wrap;
 }
 
 .board-meta {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
   color: #e2e8f0;
+  font-size: 0.875rem;
 }
 
 .board-chip {
-  padding: 4px 8px;
-  background: rgba(255, 255, 255, 0.08);
+  padding: 3px 8px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 999px;
-  font-size: 12px;
-  letter-spacing: 0.02em;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
+  color: #94a3b8;
 }
 
 .board-actions {
   display: flex;
-  gap: 10px;
+  gap: 0.5rem;
 }
 
 .board.board-has-bg {
-  padding: 12px;
+  padding: 10px;
   border-radius: 18px;
   background-blend-mode: screen;
-  /* box-shadow: 0 18px 30px rgba(0, 0, 0, 0.35); */
 }
 
+/* ── Cell ── */
 .cell {
-  width: 100px;
-  height: 100px;
-  background: #1e293b;
-  border-radius: 16px;
+  aspect-ratio: 1;
+  background: #0f1e30;
+  border-radius: clamp(10px, 1.8vw, 16px);
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 2rem;
-  font-weight: bold;
+  font-size: clamp(1.25rem, 5.5vw, 2.25rem);
+  font-weight: 800;
   cursor: pointer;
-  transition: background 0.2s ease;
-  border: 1px solid #334155;
-  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.25);
+  transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  color: #e2e8f0;
 }
 
 .board.board-has-bg .cell {
-  background: rgba(15, 23, 42, 0.7);
-  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(8, 15, 28, 0.72);
+  border-color: rgba(255, 255, 255, 0.09);
 }
 
-.board.board-has-bg .cell:hover,
-.board.board-has-bg .cell:focus {
-  background: rgba(30, 41, 59, 0.8);
+.board.board-has-bg .cell:not(:disabled):hover,
+.board.board-has-bg .cell:not(:disabled):focus-visible {
+  background: rgba(30, 53, 87, 0.78);
 }
 
 .effects-glow .cell {
-  box-shadow: 0 0 12px rgba(59, 130, 246, 0.55), 0 10px 18px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 0 14px rgba(59, 130, 246, 0.45), 0 4px 12px rgba(0, 0, 0, 0.35);
 }
 
-.cell:hover,
-.cell:focus {
-  background: #334155;
+.cell:not(:disabled):hover,
+.cell:not(:disabled):focus-visible {
+  background: #1a3049;
+  transform: scale(1.05);
   outline: none;
 }
 
+.cell:disabled {
+  cursor: default;
+}
+
 .cell.X {
-  color: #3b82f6;
+  color: #38bdf8;
+  text-shadow: 0 0 16px rgba(56, 189, 248, 0.5);
 }
 
 .cell.O {
-  color: #f4873f;
+  color: #fb923c;
+  text-shadow: 0 0 16px rgba(251, 146, 60, 0.5);
 }
 
 .cell img {
-  width: 60%;
-  height: 60%;
+  width: 58%;
+  height: 58%;
   object-fit: contain;
+  pointer-events: none;
 }
 
-.turn-indicator {
-  font-size: 18px;
-  font-weight: bold;
-  color: #f1f5f9;
-  margin-bottom: 15px;
-  text-align: center;
-}
-
+/* ── Winner banner ── */
 .winner-banner {
-  margin-top: 20px;
-  padding: 15px 25px;
+  margin: 0.75rem 0;
+  padding: 0.875rem 1.5rem;
   border-radius: 16px;
-  font-size: 1.25rem;
-  font-weight: bold;
-  color: #f1f5f9;
+  font-size: clamp(0.95rem, 2.5vw, 1.15rem);
+  font-weight: 700;
+  color: #fff;
   text-align: center;
-  background: linear-gradient(90deg, #22c55e, #16a34a);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
-  animation: fadeIn 0.5s ease;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  box-shadow: 0 8px 24px rgba(34, 197, 94, 0.28);
+  animation: room-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .winner-banner.lose {
-  background: linear-gradient(90deg, #ef4444, #b91c1c);
+  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.28);
 }
 
 .winner-banner.tie {
-  background: linear-gradient(90deg, #facc15, #eab308);
+  background: linear-gradient(135deg, #facc15 0%, #ca8a04 100%);
+  box-shadow: 0 8px 24px rgba(250, 204, 21, 0.28);
+  color: #1c1917;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes room-pop {
+  from { opacity: 0; transform: scale(0.82) translateY(-8px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0);    }
 }
 
+/* ── Standalone secondary buttons (board actions) ── */
+button.secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(226, 232, 240, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: #e2e8f0;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.12s, box-shadow 0.15s;
+}
+
+button.secondary:hover {
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-1px);
+}
+
+button.secondary.danger {
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}
+
+button.secondary.danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.48);
+}
+
+/* ── .buttons wrapper (legacy GameRoom) ── */
 .buttons {
   display: flex;
-  gap: 12px;
+  gap: 0.75rem;
   justify-content: center;
+  flex-wrap: wrap;
   margin-top: 1.5rem;
 }
 
 .buttons button,
 .buttons a {
-  padding: 0.75rem 1.5rem;
+  padding: 0.7rem 1.5rem;
   border-radius: 10px;
   border: none;
   cursor: pointer;
   font-weight: 600;
-  transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
+  font-size: 0.9rem;
+  transition: transform 0.15s, box-shadow 0.2s, background 0.2s;
   text-decoration: none;
 }
 
 .buttons .primary {
-  background: #3b82f6;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: #fff;
-  box-shadow: 0 10px 20px rgba(59, 130, 246, 0.25);
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.25);
 }
 
 .buttons .primary:hover {
-  background: #2563eb;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(59, 130, 246, 0.38);
 }
 
 .buttons .danger {
-  background: #ef4444;
-  box-shadow: 0 10px 20px rgba(239, 68, 68, 0.25);
+  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.25);
 }
 
 .buttons .danger:hover {
-  background: #dc2626;
+  transform: translateY(-2px);
 }
 
 .buttons .secondary {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.07);
   color: #e2e8f0;
-  border: 1px solid rgba(226, 232, 240, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .buttons .secondary:hover {
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.13);
 }
 
 .buttons .ghost {
+  background: transparent;
+  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: none;
 }
 
-/* Standalone secondary buttons (board actions) */
-button.secondary {
-  padding: 0.65rem 1.1rem;
-  border-radius: 10px;
-  border: 1px solid rgba(226, 232, 240, 0.12);
-  background: rgba(255, 255, 255, 0.08);
+.buttons .ghost:hover {
   color: #e2e8f0;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
-button.secondary:hover {
-  background: rgba(255, 255, 255, 0.14);
-  transform: translateY(-1px);
-}
-
-button.secondary.danger {
-  border-color: rgba(239, 68, 68, 0.35);
-  color: #fecdd3;
-}
-
+/* ── Responsive ── */
 @media (max-width: 480px) {
-  .board {
-    grid-template-columns: repeat(3, 80px);
-    gap: 10px;
-  }
-
-  .cell {
-    width: 80px;
-    height: 80px;
-    font-size: 1.5rem;
-  }
-
   .room-container {
-    padding: 1rem;
+    border-radius: 18px;
+  }
+
+  .board-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

@@ -121,11 +121,16 @@ export default function CreateRoom() {
           <>
             <p>Invite your friend using this room code:</p>
             <div className="room-code">{roomCode}</div>
+            <div className="mm-pulse-wrap" aria-hidden="true">
+              <span className="mm-pulse-dot" />
+              <span className="mm-pulse-dot" />
+              <span className="mm-pulse-dot" />
+            </div>
 
-            <h3>Players in Room:</h3>
+            <h3>Players in Room</h3>
             <ul>
               {players.map((p, i) => (
-                <li key={p.id || i}>{p.username}</li>
+                <li key={p.id || i} className="player-item">{p.username}</li>
               ))}
             </ul>
           </>
