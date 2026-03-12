@@ -8,7 +8,9 @@ services:
     environment:
       PORT: ${PORT:-3000}
       NODE_ENV: ${NODE_ENV:-development}
-      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
+      CORS_ORIGIN: ${CORS_ORIGIN:-https://localhost}
+      API_BASE_URL: ${API_BASE_URL:-https://localhost}
+      ASSET_BASE_URL: ${ASSET_BASE_URL:-https://localhost}
       DATABASE_URL: ${DATABASE_URL}
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
@@ -16,7 +18,7 @@ services:
       JWT_REFRESH_EXPIRY: ${JWT_REFRESH_EXPIRY:-7d}
       OAUTH_42_CLIENT_ID: ${OAUTH_42_CLIENT_ID:-}
       OAUTH_42_CLIENT_SECRET: ${OAUTH_42_CLIENT_SECRET:-}
-      OAUTH_42_CALLBACK_URL: ${OAUTH_42_CALLBACK_URL:-}
+      OAUTH_42_CALLBACK_URL: ${OAUTH_42_CALLBACK_URL:-https://localhost/api/auth/42/callback}
       GAME_SERVICE_URL: http://game:8000
       SERVICE_API_KEY: super_secret_internal_key
     ports:
@@ -69,13 +71,38 @@ services:
     build: ./frontend
     container_name: ft_frontend
     pull_policy: if_not_present
+    environment:
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-https://localhost/api}
+      VITE_WS_BASE_URL: ${VITE_WS_BASE_URL:-wss://localhost}
     ports:
       - "5173:5173"
     networks:
       - ft_transcendence
 
+  caddy:
+    image: caddy:2
+    container_name: ft_caddy
+    pull_policy: if_not_present
+    depends_on:
+      backend:
+        condition: service_started
+      frontend:
+        condition: service_started
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    restart: unless-stopped
+    networks:
+      - ft_transcendence
+
 volumes:
   db_data:
+  caddy_data:
+  caddy_config:
 
 networks:
   ft_transcendence:
