@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import "../../styles/auth/login.css";
 import { apiRequest } from "../../services/api";
 import { setCookie, setUserInCookie } from "../../utils/cookies";
@@ -64,65 +64,88 @@ function Login() {
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-box">
+    <div className="auth-shell auth-shell-login">
+      <div className="auth-layout auth-layout-login">
+        <aside className="auth-hero">
+          <span className="auth-kicker">Player Access</span>
+          <h1>Jump back into the arena.</h1>
+          <p>
+            Sign in to continue your ranked climb, reconnect with friends, and pick up active matches instantly.
+          </p>
 
-        <div className="auth-header">
-          <div className="auth-logo" />
-          <h2>Welcome back</h2>
-          <p className="auth-subtitle">Enter your details to access your account</p>
-        </div>
-
-        <form className="auth-form" onSubmit={handleSubmit}>
-          {error && <p className="error">{error}</p>}
-
-          <div className="form-group">
-            <label>Email</label>
-            <input 
-              type="email" 
-              name="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Password</label>
-            <input 
-              type="password"
-              name="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required 
-            />
-            <div className="forgot-password">
-              <a href="/reset-password">Forgot password?</a>
+          <div className="auth-hero-grid" aria-hidden="true">
+            <div className="auth-hero-card">
+              <strong>Realtime Matches</strong>
+              <span>Low-latency online rooms</span>
+            </div>
+            <div className="auth-hero-card">
+              <strong>Private Invites</strong>
+              <span>Share room codes in seconds</span>
+            </div>
+            <div className="auth-hero-card">
+              <strong>Profile Sync</strong>
+              <span>Your stats stay ready across devices</span>
             </div>
           </div>
+        </aside>
 
-          <button className="submit-btn" type="submit" disabled={loading}>
-            {loading ? "Signing in..." : "Sign In"}
-          </button>
-        </form>
-          
-        <div className="oauth-container">
-          <p className="oauth-text">Or continue with</p>
-          <button 
-            className="oauth-btn"
-            onClick={() => window.location.href = oauth42Url}
-          >
-            Intra 42
-          </button>
-        </div>
+        <div className="auth-box">
+          <div className="auth-header">
+            <div className="auth-logo" aria-hidden="true">XO</div>
+            <h2>Welcome back</h2>
+            <p className="auth-subtitle">Enter your details to access your account</p>
+          </div>
 
-        <div className="auth-signup">
-          Don’t have an account?{" "}
-          <span className="create-account">
-            <a href="/register">Create one</a>
-          </span>
+          <form className="auth-form" onSubmit={handleSubmit}>
+            {error && <p className="error">{error}</p>}
+
+            <div className="form-group">
+              <label htmlFor="login-email">Email</label>
+              <input
+                id="login-email"
+                type="email"
+                name="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="login-password">Password</label>
+              <input
+                id="login-password"
+                type="password"
+                name="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <div className="forgot-password">
+                <Link to="/reset-password">Forgot password?</Link>
+              </div>
+            </div>
+
+            <button className="submit-btn" type="submit" disabled={loading}>
+              {loading ? "Signing in..." : "Sign In"}
+            </button>
+          </form>
+
+          <div className="oauth-container">
+            <p className="oauth-text">Or continue with</p>
+            <button
+              className="oauth-btn"
+              type="button"
+              onClick={() => window.location.href = oauth42Url}
+            >
+              Intra 42
+            </button>
+          </div>
+
+          <div className="auth-signup">
+            Don’t have an account? <Link className="create-account" to="/register">Create one</Link>
+          </div>
         </div>
-    
       </div>
     </div>
   );

@@ -44,53 +44,65 @@ export default function ChangePassword() {
   };
 
   return (
-    <div className="auth-container">
-      <form className="auth-card" onSubmit={handleSubmit}>
-        <h1 className="auth-title">Set a new password</h1>
+    <div className="password-shell">
+      <div className="password-layout">
+        <aside className="password-hero">
+          <span className="password-kicker">Account Security</span>
+          <h1>Change your password safely.</h1>
+          <p>Update your credentials and keep your account protected while your game progress stays intact.</p>
+        </aside>
 
-        {success ? (
-          <p className="success">
-            Your password has been successfully changed.{" "}
-            <Link to="/profile" className="auth-back">← Back</Link>
-          </p>
-        ) : (
-          <>
-            {error && <p className="error">{error}</p>}
+        <form className="auth-card password-card" onSubmit={handleSubmit}>
+          <h1 className="auth-title">Set a new password</h1>
 
-            <input
-              type="password"
-              className="auth-input"
-              placeholder="Current password"
-              required
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-            />
+          {success ? (
+            <p className="success">
+              Your password has been successfully changed. <Link to="/profile" className="auth-back">Back to profile</Link>
+            </p>
+          ) : (
+            <>
+              {error && <p className="error">{error}</p>}
 
-            <input
-              type="password"
-              className="auth-input"
-              placeholder="New password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+              <label className="password-label" htmlFor="current-password">Current password</label>
+              <input
+                id="current-password"
+                type="password"
+                className="auth-input"
+                placeholder="Current password"
+                required
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+              />
 
-            <input
-              type="password"
-              className="auth-input"
-              placeholder="Confirm new password"
-              required
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
+              <label className="password-label" htmlFor="new-password">New password</label>
+              <input
+                id="new-password"
+                type="password"
+                className="auth-input"
+                placeholder="New password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
 
-            <button className="submit-btn" type="submit" disabled={loading}>
-              {loading ? "Updating..." : "Change Password"}
-            </button>
-          </>
-        )}
+              <label className="password-label" htmlFor="confirm-password">Confirm new password</label>
+              <input
+                id="confirm-password"
+                type="password"
+                className="auth-input"
+                placeholder="Confirm new password"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
 
-      </form>
+              <button className="submit-btn" type="submit" disabled={loading}>
+                {loading ? "Updating..." : "Change Password"}
+              </button>
+            </>
+          )}
+        </form>
+      </div>
     </div>
   );
 }

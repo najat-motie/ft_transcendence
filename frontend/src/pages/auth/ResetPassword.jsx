@@ -50,48 +50,60 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="auth-container">
-      <form className="auth-card" onSubmit={handleSubmit}>
-        <h1 className="auth-title">Reset your password</h1>
+    <div className="password-shell">
+      <div className="password-layout">
+        <aside className="password-hero">
+          <span className="password-kicker">Secure Reset</span>
+          <h1>Create a new password.</h1>
+          <p>Choose a strong password you haven’t used before. We’ll redirect you to sign in once it’s updated.</p>
+        </aside>
 
-        {error && <p className="error">{error}</p>}
+        <form className="auth-card password-card" onSubmit={handleSubmit}>
+          <h1 className="auth-title">Reset your password</h1>
 
-        {success ? (
-          <p className="success">
-            Your password has been successfully updated. Redirecting...
-          </p>
-        ) : (
-          <>
-            <input
-              type="password"
-              className="auth-input"
-              placeholder="New password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+          {error && <p className="error">{error}</p>}
 
-            <input
-              type="password"
-              className="auth-input"
-              placeholder="Confirm new password"
-              required
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
+          {success ? (
+            <p className="success">
+              Your password has been successfully updated. Redirecting...
+            </p>
+          ) : (
+            <>
+              <label className="password-label" htmlFor="reset-new-password">New password</label>
+              <input
+                id="reset-new-password"
+                type="password"
+                className="auth-input"
+                placeholder="New password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
 
-            <button className="submit-btn" type="submit" disabled={loading}>
-              {loading ? "Updating..." : "Reset Password"}
-            </button>
-          </>
-        )}
+              <label className="password-label" htmlFor="reset-confirm-password">Confirm new password</label>
+              <input
+                id="reset-confirm-password"
+                type="password"
+                className="auth-input"
+                placeholder="Confirm new password"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
 
-        {!success && (
-          <Link to="/login" className="auth-back">
-            ← Back to sign in
-          </Link>
-        )}
-      </form>
+              <button className="submit-btn" type="submit" disabled={loading}>
+                {loading ? "Updating..." : "Reset Password"}
+              </button>
+            </>
+          )}
+
+          {!success && (
+            <Link to="/login" className="auth-back">
+              Back to sign in
+            </Link>
+          )}
+        </form>
+      </div>
     </div>
   );
 }
