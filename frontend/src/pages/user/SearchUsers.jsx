@@ -56,8 +56,14 @@ export default function SearchUsers({
   };
 
   return (
-    <div className="card">
-      <h2>Search Users</h2>
+    <div className="card social-card social-card-search">
+      <div className="social-card-head">
+        <div>
+          <span className="social-eyebrow">Discover Players</span>
+          <h2>Search Users</h2>
+        </div>
+      </div>
+
       <div className="search-bar">
         <input
           type="text"
@@ -73,21 +79,23 @@ export default function SearchUsers({
 
       {searchResults.length > 0 ? (
         <ul className="user-list">
-            {searchResults.map((user) => (
+          {searchResults.map((user) => (
             <li key={user.id} className="user-item">
-                <span>{user.username}</span>
-                <button
+              <div className="request-copy">
+                <span className="request-username">{user.username}</span>
+                <span className="request-caption">Available to add</span>
+              </div>
+              <button
                 onClick={() => sendFriendRequest(user.id, user.username)}
-                >
+              >
                 Add Friend
-                </button>
+              </button>
             </li>
-            ))}
+          ))}
         </ul>
-        ) : (
+      ) : (
         hasSearched && <p className="no-requests">No user found</p>
-        )}
-
+      )}
 
       {loading && <p className="loading">Loading...</p>}
       {error && <p className="error">{error}</p>}

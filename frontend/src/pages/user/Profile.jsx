@@ -1,15 +1,15 @@
-import { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import "../../styles/user/profile.css";
 import { apiRequest } from "../../services/api";
 import { validateForm } from "../../utils/validator";
-import { Link } from "react-router-dom";
 import { getUserFromCookie } from "../../utils/cookies";
 
 export default function Profile() {
   const navigate = useNavigate();
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
 
   const [user, setUser] = useState(null);
@@ -26,7 +26,7 @@ export default function Profile() {
     return `${kpis.winRate?.toFixed ? kpis.winRate.toFixed(2) : kpis.winRate || 0}%`;
   }, [kpis]);
 
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       // Get user from cookies instead of localStorage
       const storedUser = getUserFromCookie();
@@ -66,11 +66,20 @@ export default function Profile() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchProfile();
-  }, []);
+  }, [fetchProfile]);
+
+  const resetFormFromUser = useCallback(() => {
+    setFormData({
+      username: user?.username || "",
+      email: user?.email || "",
+      avatar: user?.avatar || "",
+      bio: user?.bio || "",
+    });
+  }, [user]);
 
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
@@ -89,7 +98,7 @@ export default function Profile() {
     setError("");
 
     const errorMessage = validateForm(formData, {
-      Username: true,
+      username: true,
     });
     if (errorMessage) {
       setError(errorMessage);
@@ -97,10 +106,17 @@ export default function Profile() {
     }
 
     try {
+      setIsSaving(true);
       const isCreate = !user;
+      const payload = {
+        ...formData,
+        username: formData.username.trim(),
+        bio: formData.bio.trim(),
+      };
+
       const updated = await apiRequest(`/profile`, {
         method: isCreate ? "POST" : "PUT",
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
       const updatedData = updated?.data || updated;
 
@@ -114,7 +130,15 @@ export default function Profile() {
       }
     } catch (err) {
       setError(err.message);
+    } finally {
+      setIsSaving(false);
     }
+  };
+
+  const handleCancelEdit = () => {
+    setError(null);
+    resetFormFromUser();
+    setEditMode(false);
   };
 
   const retry = () => {
@@ -177,78 +201,108 @@ export default function Profile() {
     { label: "Pending Out", value: kpis?.pendingRequestsSent ?? 0 },
   ];
 
+  const heroMetrics = [
+    { label: "Matches", value: kpis?.totalMatches ?? 0 },
+    { label: "Friends", value: kpis?.friendsCount ?? 0 },
+    { label: "XP", value: kpis?.experience ?? 0 },
+  ];
+
   return (
     <section className="profile">
       <div className="profile-container">
-        <div className="profile-hero">
-          <div className="avatar-wrapper">
-            <img src={formData.avatar || "https://i.pravatar.cc/120"} alt="avatar" className="avatar" />
-            {editMode && (
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleChange}
-                className="avatar-input"
-                aria-label="Upload avatar"
-              />
-            )}
+        <header className="profile-topbar">
+          <div>
+            <span className="profile-kicker">Player Profile</span>
+            <h1>Profile overview</h1>
+            <p className="muted profile-topbar-copy">Track your progress, update your identity, and jump quickly into your social tools.</p>
           </div>
+          <div className="profile-quick-links">
+            <button className="ghost" onClick={() => navigate("/friends")}>Friends</button>
+            <button className="ghost" onClick={() => navigate("/change-password")}>Change Password</button>
+          </div>
+        </header>
 
-          <div className="user-info">
-            {editMode ? (
-              <div className="profile-form">
-                <label>
-                  Username
-                  <input type="text" name="username" value={formData.username} onChange={handleChange} />
-                </label>
-                <label>
-                  Bio
-                  <textarea name="bio" value={formData.bio} onChange={handleChange} rows="3" />
-                </label>
-                <div className="form-buttons">
-                  <button className="primary" onClick={handleSave}>
-                    {user ? "Save Changes" : "Create Profile"}
-                  </button>
-                  {user && <button className="ghost" onClick={() => setEditMode(false)}>Cancel</button>}
-                </div>
-              </div>
-            ) : (
-              <div className="profile-view">
+        <div className="profile-hero">
+          <div className="profile-identity-card">
+            <div className="avatar-wrapper">
+              <img src={formData.avatar || "https://i.pravatar.cc/120"} alt="avatar" className="avatar" />
+              {editMode && (
+                <input
+                  type="file"
+                  accept="image/*"
+                  name="avatar"
+                  onChange={handleChange}
+                  className="avatar-input"
+                  aria-label="Upload avatar"
+                />
+              )}
+              {editMode && <span className="avatar-overlay">Upload</span>}
+            </div>
+
+            {!editMode ? (
+              <>
                 <div className="chips">
                   <span className="chip">{kpis?.status || "offline"}</span>
                   <span className="chip subtle">Last seen {kpis?.lastSeen ? new Date(kpis.lastSeen).toLocaleString() : "just now"}</span>
                   {kpis?.accountAgeDays !== null && <span className="chip subtle">{kpis?.accountAgeDays} days on platform</span>}
                 </div>
                 <h2>{user.username}</h2>
-                <p className="muted">{user.email}</p>
+                <p className="muted profile-email">{user.email}</p>
                 <p className="muted bio">{user.bio || "Add a short bio so friends know you."}</p>
+
+                <div className="profile-mini-stats">
+                  {heroMetrics.map((metric) => (
+                    <div key={metric.label} className="profile-mini-stat">
+                      <span>{metric.label}</span>
+                      <strong>{metric.value}</strong>
+                    </div>
+                  ))}
+                </div>
+
                 <div className="profile-buttons">
-                  <button className="primary" onClick={() => setEditMode(true)}>Edit Profile</button>
-                  <button className="ghost" onClick={() => navigate("/friends")}>Friends</button>
-                  <button className="ghost" onClick={() => navigate("/change-password")}>Change Password</button>
+                  <button className="primary" type="button" onClick={() => setEditMode(true)}>Edit Profile</button>
+                  <button className="ghost" type="button" onClick={() => navigate("/friends")}>Open Friends Hub</button>
+                </div>
+              </>
+            ) : (
+              <div className="profile-form profile-form-card">
+                <h2>{user ? "Edit your profile" : "Create your profile"}</h2>
+                <label>
+                  Username
+                  <input type="text" name="username" value={formData.username} onChange={handleChange} />
+                </label>
+                <label>
+                  Bio
+                  <textarea name="bio" value={formData.bio} onChange={handleChange} rows="4" />
+                </label>
+                <div className="form-buttons">
+                  <button className="primary" type="button" onClick={handleSave} disabled={isSaving}>
+                    {isSaving ? "Saving..." : user ? "Save Changes" : "Create Profile"}
+                  </button>
+                  {user && <button className="ghost" type="button" onClick={handleCancelEdit}>Cancel</button>}
                 </div>
               </div>
             )}
           </div>
-        </div>
 
-        <div className="stats-section">
-          <div className="headline-grid">
-            {headlineStats.map((stat) => (
-              <div key={stat.label} className={`headline-card ${stat.accent}`}>
-                <p className="label">{stat.label}</p>
-                <p className="value">{stat.value}</p>
-              </div>
-            ))}
-          </div>
+          <div className="profile-stats-panel">
+            <div className="headline-grid">
+              {headlineStats.map((stat) => (
+                <div key={stat.label} className={`headline-card ${stat.accent}`}>
+                  <p className="label">{stat.label}</p>
+                  <p className="value">{stat.value}</p>
+                </div>
+              ))}
+            </div>
 
-          <div className="detail-grid">
-            {detailStats.map((stat) => (
-              <div key={stat.label} className="detail-card">
-                <p className="label">{stat.label}</p>
-                <p className="value">{stat.value}</p>
-              </div>
-            ))}
+            <div className="detail-grid">
+              {detailStats.map((stat) => (
+                <div key={stat.label} className="detail-card">
+                  <p className="label">{stat.label}</p>
+                  <p className="value">{stat.value}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

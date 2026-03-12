@@ -121,9 +121,6 @@ function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
-              <div className="forgot-password">
-                <Link to="/reset-password">Forgot password?</Link>
-              </div>
             </div>
 
             <button className="submit-btn" type="submit" disabled={loading}>

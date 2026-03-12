@@ -21,13 +21,22 @@ export default function IncomingRequests({ incomingRequests, setIncomingRequests
   };
 
   return (
-    <div className="card">
-      <h2>Incoming Requests</h2>
+    <div className="card social-card social-card-incoming">
+      <div className="social-card-head">
+        <div>
+          <span className="social-eyebrow">Needs Review</span>
+          <h2>Incoming Requests</h2>
+        </div>
+        <span className="social-count">{incomingRequests.length}</span>
+      </div>
       {incomingRequests.length === 0 && <p className="no-requests">No pending requests</p>}
       <ul className="requests-list">
         {incomingRequests.map((req) => (
           <li key={req.id} className="request-card">
-            <span className="request-username">{req.username}</span>
+            <div className="request-copy">
+              <span className="request-username">{req.username}</span>
+              <span className="request-caption">Wants to connect and play</span>
+            </div>
             <div className="request-actions">
               <button className="accept-btn" onClick={() => acceptIncomingRequest(req.id)}>Accept</button>
               <button className="reject-btn" onClick={() => rejectIncomingRequest(req.id)}>Reject</button>
