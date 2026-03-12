@@ -1,7 +1,7 @@
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "../styles/sidebar.css";
-import { FiPlay } from "react-icons/fi";
+import { FiMenu, FiPlay, FiX } from "react-icons/fi";
 import logo from "../assets/logo.png";
 import { apiRequest } from "../services/api.js";
 import { logout } from "../services/auth.js";
@@ -9,11 +9,23 @@ import { getUserFromCookie } from "../utils/cookies.js";
 
 export default function SideBar() {
   const [open, setOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
 
   // Get user from cookies instead of localStorage
   const user = getUserFromCookie();
   const isLoggedIn = !!user;
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 900) {
+        setMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -22,22 +34,48 @@ export default function SideBar() {
       console.error(err);
     } finally {
       logout(user?.userId);
+      closeSidebar();
       navigate("/login");
     }
   };
 
+  const closeSidebar = () => {
+    setMenuOpen(false);
+    setOpen(false);
+  };
+
   return (
-    <div className="sidebar-layout">
-      <aside className="sidebar">
+    <div className={`sidebar-layout ${menuOpen ? "sidebar-open" : ""}`}>
+      <button
+        type="button"
+        className="sidebar-toggle"
+        onClick={() => setMenuOpen(prev => !prev)}
+        aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
+        aria-expanded={menuOpen}
+        aria-controls="app-sidebar"
+      >
+        {menuOpen ? <FiX /> : <FiMenu />}
+      </button>
+
+      {menuOpen && (
+        <button
+          type="button"
+          className=""
+          onClick={closeSidebar}
+          aria-label="Close navigation menu"
+        />
+      )}
+
+      <aside id="app-sidebar" className="sidebar">
         <div className="sidebar-top">
           <div className="logo">
-            <Link to="/">
+            <Link to="/" onClick={closeSidebar}>
               <img src={logo} alt="tic-tac-toe logo" className="logo-img" />
             </Link>
           </div>
 
           <nav className="nav">
-            <NavLink to="/play" className="nav-item">
+            <NavLink to="/play" className="nav-item" onClick={closeSidebar}>
               <FiPlay className="nav-icon" />
               <span>Play</span>
             </NavLink>
@@ -47,21 +85,27 @@ export default function SideBar() {
         <div className="sidebar-bottom">
           {isLoggedIn ? (
             <div className="user">
-              <a onClick={() => setOpen(prev => !prev)}>
+              <button
+                type="button"
+                className="user-trigger"
+                onClick={() => setOpen(prev => !prev)}
+                aria-expanded={open}
+                aria-haspopup="menu"
+              >
                 <img
                   src={user?.avatar || "https://i.pravatar.cc/100?img=3"}
                   alt="avatar"
                   className="avatar"
                 />
                 <span className="username">{user?.username || "User"}</span>
-              </a>
+              </button>
 
               {open && (
                 <div className="dropdown-menu">
-                  <Link to="/profile" onClick={() => setOpen(false)}>
+                  <Link to="/profile" onClick={closeSidebar}>
                     View Profile
                   </Link>
-                  <Link to="/settings" onClick={() => setOpen(false)}>
+                  <Link to="/settings" onClick={closeSidebar}>
                     Settings
                   </Link>
                   <button onClick={handleLogout}>Logout</button>
@@ -70,14 +114,16 @@ export default function SideBar() {
             </div>
           ) : (
             <div className="user-login">
-              <Link to="/login" className="login-btn">
+              <Link to="/login" className="login-btn" onClick={closeSidebar}>
                 Login
               </Link>
             </div>
           )}
 
           <div className="footer legal-links">
-            <Link to="/privacy-policy">Privacy Policy</Link> & <Link to="/terms-of-service">Terms of Service</Link>
+            <Link to="/privacy-policy" onClick={closeSidebar}>Privacy Policy</Link>
+            <span className="legal-separator" aria-hidden="true">&</span>
+            <Link to="/terms-of-service" onClick={closeSidebar}>Terms of Service</Link>
           </div>
         </div>
       </aside>

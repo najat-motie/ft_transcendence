@@ -165,8 +165,6 @@ export default function Profile() {
 
   const headlineStats = [
     { label: "Win Rate", value: formattedWinRate, accent: "lime" },
-    { label: "Rank", value: `#${kpis?.rank ?? 0}`, accent: "cyan" },
-    { label: "Level", value: kpis?.level ?? 1, accent: "amber" },
   ];
 
   const detailStats = [
@@ -177,7 +175,6 @@ export default function Profile() {
     { label: "Friends", value: kpis?.friendsCount ?? 0 },
     { label: "Pending In", value: kpis?.pendingRequestsReceived ?? 0 },
     { label: "Pending Out", value: kpis?.pendingRequestsSent ?? 0 },
-    { label: "Unread Msgs", value: kpis?.unreadMessages ?? 0 },
   ];
 
   return (

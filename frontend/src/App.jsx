@@ -4,6 +4,8 @@ import SideBar from "./layouts/SidebarLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PageLoader from "./components/PageLoader";
 import ErrorBoundary from "./components/ErrorBoundary";
+import PrivacyPolicy from "./pages/PrivacyPolicy.jsx";
+import TermsOfService from "./pages/TermsOfService.jsx";
 
 const Home = lazy(() => import("./pages/Home"));
 const Login = lazy(() => import("./pages/auth/Login"));
@@ -21,8 +23,6 @@ const JoinRoom = lazy(() => import("./pages/game/modes/JoinRoom"));
 const LocalGame = lazy(() => import("./pages/game/rooms/LocalGame"));
 const Matchmaking = lazy(() => import("./pages/game/modes/Matchmaking"));
 const AIGame = lazy(() => import("./pages/game/rooms/AIGame"));
-const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
-const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const CustomizePage = lazy(() => import("./features/customize/CustomizePage"));
 const GameRoom = lazy(() => import("./pages/game/GameRoom"));
 const OnlineGameNew = lazy(() => import("./pages/game/OnlineGame"));
