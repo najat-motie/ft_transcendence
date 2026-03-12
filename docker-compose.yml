@@ -6,20 +6,20 @@ services:
     container_name: ft_backend
     pull_policy: if_not_present
     environment:
-      PORT: ${PORT:-3000}
-      NODE_ENV: ${NODE_ENV:-development}
-      CORS_ORIGIN: ${CORS_ORIGIN:-https://localhost}
-      API_BASE_URL: ${API_BASE_URL:-https://localhost}
-      ASSET_BASE_URL: ${ASSET_BASE_URL:-https://localhost}
+      PORT: ${PORT}
+      NODE_ENV: ${NODE_ENV}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      API_BASE_URL: ${API_BASE_URL}
+      ASSET_BASE_URL: ${ASSET_BASE_URL}
       DATABASE_URL: ${DATABASE_URL}
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
-      JWT_ACCESS_EXPIRY: ${JWT_ACCESS_EXPIRY:-15m}
-      JWT_REFRESH_EXPIRY: ${JWT_REFRESH_EXPIRY:-7d}
-      OAUTH_42_CLIENT_ID: ${OAUTH_42_CLIENT_ID:-}
-      OAUTH_42_CLIENT_SECRET: ${OAUTH_42_CLIENT_SECRET:-}
-      OAUTH_42_CALLBACK_URL: ${OAUTH_42_CALLBACK_URL:-https://localhost/api/auth/42/callback}
-      GAME_SERVICE_URL: https://game:8443
+      JWT_ACCESS_EXPIRY: ${JWT_ACCESS_EXPIRY}
+      JWT_REFRESH_EXPIRY: ${JWT_REFRESH_EXPIRY}
+      OAUTH_42_CLIENT_ID: ${OAUTH_42_CLIENT_ID}
+      OAUTH_42_CLIENT_SECRET: ${OAUTH_42_CLIENT_SECRET}
+      OAUTH_42_CALLBACK_URL: ${OAUTH_42_CALLBACK_URL}
+      GAME_SERVICE_URL: ${GAME_SERVICE_URL}
       SERVICE_API_KEY: ${SERVICE_API_KEY}
     # ports:
     #   - "3000:3000"
@@ -73,8 +73,8 @@ services:
     container_name: ft_frontend
     pull_policy: if_not_present
     environment:
-      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-https://localhost/api}
-      VITE_WS_BASE_URL: ${VITE_WS_BASE_URL:-wss://localhost}
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL}
+      VITE_WS_BASE_URL: ${VITE_WS_BASE_URL}
     # ports:
     #   - "5173:5173"
     networks:
