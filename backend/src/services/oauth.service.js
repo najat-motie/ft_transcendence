@@ -1,5 +1,35 @@
 const axios = require('axios');
+const crypto = require('crypto');
 const prisma = require('../config/database');
+
+async function generateUniqueUsername(desiredUsername, email) {
+  const base = (desiredUsername || (email ? email.split('@')[0] : 'player'))
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+    .slice(0, 20) || 'player';
+
+  let candidate = base;
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const existing = await prisma.userProfile.findUnique({ where: { username: candidate } });
+    if (!existing) return candidate;
+    candidate = `${base}${crypto.randomInt(100, 9999)}`;
+  }
+  return `${base}-${crypto.randomBytes(3).toString('hex')}`;
+}
+
+async function ensureUserProfile(userId, usernameSuggestion, avatarUrl = null) {
+  const existing = await prisma.userProfile.findUnique({ where: { userId } });
+  if (existing) return existing;
+
+  const username = await generateUniqueUsername(usernameSuggestion, null);
+  return prisma.userProfile.create({
+    data: {
+      userId,
+      username,
+      avatar: avatarUrl,
+    },
+  });
+}
 
 const exchange42Code = async (code) => {
   try {
@@ -77,6 +107,9 @@ const findOrCreateUserFrom42 = async (oauthData) => {
       data: JSON.stringify(oauthData),
     },
   });
+
+  // Ensure profile exists for KPI pipeline
+  await ensureUserProfile(user.id, login, oauthData.image_url || null);
 
   return user;
 };

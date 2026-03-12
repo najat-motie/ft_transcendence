@@ -1,12 +1,67 @@
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 const prisma = require('../config/database');
 const tokenService = require('../services/token.service');
 const oauthService = require('../services/oauth.service');
 
+const AVATAR_DIR = path.join(__dirname, '..', '..', 'uploads', 'avatars');
+const ASSET_BASE_URL = process.env.ASSET_BASE_URL || process.env.API_BASE_URL || 'http://localhost:3000';
+
+function ensureAvatarDir() {
+  if (!fs.existsSync(AVATAR_DIR)) {
+    fs.mkdirSync(AVATAR_DIR, { recursive: true });
+  }
+}
+
+function saveAvatarIfProvided(avatarPayload) {
+  if (!avatarPayload) return null;
+
+  // Accept data URLs (base64). Otherwise assume it's an existing URL/path.
+  const match = avatarPayload.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
+  if (!match) {
+    return avatarPayload;
+  }
+
+  const mime = match[1];
+  const base64Data = match[2];
+  const extension = mime.split('/')[1] || 'png';
+  const filename = `avatar-${Date.now()}-${Math.round(Math.random() * 1e6)}.${extension}`;
+
+  ensureAvatarDir();
+  const filePath = path.join(AVATAR_DIR, filename);
+  const buffer = Buffer.from(base64Data, 'base64');
+  fs.writeFileSync(filePath, buffer);
+
+  return `/uploads/avatars/${filename}`;
+}
+
+function formatAvatarUrl(avatarPath) {
+  if (!avatarPath) return null;
+  if (/^https?:\/\//i.test(avatarPath)) return avatarPath;
+  return `${ASSET_BASE_URL}${avatarPath}`;
+}
+
+async function generateUniqueUsername(tx, desiredUsername, email) {
+  const base = (desiredUsername || (email ? email.split('@')[0] : 'player'))
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+    .slice(0, 20) || 'player';
+
+  let candidate = base;
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const existing = await tx.userProfile.findUnique({ where: { username: candidate } });
+    if (!existing) return candidate;
+    candidate = `${base}${crypto.randomInt(100, 9999)}`;
+  }
+  // Fallback with cuid-like suffix
+  return `${base}-${crypto.randomBytes(3).toString('hex')}`;
+}
+
 const register = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, username, avatar } = req.body;
 
     const existingUser = await prisma.user.findUnique({
       where: { email },
@@ -21,19 +76,36 @@ const register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-      },
+    const result = await prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({
+        data: {
+          email,
+          password: hashedPassword,
+        },
+      });
+
+      const generatedUsername = await generateUniqueUsername(tx, username, email);
+      const avatarPath = saveAvatarIfProvided(avatar);
+
+      const profile = await tx.userProfile.create({
+        data: {
+          userId: user.id,
+          username: generatedUsername,
+          avatar: avatarPath,
+        },
+      });
+
+      return { user, profile };
     });
 
     return res.status(201).json({
       success: true,
       message: 'User registered successfully',
       data: {
-        userId: user.id,
-        email: user.email,
+        userId: result.user.id,
+        email: result.user.email,
+        username: result.profile.username,
+        avatar: formatAvatarUrl(result.profile.avatar),
       },
     });
   } catch (error) {
@@ -58,6 +130,7 @@ const login = async (req, res) => {
 
     const user = await prisma.user.findUnique({
       where: { email },
+      include: { profile: true },
     });
 
     if (!user) {
@@ -95,9 +168,9 @@ const login = async (req, res) => {
         user: {
           userId: user.id,
           email: user.email,
-          username: user.username,
-          avatar: user.avatar,
-          bio: user.bio,
+          username: user.profile?.username || null,
+          avatar: formatAvatarUrl(user.profile?.avatar || null),
+          bio: user.profile?.bio || null,
         },
       },
     });

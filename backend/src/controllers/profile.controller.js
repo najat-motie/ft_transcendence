@@ -1,4 +1,42 @@
+const fs = require('fs');
+const path = require('path');
 const prisma = require('../config/database');
+
+const ASSET_BASE_URL = process.env.ASSET_BASE_URL || process.env.API_BASE_URL || 'http://localhost:3000';
+const AVATAR_DIR = path.join(__dirname, '..', '..', 'uploads', 'avatars');
+
+const formatAvatarUrl = (avatarPath) => {
+  if (!avatarPath) return null;
+  if (/^https?:\/\//i.test(avatarPath)) return avatarPath;
+  return `${ASSET_BASE_URL}${avatarPath}`;
+};
+
+const ensureAvatarDir = () => {
+  if (!fs.existsSync(AVATAR_DIR)) {
+    fs.mkdirSync(AVATAR_DIR, { recursive: true });
+  }
+};
+
+const saveAvatarIfProvided = (avatarPayload) => {
+  if (!avatarPayload) return null;
+
+  const match = avatarPayload.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
+  if (!match) {
+    return avatarPayload;
+  }
+
+  const mime = match[1];
+  const base64Data = match[2];
+  const extension = mime.split('/')[1] || 'png';
+  const filename = `avatar-${Date.now()}-${Math.round(Math.random() * 1e6)}.${extension}`;
+
+  ensureAvatarDir();
+  const filePath = path.join(AVATAR_DIR, filename);
+  const buffer = Buffer.from(base64Data, 'base64');
+  fs.writeFileSync(filePath, buffer);
+
+  return `/uploads/avatars/${filename}`;
+};
 
 const getProfileKpis = async (req, res) => {
   try {
@@ -49,7 +87,7 @@ const getProfileKpis = async (req, res) => {
     const kpis = {
       userId: profile.userId,
       username: profile.username,
-      avatar: profile.avatar,
+      avatar: formatAvatarUrl(profile.avatar),
       bio: profile.bio,
       email: profile.user?.email,
       status: profile.status,
@@ -113,7 +151,10 @@ const getProfile = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      data: profile,
+      data: {
+        ...profile,
+        avatar: formatAvatarUrl(profile.avatar),
+      },
     });
   } catch (error) {
     console.error('Get profile error:', error);
@@ -158,19 +199,24 @@ const createProfile = async (req, res) => {
       });
     }
 
+    const storedAvatar = saveAvatarIfProvided(avatar);
+
     const profile = await prisma.userProfile.create({
       data: {
         userId,
         username,
         bio: bio || null,
-        avatar: avatar || null,
+        avatar: storedAvatar,
       },
     });
 
     return res.status(201).json({
       success: true,
       message: 'Profile created successfully',
-      data: profile,
+      data: {
+        ...profile,
+        avatar: formatAvatarUrl(profile.avatar),
+      },
     });
   } catch (error) {
     console.error('Create profile error:', error);
@@ -217,19 +263,24 @@ const updateProfile = async (req, res) => {
       }
     }
 
+    const storedAvatar = saveAvatarIfProvided(avatar);
+
     const updatedProfile = await prisma.userProfile.update({
       where: { userId },
       data: {
         ...(username && { username }),
         ...(bio && { bio }),
-        ...(avatar && { avatar }),
+        ...(storedAvatar && { avatar: storedAvatar }),
       },
     });
 
     return res.status(200).json({
       success: true,
       message: 'Profile updated successfully',
-      data: updatedProfile,
+      data: {
+        ...updatedProfile,
+        avatar: formatAvatarUrl(updatedProfile.avatar),
+      },
     });
   } catch (error) {
     console.error('Update profile error:', error);
@@ -271,7 +322,10 @@ const updateStatus = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'Status updated successfully',
-      data: updatedProfile,
+      data: {
+        ...updatedProfile,
+        avatar: formatAvatarUrl(updatedProfile.avatar),
+      },
     });
   } catch (error) {
     console.error('Update status error:', error);
@@ -310,9 +364,14 @@ const getLeaderboard = async (req, res) => {
 
     const total = await prisma.userProfile.count();
 
+    const leaderboardWithAvatars = leaderboard.map((entry) => ({
+      ...entry,
+      avatar: formatAvatarUrl(entry.avatar),
+    }));
+
     return res.status(200).json({
       success: true,
-      data: leaderboard,
+      data: leaderboardWithAvatars,
       pagination: {
         total,
         limit: parseInt(limit),
@@ -377,7 +436,10 @@ const updateStats = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'Stats updated successfully',
-      data: updatedProfile,
+      data: {
+        ...updatedProfile,
+        avatar: formatAvatarUrl(updatedProfile.avatar),
+      },
     });
   } catch (error) {
     console.error('Update stats error:', error);

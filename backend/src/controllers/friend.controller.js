@@ -1,9 +1,16 @@
 const prisma = require('../config/database');
 
+const ASSET_BASE_URL = process.env.ASSET_BASE_URL || process.env.API_BASE_URL || 'http://localhost:3000';
+const formatAvatarUrl = (avatarPath) => {
+  if (!avatarPath) return null;
+  if (/^https?:\/\//i.test(avatarPath)) return avatarPath;
+  return `${ASSET_BASE_URL}${avatarPath}`;
+};
+
 const mapProfile = (profile) => ({
   id: profile.user.id,
   username: profile.username,
-  avatar: profile.avatar,
+  avatar: formatAvatarUrl(profile.avatar),
   status: profile.status,
   email: profile.user.email,
   online: profile.status === 'online',
@@ -300,7 +307,7 @@ const getIncomingFriendRequests = async (req, res) => {
       userId: request.sender.id,
       senderId: request.sender.id,
       username: request.sender.profile?.username || request.sender.email,
-      avatar: request.sender.profile?.avatar || null,
+      avatar: formatAvatarUrl(request.sender.profile?.avatar || null),
       status: request.status,
       userStatus: request.sender.profile?.status || 'offline',
       createdAt: request.createdAt,
@@ -347,7 +354,7 @@ const getOutgoingFriendRequests = async (req, res) => {
       userId: request.receiver.id,
       receiverId: request.receiver.id,
       username: request.receiver.profile?.username || request.receiver.email,
-      avatar: request.receiver.profile?.avatar || null,
+      avatar: formatAvatarUrl(request.receiver.profile?.avatar || null),
       status: request.status,
       userStatus: request.receiver.profile?.status || 'offline',
       createdAt: request.createdAt,

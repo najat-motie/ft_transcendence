@@ -205,10 +205,6 @@ export default function Profile() {
                   <input type="text" name="username" value={formData.username} onChange={handleChange} />
                 </label>
                 <label>
-                  Email
-                  <input type="email" name="email" value={formData.email} onChange={handleChange} />
-                </label>
-                <label>
                   Bio
                   <textarea name="bio" value={formData.bio} onChange={handleChange} rows="3" />
                 </label>

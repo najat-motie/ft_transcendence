@@ -26,6 +26,14 @@ const validateRegistration = [
     .withMessage('Password must contain at least one lowercase letter')
     .matches(/[0-9]/)
     .withMessage('Password must contain at least one number'),
+  body('username')
+    .optional()
+    .isLength({ min: 3, max: 30 })
+    .withMessage('Username must be between 3 and 30 characters'),
+  body('avatar')
+    .optional()
+    .isString()
+    .withMessage('Avatar must be a string (URL or base64 data URL)'),
 ];
 
 const validateLogin = [

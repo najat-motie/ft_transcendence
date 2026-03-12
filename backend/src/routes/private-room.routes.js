@@ -4,11 +4,9 @@ const { verifyAccessToken } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.use(verifyAccessToken);
-
-router.post('/room/create', privateRoomController.createRoom);
-router.post('/room/join', privateRoomController.joinRoom);
-router.get('/room/:roomCode', privateRoomController.getRoomStatus);
-router.delete('/room/:roomCode', privateRoomController.deleteRoom);
+router.post('/room/create', verifyAccessToken, privateRoomController.createRoom);
+router.post('/room/join', verifyAccessToken, privateRoomController.joinRoom);
+router.get('/room/:roomCode', verifyAccessToken, privateRoomController.getRoomStatus);
+router.delete('/room/:roomCode', verifyAccessToken, privateRoomController.deleteRoom);
 
 module.exports = router;
