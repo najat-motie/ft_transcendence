@@ -1,5 +1,14 @@
 const prisma = require('../config/database');
 
+const mapProfile = (profile) => ({
+  id: profile.user.id,
+  username: profile.username,
+  avatar: profile.avatar,
+  status: profile.status,
+  email: profile.user.email,
+  online: profile.status === 'online',
+});
+
 const sendFriendRequest = async (req, res) => {
   try {
     const senderId = req.user.userId;
@@ -40,33 +49,54 @@ const sendFriendRequest = async (req, res) => {
       });
     }
 
-    const existingRequest = await prisma.friendRequest.findFirst({
+    const pendingBetween = await prisma.friendRequest.findFirst({
       where: {
-        senderId,
-        receiverId,
-        status: 'pending',
+        OR: [
+          { senderId, receiverId, status: 'pending' },
+          { senderId: receiverId, receiverId: senderId, status: 'pending' },
+        ],
       },
     });
 
-    if (existingRequest) {
+    if (pendingBetween) {
+      const isSender = pendingBetween.senderId === senderId;
+      const messageText = isSender
+        ? 'Friend request already pending'
+        : 'This user has already sent you a request. Please respond to it.';
       return res.status(409).json({
         success: false,
-        message: 'Friend request already pending',
+        message: messageText,
       });
     }
 
-    const friendRequest = await prisma.friendRequest.create({
-      data: {
+    // Reuse an old request between the same pair if it exists (e.g., was rejected/cancelled)
+    const friendRequest = await prisma.friendRequest.upsert({
+      where: { senderId_receiverId: { senderId, receiverId } },
+      create: {
         senderId,
         receiverId,
         message: message || null,
+        status: 'pending',
+      },
+      update: {
+        status: 'pending',
+        message: message || null,
+        updatedAt: new Date(),
       },
       include: {
         sender: {
-          select: { id: true, email: true },
+          select: {
+            id: true,
+            email: true,
+            profile: { select: { username: true, avatar: true, status: true } },
+          },
         },
         receiver: {
-          select: { id: true, email: true },
+          select: {
+            id: true,
+            email: true,
+            profile: { select: { username: true, avatar: true, status: true } },
+          },
         },
       },
     });
@@ -78,12 +108,7 @@ const sendFriendRequest = async (req, res) => {
     });
   } catch (error) {
     console.error('Send friend request error:', error);
-    let errorMessage;
-    if (process.env.NODE_ENV === 'development') {
-      errorMessage = error.message;
-    } else {
-      errorMessage = undefined;
-    }
+    const errorMessage = process.env.NODE_ENV === 'development' ? error.message : undefined;
     return res.status(500).json({
       success: false,
       message: 'Failed to send friend request',
@@ -129,11 +154,10 @@ const acceptFriendRequest = async (req, res) => {
 
     const [user1Id, user2Id] = [friendRequest.senderId, friendRequest.receiverId].sort();
 
-    const friendship = await prisma.friendship.create({
-      data: {
-        user1Id,
-        user2Id,
-      },
+    const friendship = await prisma.friendship.upsert({
+      where: { user1Id_user2Id: { user1Id, user2Id } },
+      update: {},
+      create: { user1Id, user2Id },
       include: {
         user1: { select: { id: true, email: true } },
         user2: { select: { id: true, email: true } },
@@ -147,12 +171,7 @@ const acceptFriendRequest = async (req, res) => {
     });
   } catch (error) {
     console.error('Accept friend request error:', error);
-    let errorMessage;
-    if (process.env.NODE_ENV === 'development') {
-      errorMessage = error.message;
-    } else {
-      errorMessage = undefined;
-    }
+    const errorMessage = process.env.NODE_ENV === 'development' ? error.message : undefined;
     return res.status(500).json({
       success: false,
       message: 'Failed to accept friend request',
@@ -196,12 +215,7 @@ const rejectFriendRequest = async (req, res) => {
     });
   } catch (error) {
     console.error('Reject friend request error:', error);
-    let errorMessage;
-    if (process.env.NODE_ENV === 'development') {
-      errorMessage = error.message;
-    } else {
-      errorMessage = undefined;
-    }
+    const errorMessage = process.env.NODE_ENV === 'development' ? error.message : undefined;
     return res.status(500).json({
       success: false,
       message: 'Failed to reject friend request',
@@ -210,7 +224,57 @@ const rejectFriendRequest = async (req, res) => {
   }
 };
 
-const getFriendRequests = async (req, res) => {
+const cancelFriendRequest = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { requestId } = req.params;
+
+    const friendRequest = await prisma.friendRequest.findUnique({
+      where: { id: requestId },
+    });
+
+    if (!friendRequest) {
+      return res.status(404).json({
+        success: false,
+        message: 'Friend request not found',
+      });
+    }
+
+    if (friendRequest.senderId !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to cancel this request',
+      });
+    }
+
+    if (friendRequest.status !== 'pending') {
+      return res.status(400).json({
+        success: false,
+        message: 'Only pending requests can be cancelled',
+      });
+    }
+
+    await prisma.friendRequest.update({
+      where: { id: requestId },
+      data: { status: 'cancelled' },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Friend request cancelled',
+    });
+  } catch (error) {
+    console.error('Cancel friend request error:', error);
+    const errorMessage = process.env.NODE_ENV === 'development' ? error.message : undefined;
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to cancel friend request',
+      error: errorMessage,
+    });
+  }
+};
+
+const getIncomingFriendRequests = async (req, res) => {
   try {
     const userId = req.user.userId;
 
@@ -231,21 +295,74 @@ const getFriendRequests = async (req, res) => {
       orderBy: { createdAt: 'desc' },
     });
 
+    const data = requests.map((request) => ({
+      id: request.id,
+      userId: request.sender.id,
+      senderId: request.sender.id,
+      username: request.sender.profile?.username || request.sender.email,
+      avatar: request.sender.profile?.avatar || null,
+      status: request.status,
+      userStatus: request.sender.profile?.status || 'offline',
+      createdAt: request.createdAt,
+    }));
+
     return res.status(200).json({
       success: true,
-      data: requests,
+      data,
     });
   } catch (error) {
-    console.error('Get friend requests error:', error);
-    let errorMessage;
-    if (process.env.NODE_ENV === 'development') {
-      errorMessage = error.message;
-    } else {
-      errorMessage = undefined;
-    }
+    console.error('Get incoming friend requests error:', error);
+    const errorMessage = process.env.NODE_ENV === 'development' ? error.message : undefined;
     return res.status(500).json({
       success: false,
       message: 'Failed to fetch friend requests',
+      error: errorMessage,
+    });
+  }
+};
+
+const getOutgoingFriendRequests = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const requests = await prisma.friendRequest.findMany({
+      where: {
+        senderId: userId,
+        status: 'pending',
+      },
+      include: {
+        receiver: {
+          select: {
+            id: true,
+            email: true,
+            profile: { select: { username: true, avatar: true, status: true } },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const data = requests.map((request) => ({
+      id: request.id,
+      userId: request.receiver.id,
+      receiverId: request.receiver.id,
+      username: request.receiver.profile?.username || request.receiver.email,
+      avatar: request.receiver.profile?.avatar || null,
+      status: request.status,
+      userStatus: request.receiver.profile?.status || 'offline',
+      createdAt: request.createdAt,
+    }));
+
+    return res.status(200).json({
+      success: true,
+      data,
+    });
+  } catch (error) {
+    console.error('Get outgoing friend requests error:', error);
+    const errorMessage = process.env.NODE_ENV === 'development' ? error.message : undefined;
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch outgoing requests',
       error: errorMessage,
     });
   }
@@ -260,43 +377,40 @@ const getFriends = async (req, res) => {
       where: {
         OR: [{ user1Id: userId }, { user2Id: userId }],
       },
-      take: parseInt(limit),
-      skip: parseInt(offset),
+      take: parseInt(limit, 10),
+      skip: parseInt(offset, 10),
     });
 
-    const friendIds = friendships.map((f) => {
-      if (f.user1Id === userId) {
-        return f.user2Id;
-      } else {
-        return f.user1Id;
-      }
-    });
+    const friendIds = friendships.map((f) => (f.user1Id === userId ? f.user2Id : f.user1Id));
 
-    const friends = await prisma.userProfile.findMany({
+    if (friendIds.length === 0) {
+      return res.status(200).json({
+        success: true,
+        data: [],
+        pagination: { limit: parseInt(limit, 10), offset: parseInt(offset, 10) },
+      });
+    }
+
+    const profiles = await prisma.userProfile.findMany({
       where: { userId: { in: friendIds } },
       include: {
-        user: {
-          select: { id: true, email: true, isActive: true },
-        },
+        user: { select: { id: true, email: true, isActive: true } },
       },
     });
+
+    const friends = profiles.map(mapProfile);
 
     return res.status(200).json({
       success: true,
       data: friends,
       pagination: {
-        limit: parseInt(limit),
-        offset: parseInt(offset),
+        limit: parseInt(limit, 10),
+        offset: parseInt(offset, 10),
       },
     });
   } catch (error) {
     console.error('Get friends error:', error);
-    let errorMessage;
-    if (process.env.NODE_ENV === 'development') {
-      errorMessage = error.message;
-    } else {
-      errorMessage = undefined;
-    }
+    const errorMessage = process.env.NODE_ENV === 'development' ? error.message : undefined;
     return res.status(500).json({
       success: false,
       message: 'Failed to fetch friends list',
@@ -336,12 +450,7 @@ const removeFriend = async (req, res) => {
     });
   } catch (error) {
     console.error('Remove friend error:', error);
-    let errorMessage;
-    if (process.env.NODE_ENV === 'development') {
-      errorMessage = error.message;
-    } else {
-      errorMessage = undefined;
-    }
+    const errorMessage = process.env.NODE_ENV === 'development' ? error.message : undefined;
     return res.status(500).json({
       success: false,
       message: 'Failed to remove friend',
@@ -366,16 +475,11 @@ const checkFriendship = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      isFriend: !!friendship,
+      data: { isFriend: !!friendship },
     });
   } catch (error) {
     console.error('Check friendship error:', error);
-    let errorMessage;
-    if (process.env.NODE_ENV === 'development') {
-      errorMessage = error.message;
-    } else {
-      errorMessage = undefined;
-    }
+    const errorMessage = process.env.NODE_ENV === 'development' ? error.message : undefined;
     return res.status(500).json({
       success: false,
       message: 'Failed to check friendship',
@@ -388,7 +492,10 @@ module.exports = {
   sendFriendRequest,
   acceptFriendRequest,
   rejectFriendRequest,
-  getFriendRequests,
+  cancelFriendRequest,
+  getIncomingFriendRequests,
+  getOutgoingFriendRequests,
+  getFriendRequests: getIncomingFriendRequests, // backwards compatibility
   getFriends,
   removeFriend,
   checkFriendship,

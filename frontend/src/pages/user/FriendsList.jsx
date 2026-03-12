@@ -3,7 +3,7 @@ import { apiRequest } from "../../services/api";
 export default function FriendsList({ friendList, setFriendList }) {
   const removeFriend = async (friendId) => {
     try {
-      await apiRequest(`/friends/remove/${friendId}`, { method: "DELETE" });
+      await apiRequest(`/friends/${friendId}`, { method: "DELETE" });
       setFriendList((prev) => prev.filter((f) => f.id !== friendId));
     } catch (error) {
       console.error(error.message);

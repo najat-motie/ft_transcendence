@@ -1,10 +1,10 @@
 import { apiRequest } from "../../services/api";
 
 export default function OutgoingRequests({ outgoingRequests, setOutgoingRequests }) {
-  const cancelOutgoingRequest = async (userId) => {
+  const cancelOutgoingRequest = async (requestId) => {
     try {
-      await apiRequest(`/requests/cancel/${userId}`, { method: "POST" });
-      setOutgoingRequests((prev) => prev.filter((req) => req.id !== userId));
+      await apiRequest(`/requests/cancel/${requestId}`, { method: "POST" });
+      setOutgoingRequests((prev) => prev.filter((req) => req.id !== requestId));
     } catch (error) {
       console.error(error.message);
     }

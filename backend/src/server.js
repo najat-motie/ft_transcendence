@@ -8,6 +8,7 @@ const cookieParser = require('cookie-parser');
 const authRoutes = require('./routes/auth.routes');
 const profileRoutes = require('./routes/profile.routes');
 const friendRoutes = require('./routes/friend.routes');
+const requestRoutes = require('./routes/request.routes');
 const userRoutes = require('./routes/user.routes');
 const aiRoutes = require('./routes/ai.routes');
 const offlineRoutes = require('./routes/offline.routes');
@@ -70,6 +71,7 @@ app.use('/auth/register', authLimiter);
 app.use('/auth', authRoutes);
 app.use('/profile', profileRoutes);
 app.use('/friends', friendRoutes);
+app.use('/requests', requestRoutes);
 app.use('/users', userRoutes);
 app.use('/ai', aiRoutes);
 app.use('/', offlineRoutes);
@@ -104,28 +106,34 @@ app.use((err, req, res, next) => {
 const server = http.createServer(app);
 attachOnlineGateway(server);
 
-server.listen(PORT, () => {
-  let env;
-  if (process.env.NODE_ENV) {
-    env = process.env.NODE_ENV;
-  } else {
-    env = 'development';
-  }
-  console.log(`Server running on port ${PORT} (${env})`);
-});
-
-process.on('SIGINT', () => {
-  console.log('\nShutting down...');
-  server.close(() => {
-    console.log('Server closed');
-    process.exit(0);
+// Only start the server if this file is run directly (not imported for testing)
+if (process.env.NODE_ENV !== 'test') {
+  server.listen(PORT, () => {
+    let env;
+    if (process.env.NODE_ENV) {
+      env = process.env.NODE_ENV;
+    } else {
+      env = 'development';
+    }
+    console.log(`Server running on port ${PORT} (${env})`);
   });
-});
 
-process.on('SIGTERM', () => {
-  console.log('\nShutting down...');
-  server.close(() => {
-    console.log('Server closed');
-    process.exit(0);
+  process.on('SIGINT', () => {
+    console.log('\nShutting down...');
+    server.close(() => {
+      console.log('Server closed');
+      process.exit(0);
+    });
   });
-});
+
+  process.on('SIGTERM', () => {
+    console.log('\nShutting down...');
+    server.close(() => {
+      console.log('Server closed');
+      process.exit(0);
+    });
+  });
+}
+
+// Export app for testing
+module.exports = app;

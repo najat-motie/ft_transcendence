@@ -5,6 +5,8 @@ const {
   acceptFriendRequest,
   rejectFriendRequest,
   getFriendRequests,
+  getIncomingFriendRequests,
+  getOutgoingFriendRequests,
   getFriends,
   removeFriend,
   checkFriendship,
@@ -20,12 +22,16 @@ router.post('/accept/:requestId', acceptFriendRequest);
 
 router.post('/reject/:requestId', rejectFriendRequest);
 
+// Legacy combined list + explicit incoming/outgoing
 router.get('/requests', getFriendRequests);
+router.get('/requests/incoming', getIncomingFriendRequests);
+router.get('/requests/outgoing', getOutgoingFriendRequests);
 
 router.get('/', getFriends);
 
 router.get('/check/:userId', checkFriendship);
 
+router.delete('/remove/:userId', removeFriend); // alias for old frontend
 router.delete('/:userId', removeFriend);
 
 module.exports = router;

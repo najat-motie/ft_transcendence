@@ -1,15 +1,25 @@
-### Friendship System - Corrected Test Flow
+### ============================================
+### TIC TAC TOE PLATFORM - COMPREHENSIVE TEST SUITE
+### ============================================
 ### All routes use correct paths (NO /api prefix)
-### Flow: Register → Login → Create Profile → Search → Friend Requests
+### Complete end-to-end test flow from registration to friendship
 
 @baseUrl = http://localhost:3000
-@accessToken = 
-@refreshToken = 
-@userId = 
-@requestId = 
+@aliceAccessToken = 
+@aliceRefreshToken = 
+@aliceUserId = 
+@bobAccessToken = 
+@bobRefreshToken = 
+@bobUserId = 
+@friendRequestId = 
 
 ### ============================================
-### STEP 1: User Alice - Register
+### HEALTH CHECK
+### ============================================
+GET {{baseUrl}}/health
+
+### ============================================
+### STEP 1: USER ALICE - REGISTRATION
 ### ============================================
 POST {{baseUrl}}/auth/register
 Content-Type: application/json
@@ -19,7 +29,10 @@ Content-Type: application/json
   "password": "TestPassword123"
 }
 
-### STEP 2: User Alice - Login (save accessToken)
+### ============================================
+### STEP 2: USER ALICE - LOGIN
+### Save: aliceAccessToken, aliceRefreshToken, aliceUserId
+### ============================================
 POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
@@ -28,18 +41,45 @@ Content-Type: application/json
   "password": "TestPassword123"
 }
 
-### STEP 3: User Alice - Create Profile
+### ============================================
+### STEP 3: USER ALICE - CREATE PROFILE
+### ============================================
 POST {{baseUrl}}/profile
-Authorization: Bearer {{accessToken}}
+Authorization: Bearer {{aliceAccessToken}}
 Content-Type: application/json
 
 {
   "username": "alice_user",
-  "bio": "Hi, I'm Alice!"
+  "bio": "Hi, I'm Alice!",
+  "avatar": "https://example.com/alice-avatar.jpg"
 }
 
 ### ============================================
-### STEP 4: User Bob - Register
+### STEP 4: GET ALICE'S PROFILE
+### ============================================
+GET {{baseUrl}}/profile/{{aliceUserId}}
+Authorization: Bearer {{aliceAccessToken}}
+
+### ============================================
+### STEP 5: GET ALICE'S PROFILE KPIs
+### ============================================
+GET {{baseUrl}}/profile/{{aliceUserId}}/kpis
+Authorization: Bearer {{aliceAccessToken}}
+
+### ============================================
+### STEP 6: UPDATE ALICE'S PROFILE
+### ============================================
+PUT {{baseUrl}}/profile
+Authorization: Bearer {{aliceAccessToken}}
+Content-Type: application/json
+
+{
+  "bio": "Updated bio from Alice",
+  "avatar": "https://example.com/alice-new-avatar.jpg"
+}
+
+### ============================================
+### STEP 7: USER BOB - REGISTRATION
 ### ============================================
 POST {{baseUrl}}/auth/register
 Content-Type: application/json
@@ -49,7 +89,10 @@ Content-Type: application/json
   "password": "TestPassword123"
 }
 
-### STEP 5: User Bob - Login (save as separate token if testing simultaneously)
+### ============================================
+### STEP 8: USER BOB - LOGIN
+### Save: bobAccessToken, bobRefreshToken, bobUserId
+### ============================================
 POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
@@ -58,74 +101,204 @@ Content-Type: application/json
   "password": "TestPassword123"
 }
 
-### STEP 6: User Bob - Create Profile
+### ============================================
+### STEP 9: USER BOB - CREATE PROFILE
+### ============================================
 POST {{baseUrl}}/profile
-Authorization: Bearer {{accessToken}}
+Authorization: Bearer {{bobAccessToken}}
 Content-Type: application/json
 
 {
   "username": "bob_user",
-  "bio": "Hey, I'm Bob!"
+  "bio": "Hey, I'm Bob!",
+  "avatar": "https://example.com/bob-avatar.jpg"
 }
 
 ### ============================================
-### STEP 7: Search Users (correct path: /users/search)
+### STEP 10: GET BOB'S PROFILE
 ### ============================================
-GET {{baseUrl}}/users/search?q=alice
-Authorization: Bearer {{accessToken}}
+GET {{baseUrl}}/profile/{{bobUserId}}
+Authorization: Bearer {{bobAccessToken}}
 
 ### ============================================
-### STEP 8: Send Friend Request
+### STEP 11: SEARCH FOR USERS (ALICE searches for BOB)
 ### ============================================
-### Save userId from search results, then use it here
-POST {{baseUrl}}/friends/request/{{userId}}
-Authorization: Bearer {{accessToken}}
+GET {{baseUrl}}/users/search?q=bob
+Authorization: Bearer {{aliceAccessToken}}
+
+### ============================================
+### STEP 12: SEARCH FOR USERS BY EMAIL
+### ============================================
+GET {{baseUrl}}/users/search?q=bob@example.com
+Authorization: Bearer {{aliceAccessToken}}
+
+### ============================================
+### STEP 13: ALICE SENDS FRIEND REQUEST TO BOB
+### Save: friendRequestId from response.data.id
+### ============================================
+POST {{baseUrl}}/friends/request/{{bobUserId}}
+Authorization: Bearer {{aliceAccessToken}}
 Content-Type: application/json
 
 {
+  "message": "Hey Bob, let's be friends!"
 }
 
 ### ============================================
-### STEP 9: Get Pending Friend Requests
+### STEP 14: BOB VIEWS PENDING FRIEND REQUESTS
 ### ============================================
 GET {{baseUrl}}/friends/requests
-Authorization: Bearer {{accessToken}}
+Authorization: Bearer {{bobAccessToken}}
 
 ### ============================================
-### STEP 10: Accept Friend Request
+### STEP 15: BOB ACCEPTS ALICE'S FRIEND REQUEST
 ### ============================================
-### Save requestId from pending requests
-POST {{baseUrl}}/friends/accept/{{requestId}}
-Authorization: Bearer {{accessToken}}
+POST {{baseUrl}}/friends/accept/{{friendRequestId}}
+Authorization: Bearer {{bobAccessToken}}
 Content-Type: application/json
 
 {
 }
 
 ### ============================================
-### STEP 11: Get Friends List
+### STEP 16: GET ALICE'S FRIENDS LIST
 ### ============================================
 GET {{baseUrl}}/friends
-Authorization: Bearer {{accessToken}}
+Authorization: Bearer {{aliceAccessToken}}
 
 ### ============================================
-### STEP 12: Check Friendship Status
+### STEP 17: GET BOB'S FRIENDS LIST
 ### ============================================
-GET {{baseUrl}}/friends/check/{{userId}}
-Authorization: Bearer {{accessToken}}
+GET {{baseUrl}}/friends
+Authorization: Bearer {{bobAccessToken}}
 
 ### ============================================
-### Alternative: Reject Friend Request
+### STEP 18: CHECK FRIENDSHIP STATUS (ALICE checking BOB)
 ### ============================================
-POST {{baseUrl}}/friends/reject/{{requestId}}
-Authorization: Bearer {{accessToken}}
+GET {{baseUrl}}/friends/check/{{bobUserId}}
+Authorization: Bearer {{aliceAccessToken}}
+
+### ============================================
+### STEP 19: CHECK FRIENDSHIP STATUS (BOB checking ALICE)
+### ============================================
+GET {{baseUrl}}/friends/check/{{aliceUserId}}
+Authorization: Bearer {{bobAccessToken}}
+
+### ============================================
+### TEST: PAGINATION IN FRIENDS LIST
+### ============================================
+GET {{baseUrl}}/friends?limit=10&offset=0
+Authorization: Bearer {{aliceAccessToken}}
+
+### ============================================
+### TEST: CREATE THIRD USER FOR ADDITIONAL REQUESTS
+### ============================================
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "charlie@example.com",
+  "password": "TestPassword123"
+}
+
+### ============================================
+### TEST: CHARLIE LOGIN
+### ============================================
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "charlie@example.com",
+  "password": "TestPassword123"
+}
+
+### ============================================
+### TEST: CHARLIE CREATE PROFILE
+### ============================================
+POST {{baseUrl}}/profile
+Authorization: Bearer {{aliceAccessToken}}
+Content-Type: application/json
+
+{
+  "username": "charlie_user",
+  "bio": "Hi, I'm Charlie!"
+}
+
+### ============================================
+### TEST: ALICE SENDS ANOTHER FRIEND REQUEST (to get requestId for reject test)
+### Save this requestId for rejection test
+### ============================================
+POST {{baseUrl}}/friends/request/{{aliceUserId}}
+Authorization: Bearer {{bobAccessToken}}
+Content-Type: application/json
+
+{
+  "message": "Can we be friends again?"
+}
+
+### ============================================
+### TEST: ALICE REJECTS FRIEND REQUEST
+### ============================================
+POST {{baseUrl}}/friends/reject/{{friendRequestId}}
+Authorization: Bearer {{aliceAccessToken}}
 Content-Type: application/json
 
 {
 }
 
 ### ============================================
-### Alternative: Remove Friend
+### TEST: REMOVE FRIEND (ALICE removes BOB)
 ### ============================================
-DELETE {{baseUrl}}/friends/{{userId}}
-Authorization: Bearer {{accessToken}}
+DELETE {{baseUrl}}/friends/{{bobUserId}}
+Authorization: Bearer {{aliceAccessToken}}
+
+### ============================================
+### TEST: VERIFY FRIENDSHIP REMOVED
+### ============================================
+GET {{baseUrl}}/friends/check/{{bobUserId}}
+Authorization: Bearer {{aliceAccessToken}}
+
+### ============================================
+### ERROR CASES TESTING
+### ============================================
+
+### TEST: Login with invalid password
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "alice@example.com",
+  "password": "WrongPassword"
+}
+
+### TEST: Register duplicate email
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "alice@example.com",
+  "password": "TestPassword123"
+}
+
+### TEST: Send friend request to self (should fail)
+POST {{baseUrl}}/friends/request/{{aliceUserId}}
+Authorization: Bearer {{aliceAccessToken}}
+Content-Type: application/json
+
+{
+}
+
+### TEST: Send friend request without authentication
+POST {{baseUrl}}/friends/request/{{bobUserId}}
+Content-Type: application/json
+
+{
+}
+
+### TEST: Search without query parameter
+GET {{baseUrl}}/users/search
+Authorization: Bearer {{aliceAccessToken}}
+
+### TEST: Access protected endpoint without token
+GET {{baseUrl}}/friends
+

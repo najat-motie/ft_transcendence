@@ -17,7 +17,8 @@ export default function SearchUsers({
     if (!searchInput.trim()) return;
     setLoading(true);
     try {
-      const users = await apiRequest(`/users/search?q=${searchInput}`, { method: "GET" });
+      const response = await apiRequest(`/users/search?q=${searchInput}`, { method: "GET" });
+      const users = response?.data?.users || response?.data || [];
       const filteredUsers = users.filter(
         (user) =>
           !friendList.find((f) => f.username === user.username) &&
@@ -36,8 +37,16 @@ export default function SearchUsers({
   const sendFriendRequest = async (userId, username) => {
     setLoading(true);
     try {
-      await apiRequest(`/requests/send/${userId}`, { method: "POST" });
-      setOutgoingRequests((prev) => [...prev, { id: userId, username }]);
+      const response = await apiRequest(`/requests/send/${userId}`, { method: "POST" });
+      const newRequest = response?.data;
+      setOutgoingRequests((prev) => [
+        ...prev,
+        {
+          id: newRequest?.id || userId,
+          userId,
+          username,
+        },
+      ]);
       setSearchResults((prev) => prev.filter((user) => user.id !== userId));
     } catch (error) {
       setError(error.message);

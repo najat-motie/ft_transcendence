@@ -30,16 +30,16 @@ export default function Friends() {
   const fetchAllFriendsData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const [friendsData, incomingRequestsData, outgoingRequestsData] =
+      const [friendsRes, incomingRes, outgoingRes] =
         await Promise.all([
           apiRequest("/friends", {method: "GET"}),
           apiRequest("/requests/incoming", {method: "GET"}),
           apiRequest("/requests/outgoing", {method: "GET"}),
         ]);
 
-      setFriendList(friendsData);
-      setIncomingFriendRequests(incomingRequestsData);
-      setOutgoingFriendRequests(outgoingRequestsData);
+      setFriendList(friendsRes?.data || []);
+      setIncomingFriendRequests(incomingRes?.data || []);
+      setOutgoingFriendRequests(outgoingRes?.data || []);
     } catch (error) {
       setErrorMessage(error.message);
     } finally {
