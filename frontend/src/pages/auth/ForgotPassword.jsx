@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { apiRequest } from "../../services/api";
 import "../../styles/auth/password.css";
 
 export default function ForgotPassword() {
@@ -12,10 +13,10 @@ export default function ForgotPassword() {
   
     setLoading(true);
     try {
-      const data = await apiRequest("/auth/reset-password", {
+      await apiRequest("/auth/reset-password", {
         method: "POST",
         body: JSON.stringify({ email }),
-      });
+      }, true);
   
       setSubmitted(true);
     } catch (err) {

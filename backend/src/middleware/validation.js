@@ -71,6 +71,21 @@ const validateResetPasswordComplete = [
     .withMessage('Password must contain at least one number'),
 ];
 
+const validateChangePassword = [
+  body('currentPassword')
+    .notEmpty()
+    .withMessage('Current password is required'),
+  body('newPassword')
+    .isLength({ min: 8 })
+    .withMessage('Password must be at least 8 characters long')
+    .matches(/[A-Z]/)
+    .withMessage('Password must contain at least one uppercase letter')
+    .matches(/[a-z]/)
+    .withMessage('Password must contain at least one lowercase letter')
+    .matches(/[0-9]/)
+    .withMessage('Password must contain at least one number'),
+];
+
 module.exports = {
   handleValidationErrors,
   validateRegistration,
@@ -78,4 +93,5 @@ module.exports = {
   validateRefreshToken,
   validateResetPasswordRequest,
   validateResetPasswordComplete,
+  validateChangePassword,
 };

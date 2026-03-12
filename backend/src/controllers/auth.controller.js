@@ -285,6 +285,69 @@ const refresh = async (req, res) => {
   }
 };
 
+const changePassword = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { currentPassword, newPassword } = req.body;
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    if (!user.password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password change is not available for OAuth-only accounts',
+      });
+    }
+
+    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+
+    if (!isCurrentPasswordValid) {
+      return res.status(401).json({
+        success: false,
+        message: 'Current password is incorrect',
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
+
+    await prisma.refreshToken.deleteMany({
+      where: { userId },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Password changed successfully',
+    });
+  } catch (error) {
+    console.error('Change password error:', error);
+    let errorMessage;
+    if (process.env.NODE_ENV === 'development') {
+      errorMessage = error.message;
+    } else {
+      errorMessage = undefined;
+    }
+    return res.status(500).json({
+      success: false,
+      message: 'Password change failed',
+      error: errorMessage,
+    });
+  }
+};
+
 const requestPasswordReset = async (req, res) => {
   try {
     const { email } = req.body;
@@ -466,9 +529,9 @@ const oauth42Callback = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
-    // Redirect to frontend with only non-sensitive tokens
+    // Redirect to frontend callback with session payload expected by the SPA
     const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:5173';
-    const redirectUrl = `${frontendUrl}/auth/callback?userId=${user.id}&email=${encodeURIComponent(user.email)}`;
+    const redirectUrl = `${frontendUrl}/auth/callback?accessToken=${encodeURIComponent(accessToken)}&refreshToken=${encodeURIComponent(refreshToken)}&userId=${user.id}&email=${encodeURIComponent(user.email)}`;
     
     return res.redirect(redirectUrl);
   } catch (error) {
@@ -484,6 +547,7 @@ module.exports = {
   login,
   logout,
   refresh,
+  changePassword,
   requestPasswordReset,
   completePasswordReset,
   oauth42Login,

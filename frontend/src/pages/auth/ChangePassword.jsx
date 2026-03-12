@@ -30,7 +30,10 @@ export default function ChangePassword() {
     try {
       await apiRequest("/auth/change-password", {
         method: "POST",
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({
+          currentPassword,
+          newPassword: password,
+        }),
       });
       setSuccess(true);
     } catch (err) {

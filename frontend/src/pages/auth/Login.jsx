@@ -97,7 +97,7 @@ function Login() {
               required 
             />
             <div className="forgot-password">
-              <a href="/forgot-password">Forgot password?</a>
+              <a href="/reset-password">Forgot password?</a>
             </div>
           </div>
 

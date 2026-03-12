@@ -33,8 +33,8 @@ export default function ResetPassword() {
     try {
       await apiRequest(`/auth/reset-password/${token}`, {
         method: "POST",
-        body: JSON.stringify({ password }),
-      });
+        body: JSON.stringify({ newPassword: password }),
+      }, true);
 
       setSuccess(true);
 

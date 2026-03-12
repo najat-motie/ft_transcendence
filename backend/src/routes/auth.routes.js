@@ -7,6 +7,7 @@ const {
   validateLogin,
   validateResetPasswordRequest,
   validateResetPasswordComplete,
+  validateChangePassword,
 } = require('../middleware/validation');
 
 const router = express.Router();
@@ -35,6 +36,14 @@ router.post(
   '/refresh',
   verifyRefreshToken,
   authController.refresh
+);
+
+router.post(
+  '/change-password',
+  verifyAccessToken,
+  validateChangePassword,
+  handleValidationErrors,
+  authController.changePassword
 );
 
 router.post(
