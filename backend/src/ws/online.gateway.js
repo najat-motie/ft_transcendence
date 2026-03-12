@@ -398,6 +398,19 @@ const attachOnlineGateway = (server) => {
       return;
     }
 
+    try {
+      const cookieHeader = request.headers.cookie || '';
+      const cookies = require('cookie').parse(cookieHeader);
+      const token = cookies.jwt_access;
+      if (!token) throw new Error('No token');
+      const decoded = require('jsonwebtoken').verify(token, process.env.JWT_ACCESS_SECRET);
+      request.user = decoded;
+    } catch (error) {
+      socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+      socket.destroy();
+      return;
+    }
+
     wss.handleUpgrade(request, socket, head, (ws) => {
       wss.emit('connection', ws, request, route);
     });

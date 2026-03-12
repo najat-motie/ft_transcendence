@@ -56,7 +56,13 @@ export default function Profile() {
         bio: kpiData.bio || "",
       });
     } catch (err) {
-      setError(err.message);
+      if (err.message?.includes("Profile not found") || err.message?.includes("not found")) {
+        setUser(null);
+        setKpis(null);
+        setEditMode(true);
+      } else {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -91,14 +97,21 @@ export default function Profile() {
     }
 
     try {
+      const isCreate = !user;
       const updated = await apiRequest(`/profile`, {
-        method: "PUT",
+        method: isCreate ? "POST" : "PUT",
         body: JSON.stringify(formData),
       });
       const updatedData = updated?.data || updated;
-      setUser((prev) => ({ ...prev, ...updatedData }));
-      setFormData((prev) => ({ ...prev, ...updatedData }));
-      setEditMode(false);
+
+      if (isCreate) {
+        setEditMode(false);
+        fetchProfile();
+      } else {
+        setUser((prev) => ({ ...prev, ...updatedData }));
+        setFormData((prev) => ({ ...prev, ...updatedData }));
+        setEditMode(false);
+      }
     } catch (err) {
       setError(err.message);
     }
@@ -140,7 +153,7 @@ export default function Profile() {
     );
   }
 
-  if (!user || !kpis) {
+  if (!user && !editMode) {
     return (
       <section className="profile">
         <div className="profile-container">
@@ -152,19 +165,19 @@ export default function Profile() {
 
   const headlineStats = [
     { label: "Win Rate", value: formattedWinRate, accent: "lime" },
-    { label: "Rank", value: `#${kpis.rank ?? 0}`, accent: "cyan" },
-    { label: "Level", value: kpis.level ?? 1, accent: "amber" },
+    { label: "Rank", value: `#${kpis?.rank ?? 0}`, accent: "cyan" },
+    { label: "Level", value: kpis?.level ?? 1, accent: "amber" },
   ];
 
   const detailStats = [
-    { label: "Wins", value: kpis.wins ?? 0 },
-    { label: "Losses", value: kpis.losses ?? 0 },
-    { label: "Matches", value: kpis.totalMatches ?? 0 },
-    { label: "XP", value: kpis.experience ?? 0 },
-    { label: "Friends", value: kpis.friendsCount ?? 0 },
-    { label: "Pending In", value: kpis.pendingRequestsReceived ?? 0 },
-    { label: "Pending Out", value: kpis.pendingRequestsSent ?? 0 },
-    { label: "Unread Msgs", value: kpis.unreadMessages ?? 0 },
+    { label: "Wins", value: kpis?.wins ?? 0 },
+    { label: "Losses", value: kpis?.losses ?? 0 },
+    { label: "Matches", value: kpis?.totalMatches ?? 0 },
+    { label: "XP", value: kpis?.experience ?? 0 },
+    { label: "Friends", value: kpis?.friendsCount ?? 0 },
+    { label: "Pending In", value: kpis?.pendingRequestsReceived ?? 0 },
+    { label: "Pending Out", value: kpis?.pendingRequestsSent ?? 0 },
+    { label: "Unread Msgs", value: kpis?.unreadMessages ?? 0 },
   ];
 
   return (
@@ -200,16 +213,18 @@ export default function Profile() {
                   <textarea name="bio" value={formData.bio} onChange={handleChange} rows="3" />
                 </label>
                 <div className="form-buttons">
-                  <button className="primary" onClick={handleSave}>Save Changes</button>
-                  <button className="ghost" onClick={() => setEditMode(false)}>Cancel</button>
+                  <button className="primary" onClick={handleSave}>
+                    {user ? "Save Changes" : "Create Profile"}
+                  </button>
+                  {user && <button className="ghost" onClick={() => setEditMode(false)}>Cancel</button>}
                 </div>
               </div>
             ) : (
               <div className="profile-view">
                 <div className="chips">
-                  <span className="chip">{kpis.status || "offline"}</span>
-                  <span className="chip subtle">Last seen {new Date(kpis.lastSeen).toLocaleString()}</span>
-                  {kpis.accountAgeDays !== null && <span className="chip subtle">{kpis.accountAgeDays} days on platform</span>}
+                  <span className="chip">{kpis?.status || "offline"}</span>
+                  <span className="chip subtle">Last seen {kpis?.lastSeen ? new Date(kpis.lastSeen).toLocaleString() : "just now"}</span>
+                  {kpis?.accountAgeDays !== null && <span className="chip subtle">{kpis?.accountAgeDays} days on platform</span>}
                 </div>
                 <h2>{user.username}</h2>
                 <p className="muted">{user.email}</p>

@@ -1,8 +1,11 @@
 from json import JSONDecodeError
 from pathlib import Path
+import asyncio
 
-from fastapi import APIRouter, HTTPException, Response, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, HTTPException, Response, WebSocket, WebSocketDisconnect, Depends
 from pydantic import BaseModel, field_validator
+
+from .auth import secure_http, secure_ws
 
 from training.tictactoe_model import legal_actions, load_model, minimax_action
 
@@ -60,8 +63,8 @@ def websocket_is_open(websocket):
     return getattr(getattr(websocket, "client_state", None), "name", "") != "DISCONNECTED"
 
 
-def current_board():
-    return [[game.table_game[h][w]["text"] for w in range(3)] for h in range(3)]
+def current_board(game_instance):
+    return [[game_instance.table_game[h][w]["text"] for w in range(3)] for h in range(3)]
 
 
 def state_status_text(state):
@@ -73,12 +76,12 @@ def state_status_text(state):
 
 
 def build_state_payload(session, last_move=None, ai_move=None, message=""):
-    game.bind_state(session["state"])
-    state = game.is_winning()
+    game_instance = session["game"]
+    state = game_instance.is_winning()
     payload = {
-        "board": current_board(),
+        "board": current_board(game_instance),
         "status": state_status_text(state),
-        "turn": game.player if state["status"] == "ongoing" else None,
+        "turn": game_instance.player if state["status"] == "ongoing" else None,
         "game_status": state["status"],
         "last_move": last_move,
         "ai_move": ai_move,
@@ -92,11 +95,11 @@ def build_state_payload(session, last_move=None, ai_move=None, message=""):
     return payload
 
 
-def ws_state_message(note="", ai_move=None):
-    state = game.is_winning()
+def ws_state_message(game_instance, note="", ai_move=None):
+    state = game_instance.is_winning()
     payload = {
-        "board": current_board(),
-        "status": game.label["text"],
+        "board": current_board(game_instance),
+        "status": game_instance.label["text"],
         "game_status": state["status"],
     }
     if state["status"] == "win":
@@ -110,21 +113,22 @@ def ws_state_message(note="", ai_move=None):
     return payload
 
 
-def board_to_model():
+def board_to_model(game_instance):
     mapping = {"X": 1, "O": -1, "": 0}
     board = []
     for h in range(3):
         for w in range(3):
-            board.append(mapping[game.table_game[h][w]["text"]])
+            board.append(mapping[game_instance.table_game[h][w]["text"]])
     return tuple(board)
 
 
 def apply_ai_turn(session):
-    state = game.is_winning()
-    if state["status"] != "ongoing" or game.player != session["ai_choice"]:
+    game_instance = session["game"]
+    state = game_instance.is_winning()
+    if state["status"] != "ongoing" or game_instance.player != session["ai_choice"]:
         return None
 
-    board = board_to_model()
+    board = board_to_model(game_instance)
     available = legal_actions(board)
     if not available:
         return None
@@ -134,6 +138,7 @@ def apply_ai_turn(session):
 
     if MODEL is not None:
         try:
+            # RLQModel's choose_action is O(1)
             action = MODEL.choose_action(board, ai_player)
         except Exception as exc:
             print(f"[ai] model inference failed: {exc}. Using minimax fallback")
@@ -145,16 +150,15 @@ def apply_ai_turn(session):
         action = available[0]
 
     h, w = divmod(action, 3)
-    before = game.table_game[h][w]["text"]
-    game.next(h, w)
-    game.sync_state(session["state"])
+    before = game_instance.table_game[h][w]["text"]
+    game_instance.next(h, w)
 
-    if before == game.table_game[h][w]["text"]:
+    if before == game_instance.table_game[h][w]["text"]:
         return None
     return {"row": h, "col": w}
 
 
-@router.post("/ai")
+@router.post("/ai", dependencies=[Depends(secure_http)])
 async def ai(payload: AIPayload):
     game_id = payload.game_id
     player_id = payload.player_id
@@ -173,14 +177,14 @@ async def ai(payload: AIPayload):
         "player_choice": player_choice,
         "ai_choice": ai_choice,
         "starting_player": starting_player,
-        "state": game.create_game_state(player_choice=starting_player),
+        "game": game.TicTacToeGame(player_choice=starting_player),
         "connected": False,
     }
     active_ai_player_ids.add(player_id)
     return {"ws_path": f"/ws/ai/{game_id}"}
 
 
-@router.get("/ai/{game_id}/state")
+@router.get("/ai/{game_id}/state", dependencies=[Depends(secure_http)])
 async def ai_state(game_id: str):
     session = active_ai_games.get(game_id)
 
@@ -190,7 +194,7 @@ async def ai_state(game_id: str):
     return build_state_payload(session)
 
 
-@router.post("/ai/{game_id}/move")
+@router.post("/ai/{game_id}/move", dependencies=[Depends(secure_http)])
 async def ai_move(game_id: str, payload: AIMovePayload):
     session = active_ai_games.get(game_id)
 
@@ -203,21 +207,20 @@ async def ai_move(game_id: str, payload: AIMovePayload):
     if not (0 <= payload.row <= 2 and 0 <= payload.col <= 2):
         raise HTTPException(status_code=400, detail="Coordinates must be between 0 and 2")
 
-    game.bind_state(session["state"])
-    state = game.is_winning()
+    game_instance = session["game"]
+    state = game_instance.is_winning()
 
     if state["status"] != "ongoing":
         raise HTTPException(status_code=409, detail="Game already finished")
 
-    if game.player != session["player_choice"]:
+    if game_instance.player != session["player_choice"]:
         raise HTTPException(status_code=409, detail="Wait for your turn. AI is playing.")
 
-    if game.table_game[payload.row][payload.col]["text"] != "":
+    if game_instance.table_game[payload.row][payload.col]["text"] != "":
         raise HTTPException(status_code=409, detail="Cell is already occupied")
 
-    current_role = game.player
-    game.next(payload.row, payload.col)
-    game.sync_state(session["state"])
+    current_role = game_instance.player
+    game_instance.next(payload.row, payload.col)
 
     player_move = {
         "player_id": payload.player_id,
@@ -229,10 +232,9 @@ async def ai_move(game_id: str, payload: AIMovePayload):
     ai_move_payload = None
     message = "Move accepted."
 
-    state = game.is_winning()
+    state = game_instance.is_winning()
     if state["status"] == "ongoing":
-        ai_move_payload = apply_ai_turn(session)
-        game.bind_state(session["state"])
+        ai_move_payload = await asyncio.to_thread(apply_ai_turn, session)
 
         if ai_move_payload is not None:
             last_move = {
@@ -245,11 +247,10 @@ async def ai_move(game_id: str, payload: AIMovePayload):
                 f"Move accepted. AI played at ({ai_move_payload['row']}, {ai_move_payload['col']})."
             )
 
-    game.sync_state(session["state"])
     return build_state_payload(session, last_move, ai_move_payload, message)
 
 
-@router.delete("/ai/{game_id}", status_code=204)
+@router.delete("/ai/{game_id}", status_code=204, dependencies=[Depends(secure_http)])
 async def delete_ai_game(game_id: str):
     if game_id not in active_ai_games:
         raise HTTPException(status_code=404, detail="Game not found")
@@ -261,6 +262,10 @@ async def delete_ai_game(game_id: str):
 
 @router.websocket("/ws/ai/{game_id}")
 async def websocket_ai(websocket: WebSocket, game_id: str):
+    user_id = await secure_ws(websocket)
+    if not user_id:
+        return
+        
     await websocket.accept()
     session = active_ai_games.get(game_id)
 
@@ -277,34 +282,33 @@ async def websocket_ai(websocket: WebSocket, game_id: str):
     session["connected"] = True
 
     try:
-        game.bind_state(session["state"])
+        game_instance = session["game"]
         note = (
             f"Game started. You are {session['player_choice']}. "
             f"{session['starting_player']} goes first. Send moves as "
             "{'row': 0, 'col': 0}."
         )
-        ai_move = apply_ai_turn(session)
+        ai_move = await asyncio.to_thread(apply_ai_turn, session)
         if ai_move is not None:
             note = f"{note} AI played at ({ai_move['row']}, {ai_move['col']})."
-            game.bind_state(session["state"])
 
-        await websocket.send_json(ws_state_message(note, ai_move))
+        await websocket.send_json(ws_state_message(game_instance, note, ai_move))
 
-        state = game.is_winning()
+        state = game_instance.is_winning()
         if state["status"] in {"win", "tie"}:
             if websocket_is_open(websocket):
                 await websocket.close()
             return
 
         while True:
-            game.bind_state(session["state"])
+            game_instance = session["game"]
             note = ""
             ai_move = None
             try:
                 raw = await websocket.receive_json()
             except JSONDecodeError:
                 note = "Invalid JSON payload. Use JSON object with row and col."
-                await websocket.send_json(ws_state_message(note, ai_move))
+                await websocket.send_json(ws_state_message(game_instance, note, ai_move))
                 continue
 
             if not isinstance(raw, dict):
@@ -313,28 +317,27 @@ async def websocket_ai(websocket: WebSocket, game_id: str):
                 h = raw.get("row")
                 w = raw.get("col")
 
-                if game.player != session["player_choice"]:
+                if game_instance.player != session["player_choice"]:
                     note = "Wait for your turn. AI is playing."
                 elif type(h) is not int or type(w) is not int:
                     note = "Invalid payload. row and col must be integers."
                 elif not (0 <= h <= 2 and 0 <= w <= 2):
                     note = "Coordinates must be between 0 and 2."
                 else:
-                    before = game.table_game[h][w]["text"]
-                    before_label = game.label["text"]
-                    game.next(h, w)
+                    before = game_instance.table_game[h][w]["text"]
+                    before_label = game_instance.label["text"]
+                    game_instance.next(h, w)
 
-                    if before != game.table_game[h][w]["text"] or before_label != game.label["text"]:
+                    if before != game_instance.table_game[h][w]["text"] or before_label != game_instance.label["text"]:
                         note = "Move accepted."
-                        state = game.is_winning()
+                        state = game_instance.is_winning()
 
                         if state["status"] == "ongoing":
-                            ai_move = apply_ai_turn(session)
-                            game.bind_state(session["state"])
+                            ai_move = await asyncio.to_thread(apply_ai_turn, session)
                             if ai_move is not None:
                                 note = f"{note} AI played at ({ai_move['row']}, {ai_move['col']})."
 
-                        state = game.is_winning()
+                        state = game_instance.is_winning()
                         if state["status"] == "win":
                             note = f"Win details: type={state['line_type']}, cells={state['cells']}"
                         elif state["status"] == "tie":
@@ -342,9 +345,8 @@ async def websocket_ai(websocket: WebSocket, game_id: str):
                     else:
                         note = "Move ignored. Cell is occupied or game already finished."
 
-            game.sync_state(session["state"])
-            response = ws_state_message(note, ai_move)
-            state = game.is_winning()
+            response = ws_state_message(game_instance, note, ai_move)
+            state = game_instance.is_winning()
             await websocket.send_json(response)
 
             if state["status"] in {"win", "tie"}:

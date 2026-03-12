@@ -1,166 +1,125 @@
 import random
 
+class TicTacToeGame:
+    def __init__(self, player_choice=None):
+        self.players = ["X", "O"]
+        self.player = player_choice if player_choice in self.players else random.choice(self.players)
+        self.label = {"text": self.player + " turn"}
+        self.table_game = [[{"text": ""} for _ in range(3)] for _ in range(3)]
 
-def make_cell():
-    return {"text": ""}
+    def print_board(self):
+        for h in range(3):
+            row = []
+            for w in range(3):
+                value = self.table_game[h][w]["text"] if self.table_game[h][w]["text"] != "" else " "
+                row.append(value)
+            print(" " + " | ".join(row))
+            if h < 2:
+                print("---+---+---")
+        print()
 
+    def board_state_text(self):
+        rows = []
+        for h in range(3):
+            row = []
+            for w in range(3):
+                value = self.table_game[h][w]["text"] if self.table_game[h][w]["text"] != "" else " "
+                row.append(value)
+            rows.append(" " + " | ".join(row))
+            if h < 2:
+                rows.append("---+---+---")
+        return "\n".join(rows)
 
-def set_cell(cell, text):
-    cell["text"] = text
+    def next(self, h, w):
+        game_status = self.is_winning()
+        if self.table_game[h][w]["text"] == "" and game_status["status"] == "ongoing":
+            self.table_game[h][w]["text"] = self.player
+            game_status = self.is_winning()
 
+            if game_status["status"] == "ongoing":
+                if self.player == self.players[0]:
+                    self.player = self.players[1]
+                else:
+                    self.player = self.players[0]
+                self.label["text"] = self.player + " turn"
 
-def make_label(text=""):
-    return {"text": text}
+            elif game_status["status"] == "win":
+                self.label["text"] = game_status["winner"] + " wins"
 
+            elif game_status["status"] == "tie":
+                self.label["text"] = "the players tied"
 
-def set_label(current_label, text):
-    current_label["text"] = text
+    def is_winning(self):
+        for h in range(3):
+            if self.table_game[h][0]["text"] == self.table_game[h][1]["text"] == self.table_game[h][2]["text"] and self.table_game[h][0]["text"] != "":
+                return {
+                    "status": "win",
+                    "winner": self.table_game[h][0]["text"],
+                    "line_type": "row",
+                    "cells": [(h, 0), (h, 1), (h, 2)],
+                }
 
-
-def create_game_state(player_choice=None):
-    local_players = ["X", "O"]
-    local_player = player_choice if player_choice in local_players else random.choice(local_players)
-    return {
-        "players": local_players,
-        "player": local_player,
-        "label": make_label(local_player + " turn"),
-        "table_game": [[make_cell() for _ in range(3)] for _ in range(3)],
-    }
-
-
-def bind_state(state):
-    global players, player, label, table_game
-    players = state["players"]
-    player = state["player"]
-    label = state["label"]
-    table_game = state["table_game"]
-
-
-def sync_state(state):
-    state["players"] = players
-    state["player"] = player
-    state["label"] = label
-    state["table_game"] = table_game
-
-
-def print_board():
-    for h in range(3):
-        row = []
         for w in range(3):
-            value = table_game[h][w]["text"] if table_game[h][w]["text"] != "" else " "
-            row.append(value)
-        print(" " + " | ".join(row))
-        if h < 2:
-            print("---+---+---")
-    print()
+            if self.table_game[0][w]["text"] == self.table_game[1][w]["text"] == self.table_game[2][w]["text"] and self.table_game[0][w]["text"] != "":
+                return {
+                    "status": "win",
+                    "winner": self.table_game[0][w]["text"],
+                    "line_type": "col",
+                    "cells": [(0, w), (1, w), (2, w)],
+                }
 
-
-def board_state_text():
-    rows = []
-    for h in range(3):
-        row = []
-        for w in range(3):
-            value = table_game[h][w]["text"] if table_game[h][w]["text"] != "" else " "
-            row.append(value)
-        rows.append(" " + " | ".join(row))
-        if h < 2:
-            rows.append("---+---+---")
-    return "\n".join(rows)
-
-
-def next(h, w):
-    global player
-    game_status = is_winning()
-    if table_game[h][w]["text"] == "" and game_status["status"] == "ongoing":
-        set_cell(table_game[h][w], player)
-        game_status = is_winning()
-
-        if game_status["status"] == "ongoing":
-            if player == players[0]:
-                player = players[1]
-            else:
-                player = players[0]
-            set_label(label, player + " turn")
-
-        elif game_status["status"] == "win":
-            set_label(label, game_status["winner"] + " wins")
-
-        elif game_status["status"] == "tie":
-            set_label(label, "the players tied")
-
-
-def is_winning():
-    for h in range(3):
-        if table_game[h][0]["text"] == table_game[h][1]["text"] == table_game[h][2]["text"] and table_game[h][0]["text"] != "":
+        if self.table_game[0][0]["text"] == self.table_game[1][1]["text"] == self.table_game[2][2]["text"] and self.table_game[0][0]["text"] != "":
             return {
                 "status": "win",
-                "winner": table_game[h][0]["text"],
-                "line_type": "row",
-                "cells": [(h, 0), (h, 1), (h, 2)],
+                "winner": self.table_game[0][0]["text"],
+                "line_type": "diag",
+                "cells": [(0, 0), (1, 1), (2, 2)],
             }
 
-    for w in range(3):
-        if table_game[0][w]["text"] == table_game[1][w]["text"] == table_game[2][w]["text"] and table_game[0][w]["text"] != "":
+        if self.table_game[0][2]["text"] == self.table_game[1][1]["text"] == self.table_game[2][0]["text"] and self.table_game[0][2]["text"] != "":
             return {
                 "status": "win",
-                "winner": table_game[0][w]["text"],
-                "line_type": "col",
-                "cells": [(0, w), (1, w), (2, w)],
+                "winner": self.table_game[0][2]["text"],
+                "line_type": "diag",
+                "cells": [(0, 2), (1, 1), (2, 0)],
             }
 
-    if table_game[0][0]["text"] == table_game[1][1]["text"] == table_game[2][2]["text"] and table_game[0][0]["text"] != "":
-        return {
-            "status": "win",
-            "winner": table_game[0][0]["text"],
-            "line_type": "diag",
-            "cells": [(0, 0), (1, 1), (2, 2)],
-        }
+        i = 0
+        for h in range(3):
+            for w in range(3):
+                if self.table_game[h][w]["text"] != "":
+                    i += 1
 
-    if table_game[0][2]["text"] == table_game[1][1]["text"] == table_game[2][0]["text"] and table_game[0][2]["text"] != "":
-        return {
-            "status": "win",
-            "winner": table_game[0][2]["text"],
-            "line_type": "diag",
-            "cells": [(0, 2), (1, 1), (2, 0)],
-        }
+        if i == 9:
+            return {
+                "status": "tie",
+                "winner": None,
+                "line_type": None,
+                "cells": [],
+            }
 
-    i = 0
-    for h in range(3):
-        for w in range(3):
-            if table_game[h][w]["text"] != "":
-                i += 1
-
-    if i == 9:
         return {
-            "status": "tie",
+            "status": "ongoing",
             "winner": None,
             "line_type": None,
             "cells": [],
         }
 
-    return {
-        "status": "ongoing",
-        "winner": None,
-        "line_type": None,
-        "cells": [],
-    }
-
-
-def start_new_game():
-    global player
-    player = random.choice(players)
-    set_label(label, player + " turn")
-    for h in range(3):
-        for w in range(3):
-            set_cell(table_game[h][w], "")
+    def start_new_game(self):
+        self.player = random.choice(self.players)
+        self.label["text"] = self.player + " turn"
+        for h in range(3):
+            for w in range(3):
+                self.table_game[h][w]["text"] = ""
 
 
 def main():
+    game = TicTacToeGame()
     print("Tic_Tac_Toe_game (CLI)")
     print("Commands: '<row> <col>' (0-2), 'quit'")
     print()
-    print(label["text"])
-    print_board()
+    print(game.label["text"])
+    game.print_board()
 
     while True:
         user_input = input("> ").strip().lower()
@@ -179,13 +138,14 @@ def main():
             print("Coordinates must be between 0 and 2.")
             continue
 
-        before = table_game[h][w]["text"]
-        before_label = label["text"]
-        next(h, w)
-        if before != table_game[h][w]["text"] or before_label != label["text"]:
-            print(label["text"])
-            print_board()
-            state = is_winning()
+        before = game.table_game[h][w]["text"]
+        before_label = game.label["text"]
+        game.next(h, w)
+        
+        if before != game.table_game[h][w]["text"] or before_label != game.label["text"]:
+            print(game.label["text"])
+            game.print_board()
+            state = game.is_winning()
             if state["status"] == "win":
                 print(f"Win details: type={state['line_type']}, cells={state['cells']}")
                 print("Game over.")
@@ -195,14 +155,6 @@ def main():
                 break
         else:
             print("Move ignored. Cell is occupied or game already finished.")
-
-
-_initial_state = create_game_state()
-players = _initial_state["players"]
-player = _initial_state["player"]
-label = _initial_state["label"]
-table_game = _initial_state["table_game"]
-
 
 if __name__ == "__main__":
     main()

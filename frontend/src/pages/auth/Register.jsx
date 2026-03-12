@@ -34,7 +34,8 @@ export default function Register() {
     }
   };
 
-  const handleContinue = () => {
+  const handleContinue = (e) => {
+    e.preventDefault();
     setError("");
     const errorMessage = validateForm(form, {
       password: true,
@@ -48,7 +49,8 @@ export default function Register() {
     setStep(2);
   };
 
-  const handleRegister = async () => {
+  const handleRegister = async (e) => {
+    e.preventDefault();
     setError("");
     const errorMessage = validateForm(form, {
       username: true,
@@ -82,7 +84,7 @@ export default function Register() {
 
   return (
     <div className="auth-container">
-      <form className="auth-form">
+      <form className="auth-form" onSubmit={step === 1 ? handleContinue : handleRegister}>
         {!submitted ? (
           <>
             {error && <p className="error">{error}</p>}
@@ -123,9 +125,8 @@ export default function Register() {
                 />
 
                 <button
-                  type="button"
+                  type="submit"
                   className="submit-btn"
-                  onClick={handleContinue}
                 >
                   Continue
                 </button>
@@ -168,9 +169,8 @@ export default function Register() {
                 />
 
                 <button
-                  type="button"
+                  type="submit"
                   className="submit-btn"
-                  onClick={handleRegister}
                   disabled={loading}
                 >
                   {loading ? "Registering..." : "Register"}

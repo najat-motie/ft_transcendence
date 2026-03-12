@@ -52,7 +52,7 @@ export default function JoinRoom() {
 
         {error && <p className="error">{error}</p>}
 
-        <button type="button" onClick={joinRoom}>
+        <button className="primary" type="button" onClick={joinRoom}>
           {isJoining ? "Joining..." : "Join"}
         </button>
 

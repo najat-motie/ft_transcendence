@@ -1,4 +1,5 @@
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 const prisma = require('../config/database');
 const tokenService = require('../services/token.service');
 const oauthService = require('../services/oauth.service');
@@ -308,7 +309,14 @@ const oauth42Login = async (req, res) => {
       });
     }
 
-    const authUrl = `https://api.intra.42.fr/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=public`;
+    const state = crypto.randomBytes(32).toString('hex');
+    res.cookie('oauth_state', state, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 10 * 60 * 1000, // 10 minutes
+    });
+
+    const authUrl = `https://api.intra.42.fr/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=public&state=${state}`;
     
     return res.redirect(authUrl);
   } catch (error) {
@@ -323,7 +331,10 @@ const oauth42Login = async (req, res) => {
 
 const oauth42Callback = async (req, res) => {
   try {
-    const { code } = req.query;
+    const { code, state } = req.query;
+    const storedState = req.cookies.oauth_state;
+
+    res.clearCookie('oauth_state');
 
     if (!code) {
       return res.status(400).json({
@@ -332,18 +343,37 @@ const oauth42Callback = async (req, res) => {
       });
     }
 
+    if (!state || !storedState || state !== storedState) {
+      return res.status(403).json({
+        success: false,
+        message: 'Invalid state parameter. CSRF attempt blocked.',
+      });
+    }
+
     const tokenResponse = await oauthService.exchange42Code(code);
-
     const userInfo = await oauthService.get42UserInfo(tokenResponse.access_token);
-
     const user = await oauthService.findOrCreateUserFrom42(userInfo);
 
     const accessToken = tokenService.generateAccessToken(user.id);
     const refreshToken = await tokenService.generateRefreshToken(user.id);
 
-    // Redirect to frontend with tokens in URL for OAuth flow
+    res.cookie('accessToken', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 15 * 60 * 1000, // 15 minutes
+    });
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    // Redirect to frontend with only non-sensitive tokens
     const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:5173';
-    const redirectUrl = `${frontendUrl}/auth/callback?accessToken=${accessToken}&refreshToken=${refreshToken}&userId=${user.id}&email=${encodeURIComponent(user.email)}`;
+    const redirectUrl = `${frontendUrl}/auth/callback?userId=${user.id}&email=${encodeURIComponent(user.email)}`;
     
     return res.redirect(redirectUrl);
   } catch (error) {

@@ -108,21 +108,23 @@ export default function LocalGame() {
           <div className={`winner-banner ${gameStatus === "tie" ? "tie" : ""}`}>{winnerText}</div>
         )}
 
-        <p className="status">{statusText}</p>
-        {message && <p className="game-message">{message}</p>}
+        <div aria-live="polite">
+          <p className="status">{statusText}</p>
+          {message && <p className="game-message">{message}</p>}
+        </div>
 
         <div className="board">
           {board.map((rowArr, rowIndex) =>
             rowArr.map((cell, colIndex) => (
-              <div
+              <button
                 key={`${rowIndex}-${colIndex}`}
                 className={`cell ${cell}`}
                 onClick={() => handleClick(rowIndex, colIndex)}
-                role="button"
-                tabIndex={0}
+                aria-label={`Row ${rowIndex + 1} Column ${colIndex + 1}, ${cell || "empty"}`}
+                disabled={cell !== "" || gameStatus !== "ongoing"}
               >
                 {cell}
-              </div>
+              </button>
             ))
           )}
         </div>

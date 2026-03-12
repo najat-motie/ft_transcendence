@@ -1,4 +1,9 @@
 const axios = require('axios');
+const axiosClient = axios.create({
+  headers: {
+    'x-api-key': process.env.SERVICE_API_KEY || 'super_secret_internal_key'
+  }
+});
 const { randomUUID } = require('crypto');
 
 const GAME_SERVICE_URL = process.env.GAME_SERVICE_URL || 'http://localhost:8000';
@@ -41,7 +46,7 @@ const createSession = async () => {
   const playerId = randomUUID();
 
   try {
-    await axios.post(`${GAME_SERVICE_URL}/ai`, {
+    await axiosClient.post(`${GAME_SERVICE_URL}/ai`, {
       game_id: gameId,
       player_id: playerId,
     });
@@ -78,18 +83,18 @@ const getSession = (gameId) => {
 };
 
 const fetchState = async (gameId) => {
-  const { data } = await axios.get(`${GAME_SERVICE_URL}/ai/${gameId}/state`);
+  const { data } = await axiosClient.get(`${GAME_SERVICE_URL}/ai/${gameId}/state`);
   return data;
 };
 
 const submitMove = async (gameId, payload) => {
-  const { data } = await axios.post(`${GAME_SERVICE_URL}/ai/${gameId}/move`, payload);
+  const { data } = await axiosClient.post(`${GAME_SERVICE_URL}/ai/${gameId}/move`, payload);
   return data;
 };
 
 const destroySession = async (gameId) => {
   try {
-    await axios.delete(`${GAME_SERVICE_URL}/ai/${gameId}`);
+    await axiosClient.delete(`${GAME_SERVICE_URL}/ai/${gameId}`);
   } catch (error) {
     if (error?.response?.status !== 404) {
       throw error;

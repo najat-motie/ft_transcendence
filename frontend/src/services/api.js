@@ -19,6 +19,7 @@ export async function apiRequest(endpoint, options = {}, skipAuth = false) {
     return fetch(`${BASE_URL}${endpoint}`, {
       ...options,
       headers,
+      credentials: "include",
     });
   };
 
@@ -47,6 +48,7 @@ export async function apiRequest(endpoint, options = {}, skipAuth = false) {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
       body: JSON.stringify({ refreshToken }),
     });
 

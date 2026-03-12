@@ -3,15 +3,20 @@ const jwt = require('jsonwebtoken');
 const verifyAccessToken = (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
+    let token;
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.slice(7);
+    } else if (req.cookies && req.cookies.accessToken) {
+      token = req.cookies.accessToken;
+    }
+
+    if (!token) {
       return res.status(401).json({
         success: false,
         message: 'No token provided',
       });
     }
-
-    const token = authHeader.slice(7);
 
     const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
     req.user = decoded;
@@ -35,15 +40,20 @@ const verifyAccessToken = (req, res, next) => {
 const verifyRefreshToken = (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
+    let token;
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.slice(7);
+    } else if (req.cookies && req.cookies.refreshToken) {
+      token = req.cookies.refreshToken;
+    }
+
+    if (!token) {
       return res.status(401).json({
         success: false,
         message: 'No refresh token provided',
       });
     }
-
-    const token = authHeader.slice(7);
 
     const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
     req.user = decoded;

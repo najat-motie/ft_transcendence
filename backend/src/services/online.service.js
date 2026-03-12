@@ -1,4 +1,9 @@
 const axios = require('axios');
+const axiosClient = axios.create({
+  headers: {
+    'x-api-key': process.env.SERVICE_API_KEY || 'super_secret_internal_key'
+  }
+});
 const { randomUUID } = require('crypto');
 const matchService = require('./match.service');
 
@@ -42,15 +47,27 @@ const gameServiceError = (error, fallbackMessage) => {
 
 const ensurePlayerAvailable = (playerId) => {
   if (queuedPlayers.has(playerId)) {
-    throw createHttpError(409, 'Player is already waiting in the matchmaking queue');
+    cancelQueuedPlayer(playerId);
   }
 
   if (privateRoomPlayers.has(playerId)) {
-    throw createHttpError(409, 'Player is already in a private room');
+    for (const [roomCode, room] of privateRooms.entries()) {
+      if (room.host.id === playerId || (room.guest && room.guest.id === playerId)) {
+        try {
+          cancelPrivateRoom(roomCode, playerId);
+        } catch (e) {
+          // Ignore
+        }
+      }
+    }
   }
 
   if (activePlayers.has(playerId)) {
-    throw createHttpError(409, 'Player is already in an active online game');
+    for (const [gameId, room] of activeGames.entries()) {
+      if (room.playerXId === playerId || room.playerOId === playerId) {
+        releaseRoom(gameId).catch(() => {});
+      }
+    }
   }
 };
 
@@ -132,7 +149,7 @@ const withRoomLock = async (room, callback) => {
 const initializeGameRoom = async (playerX, playerO) => {
   const gameId = randomUUID();
 
-  const { data } = await axios.post(`${GAME_SERVICE_URL}/online`, {
+  const { data } = await axiosClient.post(`${GAME_SERVICE_URL}/online`, {
     game_id: gameId,
     player_x: playerX.id,
     player_o: playerO.id,
@@ -161,6 +178,14 @@ const initializeGameRoom = async (playerX, playerO) => {
   activeGames.set(gameId, room);
   activePlayers.add(playerX.id);
   activePlayers.add(playerO.id);
+
+  setTimeout(() => {
+    const currentRoom = activeGames.get(gameId);
+    if (currentRoom && currentRoom.sockets.size < 2 && !currentRoom.finished) {
+      console.log(`[Garbage Collection] Releasing inactive room ${gameId}`);
+      releaseRoom(gameId).catch(() => {});
+    }
+  }, 10000);
 
   return room;
 };
@@ -363,18 +388,18 @@ const getTurnForPlayer = (room, playerId) => {
 };
 
 const fetchGameState = async (gameId) => {
-  const { data } = await axios.get(`${GAME_SERVICE_URL}/online/${gameId}/state`);
+  const { data } = await axiosClient.get(`${GAME_SERVICE_URL}/online/${gameId}/state`);
   return data;
 };
 
 const submitMove = async (gameId, payload) => {
-  const { data } = await axios.post(`${GAME_SERVICE_URL}/online/${gameId}/move`, payload);
+  const { data } = await axiosClient.post(`${GAME_SERVICE_URL}/online/${gameId}/move`, payload);
   return data;
 };
 
 const destroyGame = async (gameId) => {
   try {
-    await axios.delete(`${GAME_SERVICE_URL}/online/${gameId}`);
+    await axiosClient.delete(`${GAME_SERVICE_URL}/online/${gameId}`);
   } catch (error) {
     if (error?.response?.status !== 404) {
       throw error;

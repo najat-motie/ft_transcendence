@@ -46,9 +46,15 @@ export default function OnlineGame() {
 
     const socket = connectSocket(wsPath);
 
-    socket.onopen = () => {
+    const sendPlayerId = () => {
       socket.send(JSON.stringify({ player_id: savedUser.userId }));
     };
+
+    if (socket.readyState === WebSocket.OPEN) {
+      sendPlayerId();
+    } else {
+      socket.onopen = sendPlayerId;
+    }
 
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
@@ -123,27 +129,28 @@ export default function OnlineGame() {
 
         {gameStatus === "tie" && <div className="winner-banner tie">It's a Tie!</div>}
 
-        <p className="status">{statusText}</p>
-        {message && <p className="game-message">{message}</p>}
-        {lastMove && (
-          <p className="game-message">
-            Last move: {lastMove.role} at ({lastMove.row}, {lastMove.col})
-          </p>
-        )}
+        <div aria-live="polite">
+          <p className="status">{statusText}</p>
+          {message && <p className="game-message">{message}</p>}
+          {lastMove && (
+            <p className="game-message">
+              Last move: {lastMove.role} at ({lastMove.row}, {lastMove.col})
+            </p>
+          )}
+        </div>
 
         <div className="board">
           {board.map((rowArr, rowIndex) =>
             rowArr.map((cell, colIndex) => (
-              <div
+              <button
                 key={`${rowIndex}-${colIndex}`}
                 className={`cell ${cell}`}
                 onClick={() => handleClick(rowIndex, colIndex)}
-                role="button"
                 aria-label={`Row ${rowIndex + 1} Column ${colIndex + 1}, ${cell || "empty"}`}
-                tabIndex={0}
+                disabled={cell !== "" || gameStatus !== "ongoing" || role !== turn}
               >
                 {cell}
-              </div>
+              </button>
             ))
           )}
         </div>

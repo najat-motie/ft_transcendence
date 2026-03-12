@@ -133,7 +133,7 @@ export default function CreateRoom() {
 
         {error && <p className="error">{error}</p>}
 
-        <button type="button" onClick={cancelRoom}>
+        <button className="ghost" type="button" onClick={cancelRoom}>
           Cancel
         </button>
       </div>

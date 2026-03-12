@@ -64,6 +64,8 @@ model FriendRequest {
   updatedAt DateTime @updatedAt
 
   @@unique([senderId, receiverId])
+  @@index([senderId])
+  @@index([receiverId])
   @@map("friend_requests")
 }
 
@@ -76,6 +78,8 @@ model Friendship {
   createdAt DateTime @default(now())
 
   @@unique([user1Id, user2Id])
+  @@index([user1Id])
+  @@index([user2Id])
   @@map("friendships")
 }
 
@@ -90,6 +94,8 @@ model Message {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  @@index([senderId])
+  @@index([receiverId])
   @@map("messages")
 }
 
@@ -103,6 +109,7 @@ model RefreshToken {
   expiresAt DateTime
   createdAt DateTime @default(now())
 
+  @@index([userId])
   @@map("refresh_tokens")
 }
 
@@ -114,6 +121,7 @@ model ResetToken {
   expiresAt DateTime
   createdAt DateTime @default(now())
 
+  @@index([userId])
   @@map("reset_tokens")
 }
 
@@ -145,6 +153,9 @@ model OnlineMatch {
   finishedAt DateTime @default(now())
   createdAt  DateTime @default(now())
 
+  @@index([playerXId])
+  @@index([playerOId])
+  @@index([winnerId])
   @@map("online_matches")
 }
 

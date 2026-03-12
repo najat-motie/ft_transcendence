@@ -53,7 +53,7 @@ export default function Matchmaking() {
         <h2>Quick Match</h2>
         <p>{status}</p>
         {isSearching && (
-          <button type="button" onClick={handleCancel}>
+          <button className="ghost" type="button" onClick={handleCancel}>
             Cancel
           </button>
         )}

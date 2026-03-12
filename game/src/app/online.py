@@ -2,8 +2,10 @@ import asyncio
 from json import JSONDecodeError
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Response, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, HTTPException, Response, WebSocket, WebSocketDisconnect, Depends
 from pydantic import BaseModel, field_validator
+
+from .auth import secure_http, secure_ws
 
 from . import tic_tac_toe_cli as game
 
@@ -62,8 +64,8 @@ def websocket_is_open(websocket):
     return getattr(getattr(websocket, "client_state", None), "name", "") != "DISCONNECTED"
 
 
-def current_board():
-    return [[game.table_game[h][w]["text"] for w in range(3)] for h in range(3)]
+def current_board(game_instance):
+    return [[game_instance.table_game[h][w]["text"] for w in range(3)] for h in range(3)]
 
 
 def state_status_text(state):
@@ -75,12 +77,12 @@ def state_status_text(state):
 
 
 def build_state_payload(session, last_move=None):
-    game.bind_state(session["state"])
-    state = game.is_winning()
+    game_instance = session["game"]
+    state = game_instance.is_winning()
     payload = {
-        "board": current_board(),
+        "board": current_board(game_instance),
         "status": state_status_text(state),
-        "turn": game.player if state["status"] == "ongoing" else None,
+        "turn": game_instance.player if state["status"] == "ongoing" else None,
         "game_status": state["status"],
         "last_move": last_move,
     }
@@ -91,11 +93,11 @@ def build_state_payload(session, last_move=None):
     return payload
 
 
-def ws_state_message(note=""):
-    state = game.is_winning()
+def ws_state_message(game_instance, note=""):
+    state = game_instance.is_winning()
     payload = {
-        "board": current_board(),
-        "status": game.label["text"],
+        "board": current_board(game_instance),
+        "status": game_instance.label["text"],
         "game_status": state["status"],
     }
     if state["status"] == "win":
@@ -134,7 +136,7 @@ def cleanup_session(game_id):
         del active_online_games[game_id]
 
 
-@router.post("/online")
+@router.post("/online", dependencies=[Depends(secure_http)])
 async def online(payload: OnlinePayload):
     game_id = payload.game_id
     player_x = payload.player_x
@@ -159,7 +161,7 @@ async def online(payload: OnlinePayload):
         "starting_player": starting_player,
         "starting_role": starting_role,
         "roles": {player_x: "X", player_o: "O"},
-        "state": game.create_game_state(player_choice=starting_role),
+        "game": game.TicTacToeGame(player_choice=starting_role),
         "connections": {},
         "lock": asyncio.Lock(),
         "finished": False,
@@ -169,7 +171,7 @@ async def online(payload: OnlinePayload):
     return {"ws_path": f"/ws/online/{game_id}"}
 
 
-@router.get("/online/{game_id}/state")
+@router.get("/online/{game_id}/state", dependencies=[Depends(secure_http)])
 async def online_state(game_id: str):
     session = active_online_games.get(game_id)
 
@@ -179,7 +181,7 @@ async def online_state(game_id: str):
     return build_state_payload(session)
 
 
-@router.post("/online/{game_id}/move")
+@router.post("/online/{game_id}/move", dependencies=[Depends(secure_http)])
 async def online_move(game_id: str, payload: OnlineMovePayload):
     session = active_online_games.get(game_id)
 
@@ -192,22 +194,21 @@ async def online_move(game_id: str, payload: OnlineMovePayload):
     if not (0 <= payload.row <= 2 and 0 <= payload.col <= 2):
         raise HTTPException(status_code=400, detail="Coordinates must be between 0 and 2")
 
-    game.bind_state(session["state"])
-    state = game.is_winning()
+    game_instance = session["game"]
+    state = game_instance.is_winning()
 
     if state["status"] != "ongoing":
         raise HTTPException(status_code=409, detail="Game already finished")
 
-    if session["roles"][payload.player_id] != game.player:
+    if session["roles"][payload.player_id] != game_instance.player:
         raise HTTPException(status_code=409, detail="Not this player's turn")
 
-    if game.table_game[payload.row][payload.col]["text"] != "":
+    if game_instance.table_game[payload.row][payload.col]["text"] != "":
         raise HTTPException(status_code=409, detail="Cell is already occupied")
 
-    game.next(payload.row, payload.col)
-    game.sync_state(session["state"])
+    game_instance.next(payload.row, payload.col)
 
-    state = game.is_winning()
+    state = game_instance.is_winning()
     session["finished"] = state["status"] != "ongoing"
 
     return build_state_payload(
@@ -221,7 +222,7 @@ async def online_move(game_id: str, payload: OnlineMovePayload):
     )
 
 
-@router.delete("/online/{game_id}", status_code=204)
+@router.delete("/online/{game_id}", status_code=204, dependencies=[Depends(secure_http)])
 async def delete_online_game(game_id: str):
     if game_id not in active_online_games:
         raise HTTPException(status_code=404, detail="Game not found")
@@ -232,6 +233,10 @@ async def delete_online_game(game_id: str):
 
 @router.websocket("/ws/online/{game_id}")
 async def websocket_online(websocket: WebSocket, game_id: str):
+    user_id = await secure_ws(websocket)
+    if not user_id:
+        return
+        
     await websocket.accept()
     session = active_online_games.get(game_id)
     player_id = None
@@ -290,12 +295,13 @@ async def websocket_online(websocket: WebSocket, game_id: str):
         if len(session["connections"]) < 2:
             await send_json_safe(websocket, {"message": "Waiting for the other player to connect."})
         else:
-            game.bind_state(session["state"])
+            game_instance = session["game"]
             print(f"[ws-online {game_id}] both connected")
-            game.print_board()
+            game_instance.print_board()
             await broadcast(
                 session,
                 ws_state_message(
+                    game_instance,
                     f"Both players connected. {session['starting_player']} "
                     f"({session['starting_role']}) starts. Send "
                     "{'player_id': '...', 'row': 0, 'col': 0}."
@@ -303,11 +309,11 @@ async def websocket_online(websocket: WebSocket, game_id: str):
             )
 
         while True:
-            game.bind_state(session["state"])
+            game_instance = session["game"]
             try:
                 raw = await websocket.receive_json()
             except JSONDecodeError:
-                await send_json_safe(websocket, ws_state_message("Invalid JSON payload. Use JSON object."))
+                await send_json_safe(websocket, ws_state_message(game_instance, "Invalid JSON payload. Use JSON object."))
                 continue
 
             async with session["lock"]:
@@ -325,21 +331,21 @@ async def websocket_online(websocket: WebSocket, game_id: str):
                         note = "player_id does not match this websocket connection."
                     elif len(session["connections"]) < 2:
                         note = "Both players must be connected before moves are accepted."
-                    elif session["roles"][player_id] != game.player:
+                    elif session["roles"][player_id] != game_instance.player:
                         note = "Not your turn."
                     elif type(h) is not int or type(w) is not int:
                         note = "Invalid payload. row and col must be integers."
                     elif not (0 <= h <= 2 and 0 <= w <= 2):
                         note = "Coordinates must be between 0 and 2."
                     else:
-                        before = game.table_game[h][w]["text"]
-                        before_label = game.label["text"]
-                        game.next(h, w)
-                        if before != game.table_game[h][w]["text"] or before_label != game.label["text"]:
-                            print(f"[ws-online {game_id}] {game.label['text']}")
-                            game.print_board()
+                        before = game_instance.table_game[h][w]["text"]
+                        before_label = game_instance.label["text"]
+                        game_instance.next(h, w)
+                        if before != game_instance.table_game[h][w]["text"] or before_label != game_instance.label["text"]:
+                            print(f"[ws-online {game_id}] {game_instance.label['text']}")
+                            game_instance.print_board()
                             note = "Move accepted."
-                            state = game.is_winning()
+                            state = game_instance.is_winning()
                             if state["status"] == "win":
                                 note = f"Win details: type={state['line_type']}, cells={state['cells']}"
                             if state["status"] == "tie":
@@ -347,9 +353,8 @@ async def websocket_online(websocket: WebSocket, game_id: str):
                         else:
                             note = "Move ignored. Cell is occupied or game already finished."
 
-                game.sync_state(session["state"])
-                response = ws_state_message(note)
-                state = game.is_winning()
+                response = ws_state_message(game_instance, note)
+                state = game_instance.is_winning()
                 if state["status"] in {"win", "tie"}:
                     session["finished"] = True
                     should_end = True
