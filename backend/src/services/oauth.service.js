@@ -1,6 +1,7 @@
 const axios = require('axios');
 const crypto = require('crypto');
 const prisma = require('../config/database');
+const { generateDefaultAvatarUrl } = require('../utils/avatar');
 
 async function generateUniqueUsername(desiredUsername, email) {
   let seedUsername;
@@ -35,7 +36,7 @@ async function ensureUserProfile(userId, usernameSuggestion, avatarUrl = null) {
     data: {
       userId,
       username,
-      avatar: avatarUrl,
+      avatar: avatarUrl || generateDefaultAvatarUrl(userId),
     },
   });
 }

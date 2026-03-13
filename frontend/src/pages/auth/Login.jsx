@@ -15,7 +15,7 @@ function Login() {
  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "https://localhost";
   const oauth42Url = `${apiBaseUrl}/auth/42`;
 
   const [email, setEmail] = useState("");

@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import "../../styles/user/profile.css";
 import { apiRequest } from "../../services/api";
 import { validateForm } from "../../utils/validator";
-import { getUserFromCookie } from "../../utils/cookies";
+import { getUserFromCookie, setCookie, setUserInCookie } from "../../utils/cookies";
 import defaultAvatar from "../../assets/default-avatar.svg";
 
 export default function Profile() {
@@ -41,15 +41,20 @@ export default function Profile() {
 
       // backend returns { success, data }, fallback to raw shape if needed
       const kpiData = kpiResponse?.data || kpiResponse;
+      const syncedUser = {
+        ...storedUser,
+        userId: kpiData.userId || storedUser.userId,
+        username: kpiData.username || storedUser.username,
+        email: kpiData.email || storedUser.email,
+        avatar: kpiData.avatar || storedUser.avatar,
+        bio: kpiData.bio || storedUser.bio,
+      };
+
+      setUserInCookie(syncedUser, 7);
+      setCookie("userProfile", JSON.stringify(kpiData), 7);
 
       setKpis(kpiData);
-      setUser({
-        username: kpiData.username,
-        email: kpiData.email,
-        avatar: kpiData.avatar,
-        bio: kpiData.bio,
-        userId: kpiData.userId,
-      });
+      setUser(syncedUser);
       setFormData({
         username: kpiData.username || "",
         email: kpiData.email || "",
@@ -125,7 +130,12 @@ export default function Profile() {
         setEditMode(false);
         fetchProfile();
       } else {
-        setUser((prev) => ({ ...prev, ...updatedData }));
+        setUser((prev) => {
+          const syncedUser = { ...prev, ...updatedData };
+          setUserInCookie(syncedUser, 7);
+          return syncedUser;
+        });
+        setCookie("userProfile", JSON.stringify(updatedData), 7);
         setFormData((prev) => ({ ...prev, ...updatedData }));
         setEditMode(false);
       }

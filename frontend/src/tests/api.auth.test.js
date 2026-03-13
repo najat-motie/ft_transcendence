@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 describe('Frontend - Authentication API Integration', () => {
-  const baseUrl = 'http://localhost:3000';
+  const baseUrl = 'http://localhost';
   const testUser = {
     email: 'frontend-test@example.com',
     password: 'TestPassword123',

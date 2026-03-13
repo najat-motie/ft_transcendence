@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 describe('Frontend - User Search API Integration', () => {
-  const baseUrl = 'http://localhost:3000';
+  const baseUrl = 'http://localhost';
   const token = 'test-access-token';
 
   beforeEach(() => {

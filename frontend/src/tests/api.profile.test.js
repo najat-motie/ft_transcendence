@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 describe('Frontend - Profile API Integration', () => {
-  const baseUrl = 'http://localhost:3000';
+  const baseUrl = 'http://localhost';
   const token = 'test-access-token';
   const userId = 'test-user-id';
 

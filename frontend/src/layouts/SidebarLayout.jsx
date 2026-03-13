@@ -5,7 +5,8 @@ import { FiMenu, FiPlay, FiX } from "react-icons/fi";
 import logo from "../assets/logo.png";
 import { apiRequest } from "../services/api.js";
 import { logout } from "../services/auth.js";
-import { getUserFromCookie } from "../utils/cookies.js";
+import { getUserFromCookie, getUserProfileFromCookie } from "../utils/cookies.js";
+import defaultAvatar from "../assets/default-avatar.svg";
 
 export default function SideBar() {
   const [open, setOpen] = useState(false);
@@ -13,7 +14,17 @@ export default function SideBar() {
   const navigate = useNavigate();
 
   // Get user from cookies instead of localStorage
-  const user = getUserFromCookie();
+  const baseUser = getUserFromCookie();
+  const userProfile = getUserProfileFromCookie();
+  const user = baseUser
+    ? {
+        ...baseUser,
+        username: userProfile?.username || baseUser.username,
+        avatar: userProfile?.avatar || baseUser.avatar,
+        bio: userProfile?.bio || baseUser.bio,
+        email: userProfile?.email || baseUser.email,
+      }
+    : null;
   const isLoggedIn = !!user;
 
   useEffect(() => {
@@ -93,7 +104,7 @@ export default function SideBar() {
                 aria-haspopup="menu"
               >
                 <img
-                  src={user?.avatar || "https://i.pravatar.cc/100?img=3"}
+                  src={user?.avatar || defaultAvatar}
                   alt="avatar"
                   className="avatar"
                 />

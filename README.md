@@ -111,10 +111,10 @@ Before running the project, ensure you have the following installed:
    # OAuth 42 Configuration (optional)
    OAUTH_42_CLIENT_ID=your_42_client_id
    OAUTH_42_CLIENT_SECRET=your_42_client_secret
-   OAUTH_42_CALLBACK_URL=http://localhost:3000/api/auth/callback/42
+   OAUTH_42_CALLBACK_URL=http://localhostapi/auth/callback/42
    
    # Frontend Configuration
-   VITE_API_BASE_URL=http://localhost:3000
+   VITE_API_BASE_URL=http://localhost
    
    # Admin Seed (optional)
    ADMIN_EMAIL=admin@admin.com

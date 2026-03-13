@@ -2,7 +2,7 @@
 // No @testing-library/* needed as tests are API integration tests, not component tests
 
 // Mock environment variables
-process.env.VITE_API_BASE_URL = 'http://localhost:3000';
+process.env.VITE_API_BASE_URL = 'http://localhost';
 
 // Mock localStorage
 const localStorageMock = {

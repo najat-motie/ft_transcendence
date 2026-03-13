@@ -5,9 +5,9 @@ const path = require('path');
 const prisma = require('../config/database');
 const tokenService = require('../services/token.service');
 const oauthService = require('../services/oauth.service');
+const { formatAvatarUrl, generateDefaultAvatarUrl } = require('../utils/avatar');
 
 const AVATAR_DIR = path.join(__dirname, '..', '..', 'uploads', 'avatars');
-const ASSET_BASE_URL = process.env.ASSET_BASE_URL || process.env.API_BASE_URL || 'https://localhost';
 
 function isHttpsRequest(req) {
   return req.secure || req.headers['x-forwarded-proto'] === 'https';
@@ -38,12 +38,6 @@ function saveAvatarIfProvided(avatarPayload) {
   fs.writeFileSync(filePath, buffer);
 
   return `/uploads/avatars/${filename}`;
-}
-
-function formatAvatarUrl(avatarPath) {
-  if (!avatarPath) return null;
-  if (/^https?:\/\//i.test(avatarPath)) return avatarPath;
-  return `${ASSET_BASE_URL}${avatarPath}`;
 }
 
 async function generateUniqueUsername(tx, desiredUsername, email) {
@@ -96,7 +90,7 @@ const register = async (req, res) => {
       });
 
       const generatedUsername = await generateUniqueUsername(tx, username, email);
-      const avatarPath = saveAvatarIfProvided(avatar);
+      const avatarPath = saveAvatarIfProvided(avatar) || generateDefaultAvatarUrl(user.id);
 
       const profile = await tx.userProfile.create({
         data: {
@@ -116,7 +110,7 @@ const register = async (req, res) => {
         userId: result.user.id,
         email: result.user.email,
         username: result.profile.username,
-        avatar: formatAvatarUrl(result.profile.avatar),
+        avatar: formatAvatarUrl(result.profile.avatar, result.user.id),
       },
     });
   } catch (error) {
@@ -199,7 +193,7 @@ const login = async (req, res) => {
           userId: user.id,
           email: user.email,
           username: user.profile?.username || null,
-          avatar: formatAvatarUrl(user.profile?.avatar || null),
+          avatar: formatAvatarUrl(user.profile?.avatar || null, user.id),
           bio: user.profile?.bio || null,
         },
       },
@@ -543,6 +537,11 @@ const oauth42Callback = async (req, res) => {
 
     const accessToken = tokenService.generateAccessToken(user.id);
     const refreshToken = await tokenService.generateRefreshToken(user.id);
+
+    await prisma.userProfile.updateMany({
+      where: { userId: user.id },
+      data: { status: 'online', lastSeen: new Date() },
+    });
 
     res.cookie('jwt_access', accessToken, {
       httpOnly: true,

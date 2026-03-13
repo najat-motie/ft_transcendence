@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { apiRequest } from "../../services/api";
 import { setCookie, setUserInCookie } from "../../utils/cookies";
 
 function OAuthCallback() {
@@ -7,29 +8,49 @@ function OAuthCallback() {
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    const accessToken = searchParams.get("accessToken");
-    const refreshToken = searchParams.get("refreshToken");
-    const userId = searchParams.get("userId");
-    const email = searchParams.get("email");
+    const syncOAuthUser = async () => {
+      const accessToken = searchParams.get("accessToken");
+      const refreshToken = searchParams.get("refreshToken");
+      const userId = searchParams.get("userId");
+      const email = searchParams.get("email");
 
-    if (!accessToken || !refreshToken || !userId || !email) {
-      console.error("Missing OAuth callback parameters");
-      navigate("/login");
-      return;
-    }
+      if (!accessToken || !refreshToken || !userId || !email) {
+        console.error("Missing OAuth callback parameters");
+        navigate("/login");
+        return;
+      }
 
-    // Store tokens and user data in cookies
-    const userData = {
-      userId,
-      email,
+      const userData = {
+        userId,
+        email,
+      };
+
+      setUserInCookie(userData, 7);
+      setCookie(`accessToken_${userId}`, accessToken, 7);
+      setCookie(`refreshToken_${userId}`, refreshToken, 7);
+
+      try {
+        const kpiResponse = await apiRequest(`/profile/${userId}/kpis`, {
+          method: "GET",
+        });
+        const kpiData = kpiResponse?.data || kpiResponse;
+        const hydratedUser = {
+          ...userData,
+          username: kpiData?.username || userData.username,
+          avatar: kpiData?.avatar || userData.avatar,
+          bio: kpiData?.bio || userData.bio,
+        };
+
+        setUserInCookie(hydratedUser, 7);
+        setCookie("userProfile", JSON.stringify(kpiData), 7);
+      } catch (error) {
+        console.warn("OAuth profile hydration skipped:", error?.message || error);
+      }
+
+      navigate("/");
     };
 
-    setUserInCookie(userData, 7);
-    setCookie(`accessToken_${userId}`, accessToken, 7);
-    setCookie(`refreshToken_${userId}`, refreshToken, 7);
-
-    // Redirect to home page
-    navigate("/");
+    syncOAuthUser();
   }, [searchParams, navigate]);
 
   return (

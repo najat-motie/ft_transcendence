@@ -1,15 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 const prisma = require('../config/database');
+const { formatAvatarUrl, generateDefaultAvatarUrl } = require('../utils/avatar');
 
-const ASSET_BASE_URL = process.env.ASSET_BASE_URL || process.env.API_BASE_URL || 'https://localhost';
 const AVATAR_DIR = path.join(__dirname, '..', '..', 'uploads', 'avatars');
-
-const formatAvatarUrl = (avatarPath) => {
-  if (!avatarPath) return null;
-  if (/^https?:\/\//i.test(avatarPath)) return avatarPath;
-  return `${ASSET_BASE_URL}${avatarPath}`;
-};
 
 const ensureAvatarDir = () => {
   if (!fs.existsSync(AVATAR_DIR)) {
@@ -99,7 +93,7 @@ const getProfileKpis = async (req, res) => {
     const kpis = {
       userId: profile.userId,
       username: profile.username,
-      avatar: formatAvatarUrl(profile.avatar),
+      avatar: formatAvatarUrl(profile.avatar, profile.userId),
       bio: profile.bio,
       email: profile.user?.email,
       status: profile.status,
@@ -165,7 +159,7 @@ const getProfile = async (req, res) => {
       success: true,
       data: {
         ...profile,
-        avatar: formatAvatarUrl(profile.avatar),
+        avatar: formatAvatarUrl(profile.avatar, profile.userId),
       },
     });
   } catch (error) {
@@ -211,7 +205,7 @@ const createProfile = async (req, res) => {
       });
     }
 
-    const storedAvatar = saveAvatarIfProvided(avatar);
+    const storedAvatar = saveAvatarIfProvided(avatar) || generateDefaultAvatarUrl(userId);
 
     const profile = await prisma.userProfile.create({
       data: {
@@ -227,7 +221,7 @@ const createProfile = async (req, res) => {
       message: 'Profile created successfully',
       data: {
         ...profile,
-        avatar: formatAvatarUrl(profile.avatar),
+        avatar: formatAvatarUrl(profile.avatar, profile.userId),
       },
     });
   } catch (error) {
@@ -291,7 +285,7 @@ const updateProfile = async (req, res) => {
       message: 'Profile updated successfully',
       data: {
         ...updatedProfile,
-        avatar: formatAvatarUrl(updatedProfile.avatar),
+        avatar: formatAvatarUrl(updatedProfile.avatar, updatedProfile.userId),
       },
     });
   } catch (error) {
@@ -336,7 +330,7 @@ const updateStatus = async (req, res) => {
       message: 'Status updated successfully',
       data: {
         ...updatedProfile,
-        avatar: formatAvatarUrl(updatedProfile.avatar),
+        avatar: formatAvatarUrl(updatedProfile.avatar, updatedProfile.userId),
       },
     });
   } catch (error) {
@@ -378,7 +372,7 @@ const getLeaderboard = async (req, res) => {
 
     const leaderboardWithAvatars = leaderboard.map((entry) => ({
       ...entry,
-      avatar: formatAvatarUrl(entry.avatar),
+      avatar: formatAvatarUrl(entry.avatar, entry.userId),
     }));
 
     return res.status(200).json({
@@ -450,7 +444,7 @@ const updateStats = async (req, res) => {
       message: 'Stats updated successfully',
       data: {
         ...updatedProfile,
-        avatar: formatAvatarUrl(updatedProfile.avatar),
+        avatar: formatAvatarUrl(updatedProfile.avatar, updatedProfile.userId),
       },
     });
   } catch (error) {
