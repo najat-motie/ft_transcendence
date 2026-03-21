@@ -1,10 +1,39 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import "../../styles/user/profile.css";
 import { apiRequest } from "../../services/api";
 import { validateForm } from "../../utils/validator";
 import { getUserFromCookie, setCookie, setUserInCookie } from "../../utils/cookies";
 import defaultAvatar from "../../assets/default-avatar.svg";
+import { alertInfo, ghostButton, slabHeading } from "../../lib/ui";
+import { cn } from "../../lib/cn";
+import {
+  avatarClass,
+  buttonRowClass,
+  chipClass,
+  detailCardClass,
+  detailGridClass,
+  errorBlockClass,
+  formInputClass,
+  formLabelClass,
+  formTextAreaClass,
+  headlineCardClass,
+  headlineGridClass,
+  heroGridClass,
+  identityCardClass,
+  kickerClass,
+  mainActionButtonClass,
+  miniStatClass,
+  miniStatsGridClass,
+  mutedClass,
+  profilePageStyle,
+  statsPanelClass,
+  subtleChipClass,
+  topbarClass,
+  topbarHeadingClass,
+  quickActionButtonClass,
+  userContainer,
+  userPageShell,
+} from "./userUi";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -29,7 +58,6 @@ export default function Profile() {
 
   const fetchProfile = useCallback(async () => {
     try {
-      // Get user from cookies instead of localStorage
       const storedUser = getUserFromCookie();
       if (!storedUser?.userId) {
         throw new Error("No active user found. Please login again.");
@@ -39,7 +67,6 @@ export default function Profile() {
         method: "GET",
       });
 
-      // backend returns { success, data }, fallback to raw shape if needed
       const kpiData = kpiResponse?.data || kpiResponse;
       const syncedUser = {
         ...storedUser,
@@ -87,8 +114,8 @@ export default function Profile() {
     });
   }, [user]);
 
-  const handleChange = (e) => {
-    const { name, value, type, files } = e.target;
+  const handleChange = (event) => {
+    const { name, value, type, files } = event.target;
 
     if (type === "file" && files?.[0]) {
       const file = files[0];
@@ -160,9 +187,9 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <section className="profile">
-        <div className="profile-container">
-          <p className="muted">Loading profile insight…</p>
+      <section className={userPageShell} style={profilePageStyle}>
+        <div className={userContainer}>
+          <p className={`${identityCardClass} ${mutedClass}`}>Loading profile insight...</p>
         </div>
       </section>
     );
@@ -170,15 +197,15 @@ export default function Profile() {
 
   if (error) {
     return (
-      <section className="profile">
-        <div className="profile-container">
-          <div className="error-block">
-            <div className="error-icon">⚠️</div>
-            <h3>Unable to Load Profile</h3>
-            <p className="error-message">{error}</p>
-            <div className="error-actions">
-              <button className="primary" onClick={retry}>Try Again</button>
-              <Link to="/login" className="secondary-btn">
+      <section className={userPageShell} style={profilePageStyle}>
+        <div className={userContainer}>
+          <div className={errorBlockClass}>
+            <div className="text-5xl leading-none">⚠️</div>
+            <h3 className={cn(slabHeading, "m-0 text-[1.5rem] text-red-300")}>Unable to Load Profile</h3>
+            <p className="m-0 max-w-[44ch] text-slate-300">{error}</p>
+            <div className="flex flex-wrap justify-center gap-3 max-[560px]:flex-col">
+              <button className={mainActionButtonClass} onClick={retry}>Try Again</button>
+              <Link to="/login" className={quickActionButtonClass}>
                 Login Again
               </Link>
             </div>
@@ -190,16 +217,16 @@ export default function Profile() {
 
   if (!user && !editMode) {
     return (
-      <section className="profile">
-        <div className="profile-container">
-          <p className="muted">No profile data available.</p>
+      <section className={userPageShell} style={profilePageStyle}>
+        <div className={userContainer}>
+          <p className={`${identityCardClass} ${mutedClass}`}>No profile data available.</p>
         </div>
       </section>
     );
   }
 
   const headlineStats = [
-    { label: "Win Rate", value: formattedWinRate, accent: "lime" },
+    { label: "Win Rate", value: formattedWinRate, valueClass: "text-lime-400" },
   ];
 
   const detailStats = [
@@ -219,98 +246,109 @@ export default function Profile() {
   ];
 
   return (
-    <section className="profile">
-      <div className="profile-container">
-        <header className="profile-topbar">
+    <section className={userPageShell} style={profilePageStyle}>
+      <div className={userContainer}>
+        <header className={topbarClass}>
           <div>
-            <span className="profile-kicker">Player Profile</span>
-            <h1>Profile overview</h1>
-            <p className="muted profile-topbar-copy">Track your progress, update your identity, and jump quickly into your social tools.</p>
+            <span className={kickerClass}>Player Profile</span>
+            <h1 className={topbarHeadingClass}>Profile overview</h1>
+            <p className={mutedClass}>Track your progress, update your identity, and jump quickly into your social tools.</p>
           </div>
-          <div className="profile-quick-links">
-            <button className="ghost" onClick={() => navigate("/friends")}>Friends</button>
-            <button className="ghost" onClick={() => navigate("/change-password")}>Change Password</button>
+          <div className="flex flex-wrap justify-end gap-3 max-[560px]:flex-col">
+            <button className={quickActionButtonClass} onClick={() => navigate("/friends")}>Friends</button>
+            <button className={quickActionButtonClass} onClick={() => navigate("/change-password")}>Change Password</button>
           </div>
         </header>
 
-        <div className="profile-hero">
-          <div className="profile-identity-card">
-            <div className="avatar-wrapper">
-              <img src={formData.avatar || defaultAvatar} alt="avatar" className="avatar" />
-              {editMode && (
-                <input
-                  type="file"
-                  accept="image/*"
-                  name="avatar"
-                  onChange={handleChange}
-                  className="avatar-input"
-                  aria-label="Upload avatar"
-                />
-              )}
-              {editMode && <span className="avatar-overlay">Upload</span>}
+        <div className={heroGridClass}>
+          <div className={identityCardClass}>
+            <div className="relative h-[140px] w-[140px]">
+              <img src={formData.avatar || defaultAvatar} alt="avatar" className={avatarClass} />
+              {editMode ? (
+                <>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    name="avatar"
+                    onChange={handleChange}
+                    className="absolute inset-0 z-[2] cursor-pointer opacity-0"
+                    aria-label="Upload avatar"
+                  />
+                  <span className="absolute bottom-[-10px] right-[-10px] rounded-full bg-yellow-400 px-[0.7rem] py-[0.45rem] text-[0.72rem] font-extrabold text-stone-900 shadow-[0_10px_24px_rgba(250,204,21,0.22)]">
+                    Upload
+                  </span>
+                </>
+              ) : null}
             </div>
 
             {!editMode ? (
               <>
-                <div className="chips">
-                  <span className="chip">{kpis?.status || "offline"}</span>
-                  <span className="chip subtle">Last seen {kpis?.lastSeen ? new Date(kpis.lastSeen).toLocaleString() : "just now"}</span>
-                  {kpis?.accountAgeDays !== null && <span className="chip subtle">{kpis?.accountAgeDays} days on platform</span>}
+                <div className="flex flex-wrap gap-2">
+                  <span className={chipClass}>{kpis?.status || "offline"}</span>
+                  <span className={subtleChipClass}>
+                    Last seen {kpis?.lastSeen ? new Date(kpis.lastSeen).toLocaleString() : "just now"}
+                  </span>
+                  {kpis?.accountAgeDays != null ? (
+                    <span className={subtleChipClass}>{kpis.accountAgeDays} days on platform</span>
+                  ) : null}
                 </div>
-                <h2>{user.username}</h2>
-                <p className="muted profile-email">{user.email}</p>
-                <p className="muted bio">{user.bio || "Add a short bio so friends know you."}</p>
+                <h2 className={cn(slabHeading, "m-0 text-[clamp(1.8rem,3vw,2.4rem)] text-slate-50")}>{user.username}</h2>
+                <p className={mutedClass}>{user.email}</p>
+                <p className={mutedClass}>{user.bio || "Add a short bio so friends know you."}</p>
 
-                <div className="profile-mini-stats">
+                <div className={miniStatsGridClass}>
                   {heroMetrics.map((metric) => (
-                    <div key={metric.label} className="profile-mini-stat">
-                      <span>{metric.label}</span>
-                      <strong>{metric.value}</strong>
+                    <div key={metric.label} className={miniStatClass}>
+                      <span className="text-[0.8rem] text-slate-400">{metric.label}</span>
+                      <strong className="text-[1.25rem] text-slate-50">{metric.value}</strong>
                     </div>
                   ))}
                 </div>
 
-                <div className="profile-buttons">
-                  <button className="primary" type="button" onClick={() => setEditMode(true)}>Edit Profile</button>
-                  <button className="ghost" type="button" onClick={() => navigate("/friends")}>Open Friends Hub</button>
+                <div className={buttonRowClass}>
+                  <button className={mainActionButtonClass} type="button" onClick={() => setEditMode(true)}>Edit Profile</button>
+                  <button className={quickActionButtonClass} type="button" onClick={() => navigate("/friends")}>Open Friends Hub</button>
                 </div>
               </>
             ) : (
-              <div className="profile-form profile-form-card">
-                <h2>{user ? "Edit your profile" : "Create your profile"}</h2>
-                <label>
-                  Username
-                  <input type="text" name="username" value={formData.username} onChange={handleChange} />
+              <div className="grid gap-[0.9rem]">
+                <h2 className={cn(slabHeading, "m-0 text-[1.4rem] text-slate-50")}>
+                  {user ? "Edit your profile" : "Create your profile"}
+                </h2>
+                {error ? <p className="rounded-[14px] border border-red-500/25 bg-red-500/10 px-[0.95rem] py-3 text-sm leading-[1.5] text-red-200">{error}</p> : null}
+                <label className={formLabelClass}>
+                  <span>Username</span>
+                  <input type="text" name="username" value={formData.username} onChange={handleChange} className={formInputClass} />
                 </label>
-                <label>
-                  Bio
-                  <textarea name="bio" value={formData.bio} onChange={handleChange} rows="4" />
+                <label className={formLabelClass}>
+                  <span>Bio</span>
+                  <textarea name="bio" value={formData.bio} onChange={handleChange} rows="4" className={formTextAreaClass} />
                 </label>
-                <div className="form-buttons">
-                  <button className="primary" type="button" onClick={handleSave} disabled={isSaving}>
+                <div className={buttonRowClass}>
+                  <button className={mainActionButtonClass} type="button" onClick={handleSave} disabled={isSaving}>
                     {isSaving ? "Saving..." : user ? "Save Changes" : "Create Profile"}
                   </button>
-                  {user && <button className="ghost" type="button" onClick={handleCancelEdit}>Cancel</button>}
+                  {user ? <button className={quickActionButtonClass} type="button" onClick={handleCancelEdit}>Cancel</button> : null}
                 </div>
               </div>
             )}
           </div>
 
-          <div className="profile-stats-panel">
-            <div className="headline-grid">
+          <div className={statsPanelClass}>
+            <div className={headlineGridClass}>
               {headlineStats.map((stat) => (
-                <div key={stat.label} className={`headline-card ${stat.accent}`}>
-                  <p className="label">{stat.label}</p>
-                  <p className="value">{stat.value}</p>
+                <div key={stat.label} className={headlineCardClass}>
+                  <p className="mb-[0.35rem] text-[0.8rem] uppercase tracking-[0.04em] text-slate-400">{stat.label}</p>
+                  <p className={`text-[clamp(1.8rem,3vw,2.4rem)] font-bold ${stat.valueClass}`}>{stat.value}</p>
                 </div>
               ))}
             </div>
 
-            <div className="detail-grid">
+            <div className={detailGridClass}>
               {detailStats.map((stat) => (
-                <div key={stat.label} className="detail-card">
-                  <p className="label">{stat.label}</p>
-                  <p className="value">{stat.value}</p>
+                <div key={stat.label} className={detailCardClass}>
+                  <p className="mb-[0.35rem] text-[0.8rem] uppercase tracking-[0.04em] text-slate-400">{stat.label}</p>
+                  <p className="text-[1.15rem] font-bold text-slate-50">{stat.value}</p>
                 </div>
               ))}
             </div>

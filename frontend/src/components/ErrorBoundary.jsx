@@ -1,5 +1,5 @@
 import React from "react";
-import "../styles/components/error-boundary.css";
+import { frostedPanelStrong, goldButton, slabHeading } from "../lib/ui";
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -7,14 +7,14 @@ class ErrorBoundary extends React.Component {
     this.state = { hasError: false, error: null, errorInfo: null };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError() {
     return { hasError: true };
   }
 
   componentDidCatch(error, errorInfo) {
     this.setState({
-      error: error,
-      errorInfo: errorInfo
+      error,
+      errorInfo,
     });
     console.error("ErrorBoundary caught an error:", error, errorInfo);
   }
@@ -27,21 +27,23 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="error-boundary-overlay">
-          <div className="error-boundary-container">
-            <div className="error-icon">💥</div>
-            <h2>Application Error</h2>
-            <p className="error-message">
+        <div className="flex min-h-screen w-full items-center justify-center bg-slate-950 px-4 text-slate-200">
+          <div className={`${frostedPanelStrong} w-full max-w-[600px] p-6 text-center`}>
+            <div className="mb-4 text-5xl leading-none">💥</div>
+            <h2 className={`${slabHeading} mb-2 text-[1.5rem] text-yellow-300`}>Application Error</h2>
+            <p className="mb-6 text-slate-400">
               We're sorry, but something went wrong in the application.
             </p>
             {process.env.NODE_ENV === "development" && this.state.error && (
-              <details className="error-details">
-                <summary>Stack Trace</summary>
+              <details className="mb-6 max-h-[200px] overflow-auto rounded-xl bg-slate-950 p-4 text-left font-mono text-[0.85rem] text-slate-400">
+                <summary className="mb-2 cursor-pointer font-semibold text-slate-200">
+                  Stack Trace
+                </summary>
                 <pre>{this.state.error.toString()}</pre>
                 <pre>{this.state.errorInfo?.componentStack}</pre>
               </details>
             )}
-            <button className="primary" onClick={this.handleRestart}>
+            <button className={`${goldButton} uppercase tracking-[1px]`} onClick={this.handleRestart}>
               Restart Application
             </button>
           </div>

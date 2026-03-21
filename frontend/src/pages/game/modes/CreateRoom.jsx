@@ -1,7 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../../../services/api";
-import "../../../styles/game/game-mode.css";
+import { cn } from "../../../lib/cn";
+import {
+  actionContainerClass,
+  actionGhostClass,
+  actionHeadingClass,
+  actionLeadClass,
+  actionSectionClass,
+  actionPrimaryClass,
+  roomCodeClass,
+  roomPageStyle,
+  roomPlayerItemClass,
+} from "../gameUi";
 
 export default function CreateRoom() {
   const navigate = useNavigate();
@@ -117,33 +128,40 @@ export default function CreateRoom() {
   };
 
   return (
-    <section className="action">
-      <div className="action-container">
-        <h2>Create Room</h2>
-        <p>{status}</p>
+    <section className={actionSectionClass} style={roomPageStyle}>
+      <div className={actionContainerClass}>
+        <h2 className={actionHeadingClass}>Create Room</h2>
+        <p className={actionLeadClass}>{status}</p>
 
-        {roomCode && (
+        {roomCode ? (
           <>
-            <p>Invite your friend using this room code:</p>
-            <div className="room-code">{roomCode}</div>
-            <div className="mm-pulse-wrap" aria-hidden="true">
-              <span className="mm-pulse-dot" />
-              <span className="mm-pulse-dot" />
-              <span className="mm-pulse-dot" />
+            <p className="mb-[0.45rem] text-[0.72rem] uppercase tracking-[0.08em] text-slate-500">Invite your friend using this room code</p>
+            <div className={roomCodeClass}>{roomCode}</div>
+            <div className="my-[0.75rem] flex items-center justify-center gap-[5px]" aria-hidden="true">
+              {[0, 0.2, 0.4].map((delay, index) => (
+                <span
+                  key={index}
+                  className="h-2 w-2 animate-bounce rounded-full bg-sky-400"
+                  style={{ animationDelay: `${delay}s` }}
+                ></span>
+              ))}
             </div>
 
-            <h3>Players in Room</h3>
-            <ul>
-              {players.map((p, i) => (
-                <li key={p.id || i} className="player-item">{p.username}</li>
+            <h3 className="mb-[0.6rem] text-[0.8rem] font-semibold uppercase tracking-[0.07em] text-slate-200">Players in Room</h3>
+            <ul className="mb-6 grid gap-[0.4rem]">
+              {players.map((player, index) => (
+                <li key={player.id || index} className={roomPlayerItemClass}>
+                  <span className="h-2 w-2 shrink-0 rounded-full bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]"></span>
+                  {player.username}
+                </li>
               ))}
             </ul>
           </>
-        )}
+        ) : null}
 
-        {error && <p className="error">{error}</p>}
+        {error ? <p className="mb-5 rounded-[10px] border border-red-500/25 bg-red-500/10 px-[0.85rem] py-[0.55rem] text-[0.875rem] text-red-300">{error}</p> : null}
 
-        <button className="ghost" type="button" onClick={cancelRoom}>
+        <button className={actionGhostClass} type="button" onClick={cancelRoom}>
           Cancel
         </button>
       </div>

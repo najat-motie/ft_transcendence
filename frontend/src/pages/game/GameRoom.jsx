@@ -1,7 +1,22 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { connectSocket, getSocket, closeSocket } from "../../services/socket";
-import "../../styles/game/room.css";
+import { cn } from "../../lib/cn";
+import {
+  boardBaseClass,
+  cellBaseClass,
+  cellOClass,
+  cellXClass,
+  roomButtonsClass,
+  roomContainerClass,
+  roomPageStyle,
+  roomSectionClass,
+  roomTitleClass,
+  secondaryBoardButtonClass,
+  statusTextClass,
+  winnerTieClass,
+  winnerWinClass,
+} from "./gameUi";
 
 export default function GameRoom({ mode = "local" }) {
   const navigate = useNavigate();
@@ -48,44 +63,47 @@ export default function GameRoom({ mode = "local" }) {
   };
 
   return (
-    <section className="game-room">
-      <div className="room-container">
-        <h2>
+    <section className={roomSectionClass} style={roomPageStyle}>
+      <div className={roomContainerClass}>
+        <h2 className={roomTitleClass}>
           {mode === "ai" && "Challenge Yourself with AI"}
           {mode === "local" && "Challenge your friend on the same device"}
         </h2>
 
-        {gameStatus === "ongoing" && <p className="status">{statusText}</p>}
+        {gameStatus === "ongoing" ? <p className={statusTextClass}>{statusText}</p> : null}
 
-        {gameStatus === "win" && (
-          <div className="winner-banner">{winner} wins!</div>
-        )}
+        {gameStatus === "win" ? (
+          <div className={winnerWinClass}>{winner} wins!</div>
+        ) : null}
 
-        {gameStatus === "tie" && (
-          <div className="winner-banner tie">It's a Tie!</div>
-        )}
+        {gameStatus === "tie" ? (
+          <div className={winnerTieClass}>It's a Tie!</div>
+        ) : null}
 
-        {message && <p className="game-message">{message}</p>}
+        {message ? <p className="my-[0.4rem] text-[0.875rem] text-slate-400">{message}</p> : null}
 
-        <div className="board">
-          {board.map((rowArr, rowIndex) =>
-            rowArr.map((cell, colIndex) => (
-              <div
+        <div className={boardBaseClass}>
+          {board.map((rowArray, rowIndex) =>
+            rowArray.map((cell, colIndex) => (
+              <button
                 key={`${rowIndex}-${colIndex}`}
-                className={`cell ${cell}`}
+                className={cn(
+                  cellBaseClass,
+                  cell === "X" && cellXClass,
+                  cell === "O" && cellOClass,
+                )}
                 onClick={() => handleClick(rowIndex, colIndex)}
-                role="button"
                 aria-label={`Row ${rowIndex + 1} Column ${colIndex + 1}, ${cell || "empty"}`}
-                tabIndex={0}
+                disabled={gameStatus !== "ongoing" || cell !== ""}
               >
                 {cell}
-              </div>
-            ))
+              </button>
+            )),
           )}
         </div>
 
-        <div className="buttons">
-          <button onClick={() => navigate(-1)}>Leave</button>
+        <div className={roomButtonsClass}>
+          <button className={secondaryBoardButtonClass} onClick={() => navigate(-1)}>Leave</button>
         </div>
       </div>
     </section>

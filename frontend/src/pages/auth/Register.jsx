@@ -1,8 +1,40 @@
 import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import "../../styles/auth/register.css";
 import { apiRequest } from "../../services/api";
 import { validateForm } from "../../utils/validator";
+import {
+  alertError,
+  alertSuccess,
+  bluePill,
+  fileInputGold,
+  frostedPanel,
+  frostedPanelStrong,
+  ghostButton,
+  goldButton,
+  inputGold,
+  mutedText,
+  slabHeading,
+  textareaGold,
+} from "../../lib/ui";
+import { cn } from "../../lib/cn";
+
+const shellStyle = {
+  background:
+    "radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 26%), radial-gradient(circle at bottom left, rgba(250, 204, 21, 0.1), transparent 22%), linear-gradient(180deg, #0b1220 0%, #09111d 100%)",
+};
+
+const labelClass = "mb-[0.35rem] block text-[0.82rem] font-semibold uppercase tracking-[0.04em] text-slate-300";
+const progressStepClass = (active) =>
+  cn(
+    "flex items-start gap-3 rounded-[18px] border border-white/10 bg-white/[0.04] px-4 py-[0.95rem]",
+    active && "border-sky-400/20 bg-sky-400/10",
+  );
+
+const progressBadgeClass = (active) =>
+  cn(
+    "grid h-[30px] w-[30px] shrink-0 place-items-center rounded-full bg-slate-400/15 font-bold text-slate-300",
+    active && "bg-sky-400 text-sky-950",
+  );
 
 export default function Register() {
   const navigate = useNavigate();
@@ -21,12 +53,12 @@ export default function Register() {
     avatar: "",
   });
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (event) => {
+    setForm({ ...form, [event.target.name]: event.target.value });
   };
 
-  const handleAvatarChange = (e) => {
-    const file = e.target.files[0];
+  const handleAvatarChange = (event) => {
+    const file = event.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = () => setForm({ ...form, avatar: reader.result });
@@ -34,14 +66,14 @@ export default function Register() {
     }
   };
 
-  const handleContinue = (e) => {
-    e.preventDefault();
+  const handleContinue = (event) => {
+    event.preventDefault();
     setError("");
     const errorMessage = validateForm(form, {
       password: true,
       confirmPassword: true,
     });
-    if(errorMessage) {
+    if (errorMessage) {
       setError(errorMessage);
       setLoading(false);
       return;
@@ -49,13 +81,13 @@ export default function Register() {
     setStep(2);
   };
 
-  const handleRegister = async (e) => {
-    e.preventDefault();
+  const handleRegister = async (event) => {
+    event.preventDefault();
     setError("");
     const errorMessage = validateForm(form, {
       username: true,
     });
-    if(errorMessage) {
+    if (errorMessage) {
       setError(errorMessage);
       setLoading(false);
       return;
@@ -63,16 +95,20 @@ export default function Register() {
 
     setLoading(true);
     try {
-      await apiRequest("/auth/register", {
-        method: "POST",
-        body: JSON.stringify({
-          email: form.email,
-          password: form.password,
-          username: form.username,
-          bio: form.bio,
-          avatar: form.avatar,
-        }),
-      }, true);
+      await apiRequest(
+        "/auth/register",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            email: form.email,
+            password: form.password,
+            username: form.username,
+            bio: form.bio,
+            avatar: form.avatar,
+          }),
+        },
+        true,
+      );
       setSubmitted(true);
       navigate("/login");
     } catch (err) {
@@ -83,140 +119,155 @@ export default function Register() {
   };
 
   return (
-    <div className="register-shell">
-      <div className="register-layout">
-        <aside className="register-hero">
-          <span className="register-kicker">Create Account</span>
-          <h1>Set up your player identity.</h1>
-          <p>
+    <div className="min-h-screen px-[clamp(1rem,3vw,2rem)] py-[clamp(1rem,3vw,2rem)] text-slate-200" style={shellStyle}>
+      <div className="mx-auto grid min-h-[calc(100vh-clamp(2rem,6vw,4rem))] w-full max-w-[1120px] grid-cols-1 gap-[clamp(1rem,3vw,2rem)] min-[921px]:grid-cols-[minmax(0,1fr)_minmax(380px,480px)]">
+        <aside className={`${frostedPanel} grid content-center gap-4 p-[clamp(1.5rem,4vw,3rem)]`}>
+          <span className={bluePill}>Create Account</span>
+          <h1 className={cn(slabHeading, "m-0 text-[clamp(2rem,4vw,3.5rem)] leading-[1.04] text-slate-50")}>
+            Set up your player identity.
+          </h1>
+          <p className={cn("m-0 max-w-[54ch] leading-[1.7]", mutedText)}>
             Build your profile, customize your presence, and get ready for quick online matches, room invites, and AI practice.
           </p>
 
-          <div className="register-progress" aria-label="Registration steps">
-            <div className={`register-progress-step ${step === 1 ? "register-progress-step-active" : "register-progress-step-complete"}`}>
-              <span>1</span>
+          <div className="mt-2 grid gap-[0.85rem]">
+            <div className={progressStepClass(step === 1 || step > 1)}>
+              <span className={progressBadgeClass(step === 1 || step > 1)}>1</span>
               <div>
-                <strong>Account Details</strong>
-                <p>Email and password</p>
+                <strong className="mb-[0.15rem] block text-[0.92rem] text-slate-50">Account Details</strong>
+                <p className="m-0 text-[0.82rem] text-slate-400">Email and password</p>
               </div>
             </div>
-            <div className={`register-progress-step ${step === 2 ? "register-progress-step-active" : ""}`}>
-              <span>2</span>
+            <div className={progressStepClass(step === 2)}>
+              <span className={progressBadgeClass(step === 2)}>2</span>
               <div>
-                <strong>Profile Setup</strong>
-                <p>Username, bio and avatar</p>
+                <strong className="mb-[0.15rem] block text-[0.92rem] text-slate-50">Profile Setup</strong>
+                <p className="m-0 text-[0.82rem] text-slate-400">Username, bio and avatar</p>
               </div>
             </div>
           </div>
         </aside>
 
-        <form className="auth-form register-card" onSubmit={step === 1 ? handleContinue : handleRegister}>
+        <form
+          className={`${frostedPanelStrong} grid content-center gap-4 p-[clamp(1.35rem,3vw,2rem)]`}
+          onSubmit={step === 1 ? handleContinue : handleRegister}
+        >
           {!submitted ? (
             <>
-              {error && <p className="error">{error}</p>}
+              {error ? <p className={alertError}>{error}</p> : null}
 
-              {step === 1 && (
+              {step === 1 ? (
                 <>
-                  <h1 className="auth-title">Create your account</h1>
-                  <p className="auth-subtitle">
+                  <h1 className={cn(slabHeading, "m-0 text-center text-[clamp(1.7rem,3vw,2.2rem)] text-slate-50")}>
+                    Create your account
+                  </h1>
+                  <p className="m-0 text-center text-[0.95rem] leading-[1.6] text-slate-400">
                     Join the ultimate Tic-Tac-Toe arena and challenge players around the world.
                   </p>
 
-                  <label className="auth-label" htmlFor="register-email">Email</label>
-                  <input
-                    id="register-email"
-                    type="email"
-                    name="email"
-                    value={form.email}
-                    placeholder="Email address"
-                    className="auth-input"
-                    onChange={handleChange}
-                    required
-                  />
-                  <label className="auth-label" htmlFor="register-password">Password</label>
-                  <input
-                    id="register-password"
-                    type="password"
-                    name="password"
-                    value={form.password}
-                    placeholder="Password"
-                    className="auth-input"
-                    onChange={handleChange}
-                    required
-                  />
-                  <label className="auth-label" htmlFor="register-confirm-password">Confirm password</label>
-                  <input
-                    id="register-confirm-password"
-                    type="password"
-                    name="confirmPassword"
-                    value={form.confirmPassword}
-                    placeholder="Confirm Password"
-                    className="auth-input"
-                    onChange={handleChange}
-                    required
-                  />
+                  <div>
+                    <label className={labelClass} htmlFor="register-email">Email</label>
+                    <input
+                      id="register-email"
+                      type="email"
+                      name="email"
+                      value={form.email}
+                      placeholder="Email address"
+                      className={inputGold}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
 
-                  <button
-                    type="submit"
-                    className="submit-btn"
-                  >
+                  <div>
+                    <label className={labelClass} htmlFor="register-password">Password</label>
+                    <input
+                      id="register-password"
+                      type="password"
+                      name="password"
+                      value={form.password}
+                      placeholder="Password"
+                      className={inputGold}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className={labelClass} htmlFor="register-confirm-password">Confirm password</label>
+                    <input
+                      id="register-confirm-password"
+                      type="password"
+                      name="confirmPassword"
+                      value={form.confirmPassword}
+                      placeholder="Confirm password"
+                      className={inputGold}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+
+                  <button type="submit" className={goldButton}>
                     Continue
                   </button>
 
-                  <p className="auth-back register-login-link">
-                    Already have an account? <Link to="/login">Login</Link>
+                  <p className="text-center text-slate-400">
+                    Already have an account?{" "}
+                    <Link to="/login" className="font-semibold text-sky-300 hover:text-sky-100 hover:no-underline">
+                      Login
+                    </Link>
                   </p>
                 </>
-              )}
-
-              {step === 2 && (
+              ) : (
                 <>
-                  <h1 className="auth-title">Create your profile</h1>
-                  <p className="auth-subtitle">Add the details other players will recognize on the board.</p>
+                  <h1 className={cn(slabHeading, "m-0 text-center text-[clamp(1.7rem,3vw,2.2rem)] text-slate-50")}>
+                    Create your profile
+                  </h1>
+                  <p className="m-0 text-center text-[0.95rem] leading-[1.6] text-slate-400">
+                    Add the details other players will recognize on the board.
+                  </p>
 
-                  <label className="auth-label" htmlFor="register-username">Username</label>
-                  <input
-                    id="register-username"
-                    type="text"
-                    name="username"
-                    className="auth-input"
-                    value={form.username}
-                    onChange={handleChange}
-                    required
-                  />
+                  <div>
+                    <label className={labelClass} htmlFor="register-username">Username</label>
+                    <input
+                      id="register-username"
+                      type="text"
+                      name="username"
+                      className={inputGold}
+                      value={form.username}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
 
-                  <label className="auth-label" htmlFor="register-bio">Bio (Optional)</label>
-                  <textarea
-                    id="register-bio"
-                    name="bio"
-                    className="auth-input auth-textarea"
-                    value={form.bio}
-                    onChange={handleChange}
-                    rows="3"
-                  />
+                  <div>
+                    <label className={labelClass} htmlFor="register-bio">Bio (Optional)</label>
+                    <textarea
+                      id="register-bio"
+                      name="bio"
+                      className={textareaGold}
+                      value={form.bio}
+                      onChange={handleChange}
+                      rows="3"
+                    />
+                  </div>
 
-                  <label className="auth-label" htmlFor="register-avatar">Avatar (Optional)</label>
-                  <input
-                    id="register-avatar"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleAvatarChange}
-                    className="auth-input auth-file-input"
-                  />
+                  <div>
+                    <label className={labelClass} htmlFor="register-avatar">Avatar (Optional)</label>
+                    <input
+                      id="register-avatar"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarChange}
+                      className={fileInputGold}
+                    />
+                  </div>
 
-                  <div className="register-actions">
-                    <button
-                      type="button"
-                      className="back-btn"
-                      onClick={() => setStep(1)}
-                    >
+                  <div className="grid gap-3 min-[561px]:grid-cols-[1fr_1.3fr]">
+                    <button type="button" className={ghostButton} onClick={() => setStep(1)}>
                       Back
                     </button>
-                    <button
-                      type="submit"
-                      className="submit-btn"
-                      disabled={loading}
-                    >
+                    <button type="submit" className={goldButton} disabled={loading}>
                       {loading ? "Registering..." : "Register"}
                     </button>
                   </div>
@@ -224,16 +275,27 @@ export default function Register() {
               )}
             </>
           ) : (
-            <p className="success">
-              Your account has been created! You can now <Link to="/login">Sign In</Link>
+            <p className={alertSuccess}>
+              Your account has been created! You can now{" "}
+              <Link to="/login" className="font-semibold text-sky-200 hover:text-white hover:no-underline">
+                Sign In
+              </Link>
             </p>
           )}
 
-          {step === 1 && (
-            <p className="auth-footer">
-              By clicking continue, you agree to our <NavLink to="/terms-of-service">Terms of Service</NavLink> and <NavLink to="/privacy-policy">Privacy Policy</NavLink>.
+          {step === 1 ? (
+            <p className="mt-2 text-center text-[0.8rem] leading-[1.6] text-slate-500">
+              By clicking continue, you agree to our{" "}
+              <NavLink to="/terms-of-service" className="font-semibold text-sky-300 hover:text-sky-100 hover:no-underline">
+                Terms of Service
+              </NavLink>{" "}
+              and{" "}
+              <NavLink to="/privacy-policy" className="font-semibold text-sky-300 hover:text-sky-100 hover:no-underline">
+                Privacy Policy
+              </NavLink>
+              .
             </p>
-          )}
+          ) : null}
         </form>
       </div>
     </div>

@@ -1,10 +1,37 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getSocket } from "../../../services/socket";
 import { useSettings } from "../../../state/settings/settings.context";
 import boardsConfig from "../../../config/boards.config.json";
 import { resolveSkinAssets } from "../../../utils/skinAssets";
-import "../../../styles/game/room.css";
+import { cn } from "../../../lib/cn";
+import {
+  boardActionsClass,
+  boardBaseClass,
+  boardChipClass,
+  boardFrameClass,
+  boardMetaClass,
+  boardShellClass,
+  boardSkinClass,
+  boardToolbarClass,
+  cellBackgroundClass,
+  cellBaseClass,
+  cellGlowClass,
+  cellOClass,
+  cellXClass,
+  playerAvatarClass,
+  playerCardClass,
+  playerInfoClass,
+  roomContainerClass,
+  roomLeaveButtonClass,
+  roomPageStyle,
+  roomRestartButtonClass,
+  roomSectionClass,
+  statusTextClass,
+  turnIndicatorClass,
+  winnerLoseClass,
+  winnerTieClass,
+  winnerWinClass,
+} from "../gameUi";
 
 export default function OnlineGame() {
   const navigate = useNavigate();
@@ -18,113 +45,122 @@ export default function OnlineGame() {
   const [winner, setWinner] = useState(null);
 
   const handleClick = (index) => {
-    // prevent clicking on filled cell or after game ends
     if (!players || board[index] || turn !== players.bottom.symbol || winner) return;
-
-    // send move to WebSocket
-    // Example:
-    // socket.send(JSON.stringify({ type: "gameMove", matchId, index, symbol: players.bottom.symbol }));
   };
 
-  const resetGame = () => {
-    // send reset via WebSocket
-    // const socket = getSocket();
-    // if (socket) socket.send(JSON.stringify({ type: "resetGame", matchId }));
-  };
+  const resetGame = () => {};
 
   useEffect(() => {
-    // initialize WebSocket connection
-    // const socket = getSocket();
-    // socket.onmessage = (event) => { ...handle socket messages... }
-
-    return () => {
-      // clean up WebSocket connection
-      // socket.onmessage = null;
-      // socket.close();
-      // socket = null;
-    };
+    return () => {};
   }, []);
 
-  if (!players || !matchId) return <p className="status">Waiting for opponent...</p>;
+  const renderCellContent = (cell) => {
+    if (cell === "X") {
+      return xSrc ? <img src={xSrc} alt="X skin" className={boardSkinClass} /> : "X";
+    }
+    if (cell === "O") {
+      return oSrc ? <img src={oSrc} alt="O skin" className={boardSkinClass} /> : "O";
+    }
+    return null;
+  };
+
+  if (!players || !matchId) {
+    return (
+      <section className={roomSectionClass} style={roomPageStyle}>
+        <div className={roomContainerClass}>
+          <p className={statusTextClass}>Waiting for opponent...</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
-    <section className="game-room">
-      <div className="room-container">
-        <div className="player-card">
-          <div className="player-info">
-            <img src={players.top.avatar} alt="avatar" />
+    <section className={roomSectionClass} style={roomPageStyle}>
+      <div className={roomContainerClass}>
+        <div className={playerCardClass}>
+          <div className={playerInfoClass}>
+            <img src={players.top.avatar} alt="avatar" className={playerAvatarClass} />
             <div>
-              <h4>{players.top.username}</h4>
-              <span className="status">
-                <span className="dot online"></span>Online
+              <h4 className="mb-[0.15rem] text-[0.9rem] font-semibold text-slate-100">{players.top.username}</h4>
+              <span className={statusTextClass}>
+                <span className="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.5)]"></span>
+                Online
               </span>
             </div>
           </div>
         </div>
 
-        {!winner && (
-          <div className="turn-indicator">
+        {!winner ? (
+          <div className={turnIndicatorClass}>
             {turn === players.bottom.symbol ? "Your turn" : "Opponent's turn"}
           </div>
-        )}
+        ) : null}
 
-        {winner && (
+        {winner ? (
           <div
-            className={`winner-banner ${
-              winner === "Tie" ? "tie" : winner === players.bottom.symbol ? "" : "lose"
-            }`}
+            className={
+              winner === "Tie"
+                ? winnerTieClass
+                : winner === players.bottom.symbol
+                  ? winnerWinClass
+                  : winnerLoseClass
+            }
           >
             {winner === "Tie"
               ? "It's a Tie!"
               : winner === players.bottom.symbol
-              ? "You Win!"
-              : "You Lose!"}
+                ? "You Win!"
+                : "You Lose!"}
           </div>
-        )}
+        ) : null}
 
-        <div className="board-shell">
-          <div className="board-toolbar">
-            <div className="board-meta">
-              <span className="board-chip">Board</span>
+        <div className={boardShellClass}>
+          <div className={boardToolbarClass}>
+            <div className={boardMetaClass}>
+              <span className={boardChipClass}>Board</span>
               <strong>{boardLabel}</strong>
             </div>
-            <div className="board-actions">
-              <button className="secondary" type="button" onClick={resetGame}>
+            <div className={boardActionsClass}>
+              <button className={roomRestartButtonClass} type="button" onClick={resetGame}>
                 Restart
               </button>
-              <button className="secondary danger" type="button" onClick={() => navigate("/play")}>
+              <button className={roomLeaveButtonClass} type="button" onClick={() => navigate("/play")}>
                 Leave
               </button>
             </div>
           </div>
 
           <div
-            className={`board ${boardSrc ? "board-has-bg" : ""} ${
-              settings.effects.enabled && settings.effects.active.includes("glow") ? "effects-glow" : ""
-            }`}
-            style={boardSrc ? { backgroundImage: `url(${boardSrc})`, backgroundSize: "cover" } : {}}
+            className={cn(boardBaseClass, boardSrc && boardFrameClass)}
+            style={boardSrc ? { backgroundImage: `url(${boardSrc})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}
           >
-            {board.map((cell, i) => (
+            {board.map((cell, index) => (
               <button
-                key={i}
-                className={`cell ${cell || ""}`}
-                onClick={() => handleClick(i)}
-                aria-label={`Cell ${i + 1}, ${cell || "empty"}`}
+                key={index}
+                className={cn(
+                  cellBaseClass,
+                  boardSrc && cellBackgroundClass,
+                  settings.effects.enabled && settings.effects.active.includes("glow") && cellGlowClass,
+                  cell === "X" && cellXClass,
+                  cell === "O" && cellOClass,
+                )}
+                onClick={() => handleClick(index)}
+                aria-label={`Cell ${index + 1}, ${cell || "empty"}`}
               >
-                {cell === "X" ? (xSrc ? <img src={xSrc} alt="X skin" /> : "X") : null}
-                {cell === "O" ? (oSrc ? <img src={oSrc} alt="O skin" /> : "O") : null}
+                {renderCellContent(cell)}
               </button>
             ))}
           </div>
         </div>
 
-        <div className="player-card">
-          <div className="player-info">
-            <img src={players.bottom.avatar} alt="avatar" />
+        <div className={playerCardClass}>
+          <div className={playerInfoClass}>
+            <img src={players.bottom.avatar} alt="avatar" className={playerAvatarClass} />
             <div>
-              <h4>{players.bottom.username}</h4>
-              <span className="status">
-                <span className="dot online"></span>Online
+              <h4 className="mb-[0.15rem] text-[0.9rem] font-semibold text-slate-100">{players.bottom.username}</h4>
+              <span className={statusTextClass}>
+                <span className="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.5)]"></span>
+                Online
               </span>
             </div>
           </div>
@@ -133,147 +169,3 @@ export default function OnlineGame() {
     </section>
   );
 }
-
-
-
-
-// import { useState } from "react";
-// import { useNavigate } from "react-router-dom";
-// import "../../../styles/game/game-room.css";
-
-// export default function GameRoom() {
-//   const navigate = useNavigate();
-//   const [board, setBoard] = useState(Array(9).fill(null));
-//   const [xTurn, setXTurn] = useState(true);
-//   const [winner, setWinner] = useState(null);
-
-//   const players = {
-//     top: {
-//       username: "CasualEnjoyer",
-//       avatar: "https://i.pravatar.cc/100?img=5",
-//       online: true,
-//       symbol: "O",
-//     },
-//     bottom: {
-//       username: "AlexGrandmaster" + " (you)",
-//       avatar: "https://i.pravatar.cc/100?img=3",
-//       online: true,
-//       symbol: "X",
-//     },
-//   };
-
-//   const winningCombos = [
-//     [0, 1, 2], [3, 4, 5], [6, 7, 8],
-//     [0, 3, 6], [1, 4, 7], [2, 5, 8],
-//     [0, 4, 8], [2, 4, 6],
-//   ];
-
-//   const checkWinner = (newBoard) => {
-//     for (let combo of winningCombos) {
-//       const [a, b, c] = combo;
-//       if (newBoard[a] && newBoard[a] === newBoard[b] && newBoard[a] === newBoard[c]) {
-//         return newBoard[a];
-//       }
-//     }
-//     return null;
-//   };
-
-//   const handleClick = (index) => {
-//     if (board[index] || winner) return;
-
-//     const newBoard = [...board];
-//     newBoard[index] = xTurn ? "X" : "O";
-//     setBoard(newBoard);
-//     setXTurn(!xTurn);
-
-//     const gameWinner = checkWinner(newBoard);
-//     if (gameWinner) {
-//       setWinner(gameWinner);
-//     } else if (newBoard.every(cell => cell)) {
-//       setWinner("Tie"); // all cells filled, no winner
-//     }
-//   };
-
-//   const resetGame = () => {
-//     setBoard(Array(9).fill(null));
-//     setXTurn(true);
-//     setWinner(null);
-//   };
-
-//   return (
-//     <section className="game-room">
-//       <div className="room-container">
-
-//         {/* Top Player */}
-//         <div className="player-card">
-//           <div className="player-info">
-//             <img src={players.top.avatar} alt="avatar" />
-//             <div>
-//               <h4>{players.top.username}</h4>
-//               <span className="status">
-//                 <span className="dot online"></span>
-//                 Online
-//               </span>
-//             </div>
-//           </div>
-//         </div>
-
-//         {/* Turn Indicator */}
-//         {!winner && (
-//           <div className="turn-indicator">
-//             {xTurn === (players.bottom.symbol === "X") ? "Your turn" : "Opponent's turn"}
-//           </div>
-//         )}
-
-//         {/* Winner Banner */}
-//         {winner && (
-//           <div
-//             className={`winner-banner ${
-//               winner === "Tie" ? "tie" : winner === players.bottom.symbol ? "" : "lose"
-//             }`}
-//           >
-//             {winner === "Tie"
-//               ? "It's a Tie!"
-//               : winner === players.bottom.symbol
-//               ? "You Win!"
-//               : "You Lose!"}
-//           </div>
-//         )}
-
-//         {/* Board */}
-//         <div className="board">
-//           {board.map((cell, i) => (
-//             <div
-//               key={i}
-//               className={`cell ${cell ? cell : ""}`}
-//               onClick={() => handleClick(i)}
-//             >
-//               {cell}
-//             </div>
-//           ))}
-//         </div>
-
-//         {/* Buttons */}
-//         <div className="buttons">
-//           <button onClick={resetGame}>Restart</button>
-//           <button onClick={() => navigate("/play")}>Leave</button>
-//         </div>
-
-//         {/* Bottom Player */}
-//         <div className="player-card">
-//           <div className="player-info">
-//             <img src={players.bottom.avatar} alt="avatar" />
-//             <div>
-//               <h4>{players.bottom.username}</h4>
-//               <span className="status">
-//                 <span className="dot online"></span>
-//                 Online
-//               </span>
-//             </div>
-//           </div>
-//         </div>
-
-//       </div>
-//     </section>
-//   );
-// }

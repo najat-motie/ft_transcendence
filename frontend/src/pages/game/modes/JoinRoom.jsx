@@ -1,7 +1,15 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../../../services/api";
-import "../../../styles/game/game-mode.css";
+import {
+  actionContainerClass,
+  actionGhostClass,
+  actionHeadingClass,
+  actionSectionClass,
+  actionPrimaryClass,
+  roomInputClass,
+  roomPageStyle,
+} from "../gameUi";
 
 export default function JoinRoom() {
   const navigate = useNavigate();
@@ -43,32 +51,36 @@ export default function JoinRoom() {
   };
 
   return (
-    <section className="action">
-      <div className="action-container">
-        <h2>Join Private Room</h2>
+    <section className={actionSectionClass} style={roomPageStyle}>
+      <div className={actionContainerClass}>
+        <h2 className={actionHeadingClass}>Join Private Room</h2>
 
-        <label className="input-label" htmlFor="room-code-input">Room Code</label>
+        <label className="mb-[0.45rem] block text-[0.78rem] uppercase tracking-[0.07em] text-slate-500" htmlFor="room-code-input">
+          Room Code
+        </label>
         <input
           id="room-code-input"
-          className="input-code"
+          className={roomInputClass}
           type="text"
           placeholder="e.g. AB12CD"
           value={roomCode}
-          onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
+          onChange={(event) => setRoomCode(event.target.value.toUpperCase())}
           maxLength={6}
           autoComplete="off"
           spellCheck="false"
         />
 
-        {error && <p className="error">{error}</p>}
+        {error ? <p className="mb-5 rounded-[10px] border border-red-500/25 bg-red-500/10 px-[0.85rem] py-[0.55rem] text-[0.875rem] text-red-300">{error}</p> : null}
 
-        <button className="primary" type="button" onClick={joinRoom}>
-          {isJoining ? "Joining..." : "Join"}
-        </button>
+        <div className="flex flex-wrap justify-center gap-3">
+          <button className={actionPrimaryClass} type="button" onClick={joinRoom}>
+            {isJoining ? "Joining..." : "Join"}
+          </button>
 
-        <button type="button" onClick={() => navigate(-1)}>
-          Cancel
-        </button>
+          <button className={actionGhostClass} type="button" onClick={() => navigate(-1)}>
+            Cancel
+          </button>
+        </div>
       </div>
     </section>
   );

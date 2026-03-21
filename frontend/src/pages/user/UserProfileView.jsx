@@ -1,8 +1,32 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import "../../styles/user/profile.css";
 import { apiRequest } from "../../services/api";
 import defaultAvatar from "../../assets/default-avatar.svg";
+import { cn } from "../../lib/cn";
+import { slabHeading } from "../../lib/ui";
+import {
+  avatarClass,
+  buttonRowClass,
+  chipClass,
+  detailCardClass,
+  detailGridClass,
+  errorBlockClass,
+  heroGridClass,
+  identityCardClass,
+  kickerClass,
+  mainActionButtonClass,
+  miniStatClass,
+  miniStatsGridClass,
+  mutedClass,
+  profilePageStyle,
+  quickActionButtonClass,
+  statsPanelClass,
+  subtleChipClass,
+  topbarClass,
+  topbarHeadingClass,
+  userContainer,
+  userPageShell,
+} from "./userUi";
 
 export default function UserProfileView() {
   const { userId } = useParams();
@@ -70,9 +94,9 @@ export default function UserProfileView() {
 
   if (loading) {
     return (
-      <section className="profile">
-        <div className="profile-container">
-          <p className="muted">Loading profile…</p>
+      <section className={userPageShell} style={profilePageStyle}>
+        <div className={userContainer}>
+          <p className={`${identityCardClass} ${mutedClass}`}>Loading profile...</p>
         </div>
       </section>
     );
@@ -80,13 +104,13 @@ export default function UserProfileView() {
 
   if (error) {
     return (
-      <section className="profile">
-        <div className="profile-container">
-          <div className="error-block">
-            <div className="error-icon">⚠️</div>
-            <h3>Unable to Load Profile</h3>
-            <p className="error-message">{error}</p>
-            <button className="primary" onClick={() => navigate(-1)}>Go Back</button>
+      <section className={userPageShell} style={profilePageStyle}>
+        <div className={userContainer}>
+          <div className={errorBlockClass}>
+            <div className="text-5xl leading-none">⚠️</div>
+            <h3 className={cn(slabHeading, "m-0 text-[1.5rem] text-red-300")}>Unable to Load Profile</h3>
+            <p className="m-0 text-slate-300">{error}</p>
+            <button className={mainActionButtonClass} onClick={() => navigate(-1)}>Go Back</button>
           </div>
         </div>
       </section>
@@ -106,124 +130,106 @@ export default function UserProfileView() {
   ];
 
   return (
-    <section className="profile">
-      <div className="profile-container">
-        <header className="profile-topbar">
+    <section className={userPageShell} style={profilePageStyle}>
+      <div className={userContainer}>
+        <header className={topbarClass}>
           <div>
-            <span className="profile-kicker">Player Profile</span>
-            <h1>{profile?.username || "Unknown Player"}</h1>
-            <p className="muted profile-topbar-copy">
-              {profile?.bio || "No bio provided."}
-            </p>
+            <span className={kickerClass}>Player Profile</span>
+            <h1 className={topbarHeadingClass}>{profile?.username || "Unknown Player"}</h1>
+            <p className={mutedClass}>{profile?.bio || "No bio provided."}</p>
           </div>
-          <div className="profile-quick-links">
-            <button className="ghost" onClick={() => navigate(-1)}>← Back</button>
+          <div className="flex flex-wrap justify-end gap-3 max-[560px]:flex-col">
+            <button className={quickActionButtonClass} onClick={() => navigate(-1)}>← Back</button>
           </div>
         </header>
 
-        <div className="profile-hero">
-          <div className="profile-identity-card">
-            <div className="avatar-wrapper">
+        <div className={heroGridClass}>
+          <div className={identityCardClass}>
+            <div className="relative h-[140px] w-[140px]">
               <img
                 src={profile?.avatar || defaultAvatar}
                 alt={profile?.username}
-                className="avatar"
+                className={avatarClass}
               />
             </div>
 
-            <div className="chips">
-              <span className={`chip ${isOnline ? "" : "subtle"}`}>
-                {isOnline ? "🟢 Online" : "⚪ Offline"}
+            <div className="flex flex-wrap gap-2">
+              <span className={isOnline ? chipClass : subtleChipClass}>
+                {isOnline ? "Online" : "Offline"}
               </span>
-              {kpis?.lastSeen && (
-                <span className="chip subtle">
+              {kpis?.lastSeen ? (
+                <span className={subtleChipClass}>
                   Last seen {new Date(kpis.lastSeen).toLocaleString()}
                 </span>
-              )}
-              {kpis?.accountAgeDays != null && (
-                <span className="chip subtle">{kpis.accountAgeDays} days on platform</span>
-              )}
+              ) : null}
+              {kpis?.accountAgeDays != null ? (
+                <span className={subtleChipClass}>{kpis.accountAgeDays} days on platform</span>
+              ) : null}
             </div>
 
-            <h2>{profile?.username}</h2>
-            <p className="muted profile-email">{kpis?.email}</p>
-            <p className="muted bio">{profile?.bio || "No bio."}</p>
+            <h2 className={cn(slabHeading, "m-0 text-[clamp(1.8rem,3vw,2.4rem)] text-slate-50")}>{profile?.username}</h2>
+            <p className={mutedClass}>{kpis?.email}</p>
+            <p className={mutedClass}>{profile?.bio || "No bio."}</p>
 
-            <div className="profile-mini-stats">
+            <div className={miniStatsGridClass}>
               {[
                 { label: "Matches", value: kpis?.totalMatches ?? 0 },
                 { label: "Friends", value: kpis?.friendsCount ?? 0 },
                 { label: "XP", value: kpis?.experience ?? 0 },
-              ].map((m) => (
-                <div key={m.label} className="profile-mini-stat">
-                  <span>{m.label}</span>
-                  <strong>{m.value}</strong>
+              ].map((metric) => (
+                <div key={metric.label} className={miniStatClass}>
+                  <span className="text-[0.8rem] text-slate-400">{metric.label}</span>
+                  <strong className="text-[1.25rem] text-slate-50">{metric.value}</strong>
                 </div>
               ))}
             </div>
 
-            <div className="profile-buttons">
-              {friendStatus === "friends" && (
+            <div className={buttonRowClass}>
+              {friendStatus === "friends" ? (
                 <button
-                  className="ghost"
+                  className={quickActionButtonClass}
                   type="button"
                   disabled={actionLoading}
                   onClick={handleRemoveFriend}
                 >
                   Remove Friend
                 </button>
-              )}
-              {friendStatus === "none" && (
+              ) : null}
+              {friendStatus === "none" ? (
                 <button
-                  className="primary"
+                  className={mainActionButtonClass}
                   type="button"
                   disabled={actionLoading}
                   onClick={handleSendRequest}
                 >
                   Add Friend
                 </button>
-              )}
-              {friendStatus === "pending_sent" && (
-                <button className="ghost" type="button" disabled>
+              ) : null}
+              {friendStatus === "pending_sent" ? (
+                <button className={quickActionButtonClass} type="button" disabled>
                   Request Sent
                 </button>
-              )}
-              {friendStatus === "pending_received" && (
-                <button className="ghost" type="button" disabled>
+              ) : null}
+              {friendStatus === "pending_received" ? (
+                <button className={quickActionButtonClass} type="button" disabled>
                   Respond in Friend Hub
                 </button>
-              )}
+              ) : null}
             </div>
 
-            {actionMsg && <p className="muted" style={{ marginTop: "0.5rem" }}>{actionMsg}</p>}
+            {actionMsg ? <p className={mutedClass}>{actionMsg}</p> : null}
           </div>
-        </div>
 
-        <div className="profile-stats-panel">
-          <h3 style={{ padding: "1.2rem 1.4rem 0.4rem", margin: 0 }}>Statistics</h3>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
-              gap: "1rem",
-              padding: "0 1.4rem 1.4rem",
-            }}
-          >
-            {stats.map((s) => (
-              <div
-                key={s.label}
-                style={{
-                  background: "rgba(56,189,248,0.06)",
-                  borderRadius: 16,
-                  padding: "1rem",
-                  textAlign: "center",
-                  border: "1px solid rgba(148,163,184,0.1)",
-                }}
-              >
-                <div style={{ fontSize: "1.6rem", fontWeight: 700, color: "#f8fafc" }}>{s.value}</div>
-                <div style={{ fontSize: "0.75rem", color: "#94a3b8", marginTop: "0.3rem" }}>{s.label}</div>
-              </div>
-            ))}
+          <div className={statsPanelClass}>
+            <h3 className={cn(slabHeading, "px-[1.4rem] pt-[1.2rem] text-[1.4rem] text-slate-50")}>Statistics</h3>
+            <div className={detailGridClass}>
+              {stats.map((stat) => (
+                <div key={stat.label} className={detailCardClass}>
+                  <div className="text-[1.6rem] font-bold text-slate-50">{stat.value}</div>
+                  <div className="mt-[0.3rem] text-[0.75rem] text-slate-400">{stat.label}</div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

@@ -3,10 +3,38 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { connectSocket, getSocket, closeSocket } from "../../services/socket";
 import { getUser } from "../../services/auth";
 import { useSettings } from "../../state/settings/settings.context";
-import { exportSettings } from "../../state/settings/settings.storage";
 import { resolveSkinAssets } from "../../utils/skinAssets";
-import { playSound } from "../../utils/soundPlayer";
-import "../../styles/game/room.css";
+import { cn } from "../../lib/cn";
+import {
+  boardActionsClass,
+  boardBaseClass,
+  boardChipClass,
+  boardFrameClass,
+  boardMetaClass,
+  boardShellClass,
+  boardSkinClass,
+  boardToolbarClass,
+  cellBackgroundClass,
+  cellBaseClass,
+  cellGlowClass,
+  cellOClass,
+  cellXClass,
+  gameMessageClass,
+  playerAvatarClass,
+  playerCardClass,
+  playerInfoClass,
+  primaryRoomButtonClass,
+  dangerRoomButtonClass,
+  roomButtonsClass,
+  roomContainerClass,
+  roomPageStyle,
+  roomSectionClass,
+  statusTextClass,
+  turnIndicatorClass,
+  winnerLoseClass,
+  winnerTieClass,
+  winnerWinClass,
+} from "./gameUi";
 
 const emptyBoard = [
   ["", "", ""],
@@ -44,28 +72,6 @@ export default function OnlineGame() {
   const [statusText, setStatusText] = useState("Waiting for players...");
   const [message, setMessage] = useState("");
   const [lastMove, setLastMove] = useState(null);
-  const [exportUrl, setExportUrl] = useState(null);
-  const [lastBoardSignature, setLastBoardSignature] = useState("");
-
-  useEffect(() => {
-    const blob = new Blob([exportSettings()], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    setExportUrl(url);
-    return () => URL.revokeObjectURL(url);
-  }, [settings]);
-
-  // Play sounds on move / win
-  useEffect(() => {
-    if (!settings.sound.enabled) return;
-    const signature = board.flat().join("");
-    if (signature && signature !== lastBoardSignature) {
-      playSound(settings.sound.selected, settings.sound.volume);
-      setLastBoardSignature(signature);
-    }
-    if (gameStatus === "win" || gameStatus === "tie") {
-      playSound("win", settings.sound.volume);
-    }
-  }, [board, gameStatus, lastBoardSignature, settings.sound.enabled, settings.sound.selected, settings.sound.volume]);
 
   useEffect(() => {
     if (!savedUser?.userId || !wsPath) {
@@ -140,102 +146,136 @@ export default function OnlineGame() {
     navigate("/play");
   };
 
-  if (!role) return <p className="status">Connecting to game...</p>;
+  const renderCellContent = (cell) => {
+    if (cell === "X") {
+      return xSrc ? <img src={xSrc} alt="X skin" className={boardSkinClass} /> : "X";
+    }
+
+    if (cell === "O") {
+      return oSrc ? <img src={oSrc} alt="O skin" className={boardSkinClass} /> : "O";
+    }
+
+    return cell;
+  };
+
+  if (!role) {
+    return (
+      <section className={roomSectionClass} style={roomPageStyle}>
+        <div className={roomContainerClass}>
+          <p className={statusTextClass}>Connecting to game...</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
-    <section className="game-room">
-      <div className="room-container">
-        {players.top && (
-          <div className="player-card">
-            <div className="player-info">
-              {players.top.avatar && (
-                <img src={players.top.avatar} alt={`${players.top.username} avatar`} />
-              )}
+    <section className={roomSectionClass} style={roomPageStyle}>
+      <div className={roomContainerClass}>
+        {players.top ? (
+          <div className={playerCardClass}>
+            <div className={playerInfoClass}>
+              {players.top.avatar ? (
+                <img src={players.top.avatar} alt={`${players.top.username} avatar`} className={playerAvatarClass} />
+              ) : null}
               <div>
-                <h4>{players.top.username}</h4>
-                <span className="status">
-                  <span className="dot online"></span>Online
+                <h4 className="mb-[0.15rem] text-[0.9rem] font-semibold text-slate-100">{players.top.username}</h4>
+                <span className={statusTextClass}>
+                  <span className="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.5)]"></span>
+                  Online
                 </span>
               </div>
             </div>
           </div>
-        )}
+        ) : null}
 
-        {(gameStatus === "waiting" || gameStatus === "ongoing") && (
-          <div className="turn-indicator">
+        {gameStatus === "waiting" || gameStatus === "ongoing" ? (
+          <div className={turnIndicatorClass}>
             {gameStatus === "waiting"
               ? "Waiting for both players..."
               : turn === role
                 ? "Your turn"
                 : "Opponent's turn"}
           </div>
-        )}
+        ) : null}
 
-        {gameStatus === "win" && (
-          <div className={`winner-banner ${winner !== role ? "lose" : ""}`}>
+        {gameStatus === "win" ? (
+          <div className={winner === role ? winnerWinClass : winnerLoseClass}>
             {winner === role ? "You Win!" : "You Lose!"}
           </div>
-        )}
+        ) : null}
 
-        {gameStatus === "tie" && <div className="winner-banner tie">It's a Tie!</div>}
+        {gameStatus === "tie" ? <div className={winnerTieClass}>It's a Tie!</div> : null}
 
         <div aria-live="polite">
-          <p className="status">{statusText}</p>
-          {message && <p className="game-message">{message}</p>}
-          {lastMove && (
-            <p className="game-message">
+          <p className={statusTextClass}>{statusText}</p>
+          {message ? <p className={gameMessageClass}>{message}</p> : null}
+          {lastMove ? (
+            <p className={gameMessageClass}>
               Last move: {lastMove.role} at ({lastMove.row}, {lastMove.col})
             </p>
-          )}
+          ) : null}
         </div>
 
-        <div
-          className={`board ${boardSrc ? "board-has-bg" : ""} ${
-            settings.effects.enabled && settings.effects.active.includes("glow") ? "effects-glow" : ""
-          }`}
-          style={boardSrc ? { backgroundImage: `url(${boardSrc})`, backgroundSize: "cover" } : {}}
-        >
-          {board.map((rowArr, rowIndex) =>
-            rowArr.map((cell, colIndex) => (
-              <button
-                key={`${rowIndex}-${colIndex}`}
-                className={`cell ${cell}`}
-                onClick={() => handleClick(rowIndex, colIndex)}
-                aria-label={`Row ${rowIndex + 1} Column ${colIndex + 1}, ${cell || "empty"}`}
-                disabled={cell !== "" || gameStatus !== "ongoing" || role !== turn}
-              >
-                {cell === "X" && xSrc ? <img src={xSrc} alt="X skin" /> : null}
-                {cell === "O" && oSrc ? <img src={oSrc} alt="O skin" /> : null}
-                {cell !== "X" && cell !== "O" ? cell : null}
-              </button>
-            ))
-          )}
+        <div className={boardShellClass}>
+          <div className={boardToolbarClass}>
+            <div className={boardMetaClass}>
+              <span className={boardChipClass}>Live Match</span>
+              <strong>{role}</strong>
+            </div>
+            <div className={boardActionsClass}></div>
+          </div>
+
+          <div
+            className={cn(boardBaseClass, boardSrc && boardFrameClass)}
+            style={boardSrc ? { backgroundImage: `url(${boardSrc})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}
+          >
+            {board.map((rowArray, rowIndex) =>
+              rowArray.map((cell, colIndex) => (
+                <button
+                  key={`${rowIndex}-${colIndex}`}
+                  className={cn(
+                    cellBaseClass,
+                    boardSrc && cellBackgroundClass,
+                    settings.effects.enabled && settings.effects.active.includes("glow") && cellGlowClass,
+                    cell === "X" && cellXClass,
+                    cell === "O" && cellOClass,
+                  )}
+                  onClick={() => handleClick(rowIndex, colIndex)}
+                  aria-label={`Row ${rowIndex + 1} Column ${colIndex + 1}, ${cell || "empty"}`}
+                  disabled={cell !== "" || gameStatus !== "ongoing" || role !== turn}
+                >
+                  {renderCellContent(cell)}
+                </button>
+              )),
+            )}
+          </div>
         </div>
 
-        <div className="buttons">
-          <button className="primary" onClick={handleRestart}>
+        <div className={roomButtonsClass}>
+          <button className={primaryRoomButtonClass} onClick={handleRestart}>
             Restart
           </button>
-          <button className="primary danger" onClick={() => navigate(-1)}>
+          <button className={dangerRoomButtonClass} onClick={() => navigate(-1)}>
             Leave
           </button>
         </div>
 
-        {players.bottom && (
-          <div className="player-card">
-            <div className="player-info">
-              {players.bottom.avatar && (
-                <img src={players.bottom.avatar} alt={`${players.bottom.username} avatar`} />
-              )}
+        {players.bottom ? (
+          <div className={playerCardClass}>
+            <div className={playerInfoClass}>
+              {players.bottom.avatar ? (
+                <img src={players.bottom.avatar} alt={`${players.bottom.username} avatar`} className={playerAvatarClass} />
+              ) : null}
               <div>
-                <h4>{players.bottom.username} (You)</h4>
-                <span className="status">
-                  <span className="dot online"></span>Online
+                <h4 className="mb-[0.15rem] text-[0.9rem] font-semibold text-slate-100">{players.bottom.username} (You)</h4>
+                <span className={statusTextClass}>
+                  <span className="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.5)]"></span>
+                  Online
                 </span>
               </div>
             </div>
           </div>
-        )}
+        ) : null}
       </div>
     </section>
   );

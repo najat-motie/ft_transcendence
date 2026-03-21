@@ -1,68 +1,94 @@
 import { useState } from "react";
 import { apiRequest } from "../../services/api";
-import "../../styles/auth/password.css";
+import {
+  alertError,
+  alertSuccess,
+  frostedPanel,
+  frostedPanelStrong,
+  goldButton,
+  goldPill,
+  inputSky,
+  mutedText,
+  slabHeading,
+} from "../../lib/ui";
+import { cn } from "../../lib/cn";
+
+const shellStyle = {
+  background:
+    "radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 26%), radial-gradient(circle at bottom left, rgba(250, 204, 21, 0.1), transparent 22%), linear-gradient(180deg, #0b1220 0%, #09111d 100%)",
+};
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-  
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
     setLoading(true);
     try {
-      await apiRequest("/auth/reset-password", {
-        method: "POST",
-        body: JSON.stringify({ email }),
-      }, true);
-  
+      await apiRequest(
+        "/auth/reset-password",
+        {
+          method: "POST",
+          body: JSON.stringify({ email }),
+        },
+        true,
+      );
+
       setSubmitted(true);
     } catch (err) {
       setError(err.message);
-    }
-    finally {
+    } finally {
       setLoading(false);
     }
   };
-  
+
   return (
-    <div className="password-shell">
-      <div className="password-layout">
-        <aside className="password-hero">
-          <span className="password-kicker">Recovery</span>
-          <h1>Get back into your account.</h1>
-          <p>We’ll send a secure reset link so you can create a new password and get back to playing.</p>
+    <div className="min-h-screen px-[clamp(1rem,3vw,2rem)] py-[clamp(1rem,3vw,2rem)] text-slate-200" style={shellStyle}>
+      <div className="mx-auto grid min-h-[calc(100vh-clamp(2rem,6vw,4rem))] w-full max-w-[1040px] grid-cols-1 gap-[clamp(1rem,3vw,2rem)] min-[921px]:grid-cols-[minmax(0,1fr)_minmax(340px,460px)]">
+        <aside className={`${frostedPanel} grid content-center gap-4 p-[clamp(1.5rem,4vw,3rem)]`}>
+          <span className={goldPill}>Recovery</span>
+          <h1 className={cn(slabHeading, "m-0 text-[clamp(2rem,4vw,3.5rem)] leading-[1.04] text-slate-50")}>
+            Get back into your account.
+          </h1>
+          <p className={cn("m-0 max-w-[52ch] leading-[1.7]", mutedText)}>
+            We'll send a secure reset link so you can create a new password and get back to playing.
+          </p>
         </aside>
 
-        <form className="auth-card password-card" onSubmit={handleSubmit}>
-          {error && <p className="error">{error}</p>}
-          <h1 className="auth-title">Forgot your password?</h1>
-
-          <p className="auth-subtitle">
-            Enter your email address and we’ll send you a link to reset your password.
+        <form className={`${frostedPanelStrong} grid content-center gap-4 p-[clamp(1.35rem,3vw,2rem)]`} onSubmit={handleSubmit}>
+          {error ? <p className={alertError}>{error}</p> : null}
+          <h1 className={cn(slabHeading, "m-0 text-[clamp(1.7rem,3vw,2.2rem)] text-slate-50")}>Forgot your password?</h1>
+          <p className="m-0 text-[0.95rem] leading-[1.6] text-slate-400">
+            Enter your email address and we'll send you a link to reset your password.
           </p>
 
           {!submitted ? (
             <>
-              <label className="password-label" htmlFor="forgot-email">Email</label>
-              <input
-                id="forgot-email"
-                type="email"
-                className="auth-input"
-                placeholder="Email address"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
+              <div>
+                <label className="mb-[0.35rem] block text-[0.82rem] font-semibold uppercase tracking-[0.04em] text-slate-300" htmlFor="forgot-email">
+                  Email
+                </label>
+                <input
+                  id="forgot-email"
+                  type="email"
+                  className={inputSky}
+                  placeholder="Email address"
+                  required
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                />
+              </div>
 
-              <button className="submit-btn" type="submit" disabled={loading}>
+              <button className={goldButton} type="submit" disabled={loading}>
                 {loading ? "Sending..." : "Send reset link"}
               </button>
             </>
           ) : (
-            <p className="success">
+            <p className={alertSuccess}>
               If an account exists with this email, a reset link has been sent.
             </p>
           )}

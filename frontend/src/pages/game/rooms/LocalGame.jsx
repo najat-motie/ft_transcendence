@@ -3,11 +3,36 @@ import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../../../services/api";
 import { connectSocket, getSocket, closeSocket } from "../../../services/socket";
 import { useSettings } from "../../../state/settings/settings.context";
-import { exportSettings } from "../../../state/settings/settings.storage";
 import boardsConfig from "../../../config/boards.config.json";
 import { resolveSkinAssets } from "../../../utils/skinAssets";
 import { playSound } from "../../../utils/soundPlayer";
-import "../../../styles/game/room.css";
+import { cn } from "../../../lib/cn";
+import {
+  boardActionsClass,
+  boardBaseClass,
+  boardChipClass,
+  boardFrameClass,
+  boardMetaClass,
+  boardShellClass,
+  boardSkinClass,
+  boardToolbarClass,
+  cellBackgroundClass,
+  cellBaseClass,
+  cellGlowClass,
+  cellOClass,
+  cellXClass,
+  gameMessageClass,
+  roomContainerClass,
+  roomLeaveButtonClass,
+  roomPageStyle,
+  roomRestartButtonClass,
+  roomSectionClass,
+  roomTitleClass,
+  statusTextClass,
+  turnIndicatorClass,
+  winnerTieClass,
+  winnerWinClass,
+} from "../gameUi";
 
 const emptyBoard = [
   ["", "", ""],
@@ -28,7 +53,6 @@ export default function LocalGame() {
   const [gameStatus, setGameStatus] = useState("starting");
   const [statusText, setStatusText] = useState("Starting local game...");
   const [message, setMessage] = useState("");
-  const [exportUrl, setExportUrl] = useState(null);
   const [lastBoardSignature, setLastBoardSignature] = useState("");
   const [isStarting, setIsStarting] = useState(false);
 
@@ -104,13 +128,6 @@ export default function LocalGame() {
   }, []);
 
   useEffect(() => {
-    const blob = new Blob([exportSettings()], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    setExportUrl(url);
-    return () => URL.revokeObjectURL(url);
-  }, [settings]);
-
-  useEffect(() => {
     if (!settings.sound.enabled) return;
     const signature = board.flat().join("");
     if (signature && signature !== lastBoardSignature) {
@@ -138,60 +155,72 @@ export default function LocalGame() {
         ? `${winner} Wins!`
         : null;
 
+  const renderCellContent = (cell) => {
+    if (cell === "X") {
+      return xSrc ? <img src={xSrc} alt="X skin" className={boardSkinClass} /> : "X";
+    }
+    if (cell === "O") {
+      return oSrc ? <img src={oSrc} alt="O skin" className={boardSkinClass} /> : "O";
+    }
+    return cell;
+  };
+
   return (
-    <section className="game-room">
-      <div className="room-container">
-        <h2>Local Game</h2>
-        {gameStatus === "ongoing" && (
-          <p className="turn-indicator">
-            {turn === "X" ? "Player X — your turn" : "Player O — your turn"}
+    <section className={roomSectionClass} style={roomPageStyle}>
+      <div className={roomContainerClass}>
+        <h2 className={roomTitleClass}>Local Game</h2>
+        {gameStatus === "ongoing" ? (
+          <p className={turnIndicatorClass}>
+            {turn === "X" ? "Player X - your turn" : "Player O - your turn"}
           </p>
-        )}
-        {winnerText && (
-          <div className={`winner-banner ${gameStatus === "tie" ? "tie" : ""}`}>{winnerText}</div>
-        )}
+        ) : null}
+        {winnerText ? (
+          <div className={gameStatus === "tie" ? winnerTieClass : winnerWinClass}>{winnerText}</div>
+        ) : null}
 
         <div aria-live="polite">
-          <p className="status">{statusText}</p>
-          {message && <p className="game-message">{message}</p>}
+          <p className={statusTextClass}>{statusText}</p>
+          {message ? <p className={gameMessageClass}>{message}</p> : null}
         </div>
 
-        <div className="board-shell">
-          <div className="board-toolbar">
-            <div className="board-meta">
-              <span className="board-chip">Board</span>
+        <div className={boardShellClass}>
+          <div className={boardToolbarClass}>
+            <div className={boardMetaClass}>
+              <span className={boardChipClass}>Board</span>
               <strong>{boardLabel}</strong>
             </div>
-            <div className="board-actions">
-              <button className="secondary" type="button" onClick={startGame} disabled={isStarting}>
+            <div className={boardActionsClass}>
+              <button className={roomRestartButtonClass} type="button" onClick={startGame} disabled={isStarting}>
                 Restart
               </button>
-              <button className="secondary danger" type="button" onClick={() => navigate(-1)}>
+              <button className={roomLeaveButtonClass} type="button" onClick={() => navigate(-1)}>
                 Leave
               </button>
             </div>
           </div>
 
           <div
-            className={`board ${boardSrc ? "board-has-bg" : ""} ${
-              settings.effects.enabled && settings.effects.active.includes("glow") ? "effects-glow" : ""
-            }`}
-            style={boardSrc ? { backgroundImage: `url(${boardSrc})`, backgroundSize: "cover" } : {}}
+            className={cn(boardBaseClass, boardSrc && boardFrameClass)}
+            style={boardSrc ? { backgroundImage: `url(${boardSrc})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}
           >
-            {board.map((rowArr, rowIndex) =>
-              rowArr.map((cell, colIndex) => (
+            {board.map((rowArray, rowIndex) =>
+              rowArray.map((cell, colIndex) => (
                 <button
                   key={`${rowIndex}-${colIndex}`}
-                  className={`cell ${cell}`}
+                  className={cn(
+                    cellBaseClass,
+                    boardSrc && cellBackgroundClass,
+                    settings.effects.enabled && settings.effects.active.includes("glow") && cellGlowClass,
+                    cell === "X" && cellXClass,
+                    cell === "O" && cellOClass,
+                  )}
                   onClick={() => handleClick(rowIndex, colIndex)}
                   aria-label={`Row ${rowIndex + 1} Column ${colIndex + 1}, ${cell || "empty"}`}
                   disabled={cell !== "" || gameStatus !== "ongoing"}
                 >
-                  {cell === "X" && xSrc ? <img src={xSrc} alt="X skin" /> : null}
-                  {cell === "O" && oSrc ? <img src={oSrc} alt="O skin" /> : null}
-                  {cell !== "X" && cell !== "O" ? cell : null}
+                  {renderCellContent(cell)}
                 </button>
-              ))
+              )),
             )}
           </div>
         </div>
