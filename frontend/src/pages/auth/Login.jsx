@@ -33,13 +33,17 @@ function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "https://localhost";
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
   const oauth42Url = `${apiBaseUrl}/auth/42`;
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    document.title = "ft_transcendence - Login";
+  }, []);
 
   useEffect(() => {
     const errorParam = searchParams.get("error");
@@ -147,6 +151,14 @@ function Login() {
                 required
                 className={inputSky}
               />
+              <div className="mt-4 text-center">
+                <Link 
+                  to="/reset-password"
+                  className="text-sm text-indigo-400 hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
             </div>
 
             <button className={goldButton} type="submit" disabled={loading}>

@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import { apiRequest } from "../../services/api";
-import defaultAvatar from "../../assets/default-avatar.svg";
 import { slabHeading } from "../../lib/ui";
 import { cn } from "../../lib/cn";
 import {
@@ -41,7 +40,7 @@ export default function FriendsList({ friendList, setFriendList }) {
             <div className="flex items-center gap-[0.8rem]">
               <div className="relative shrink-0">
                 <img
-                  src={friend.avatar || defaultAvatar}
+                  src={friend.avatar}
                   alt={friend.username}
                   className="block h-[38px] w-[38px] rounded-full object-cover"
                 />

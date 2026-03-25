@@ -6,14 +6,10 @@ import { useSettings } from "../../state/settings/settings.context";
 import { resolveSkinAssets } from "../../utils/skinAssets";
 import { cn } from "../../lib/cn";
 import {
-  boardActionsClass,
   boardBaseClass,
-  boardChipClass,
   boardFrameClass,
-  boardMetaClass,
   boardShellClass,
   boardSkinClass,
-  boardToolbarClass,
   cellBackgroundClass,
   cellBaseClass,
   cellGlowClass,
@@ -30,17 +26,10 @@ import {
   roomPageStyle,
   roomSectionClass,
   statusTextClass,
-  turnIndicatorClass,
   winnerLoseClass,
   winnerTieClass,
   winnerWinClass,
 } from "./gameUi";
-
-const emptyBoard = [
-  ["", "", ""],
-  ["", "", ""],
-  ["", "", ""],
-];
 
 const mapPlayers = (players = [], currentUserId) => {
   const currentPlayer = players.find((player) => player.id === currentUserId) || null;
@@ -63,15 +52,23 @@ export default function OnlineGame() {
   const session = getUser();
   const savedUser = session?.user;
 
-  const [board, setBoard] = useState(emptyBoard);
+  const [board, setBoard] = useState([
+    ["", "", ""],
+    ["", "", ""],
+    ["", "", ""],
+  ]);
   const [role, setRole] = useState(match.role || null);
-  const [turn, setTurn] = useState(null);
+  const [turn, setTurn] = useState("Waiting for first move...");
   const [winner, setWinner] = useState(null);
   const [players, setPlayers] = useState(() => mapPlayers(match.players, savedUser?.userId));
   const [gameStatus, setGameStatus] = useState("waiting");
   const [statusText, setStatusText] = useState("Waiting for players...");
   const [message, setMessage] = useState("");
-  const [lastMove, setLastMove] = useState(null);
+  const opponentName = players.top?.username || "Opponent";
+
+  useEffect(() => {
+    document.title = "ft_transcendence - Playing vs Online Player";
+  }, []);
 
   useEffect(() => {
     if (!savedUser?.userId || !wsPath) {
@@ -97,23 +94,34 @@ export default function OnlineGame() {
       if (data.role) setRole(data.role);
       if (data.players) setPlayers(mapPlayers(data.players, savedUser.userId));
       if (data.board) setBoard(data.board);
-      if (data.status) setStatusText(data.status);
       if (data.turn !== undefined) setTurn(data.turn);
       if (data.game_status) setGameStatus(data.game_status);
       if (data.winner) setWinner(data.winner);
-      if (data.message) setMessage(data.message);
       if (data.last_move !== undefined) setLastMove(data.last_move);
+      if (data.message) setMessage(data.message);
+      if (data.status) setStatusText(data.status);
       if (data.error) setMessage(data.error);
     };
 
     socket.onclose = () => {
-      setStatusText("Disconnected from server.");
+      setStatusText(`${opponentName} disconnected from server.`);
+      setMessage("");
     };
 
     return () => {
       closeSocket();
     };
   }, [navigate, savedUser?.userId, wsPath]);
+
+  useEffect(() => {
+    if (gameStatus === "waiting") {
+      setMessage("Waiting for both players...");
+    } else if (gameStatus === "ongoing" && turn === role) {
+      setMessage("Your turn");
+    } else {
+      setMessage(`${opponentName}'s turn`);
+    }
+  }, [turn, gameStatus, role]);
 
   const handleClick = (row, col) => {
     if (!savedUser?.userId) return;
@@ -188,14 +196,12 @@ export default function OnlineGame() {
           </div>
         ) : null}
 
-        {gameStatus === "waiting" || gameStatus === "ongoing" ? (
-          <div className={turnIndicatorClass}>
-            {gameStatus === "waiting"
-              ? "Waiting for both players..."
-              : turn === role
-                ? "Your turn"
-                : "Opponent's turn"}
-          </div>
+        <div aria-live="polite">
+          {statusText ? <p className={statusTextClass}>{statusText}</p> : null}
+        </div>
+
+        {gameStatus === "ongoing" || gameStatus === "ongoing" ? (
+          <p className={gameMessageClass}>{message}</p>
         ) : null}
 
         {gameStatus === "win" ? (
@@ -206,25 +212,7 @@ export default function OnlineGame() {
 
         {gameStatus === "tie" ? <div className={winnerTieClass}>It's a Tie!</div> : null}
 
-        <div aria-live="polite">
-          <p className={statusTextClass}>{statusText}</p>
-          {message ? <p className={gameMessageClass}>{message}</p> : null}
-          {lastMove ? (
-            <p className={gameMessageClass}>
-              Last move: {lastMove.role} at ({lastMove.row}, {lastMove.col})
-            </p>
-          ) : null}
-        </div>
-
         <div className={boardShellClass}>
-          <div className={boardToolbarClass}>
-            <div className={boardMetaClass}>
-              <span className={boardChipClass}>Live Match</span>
-              <strong>{role}</strong>
-            </div>
-            <div className={boardActionsClass}></div>
-          </div>
-
           <div
             className={cn(boardBaseClass, boardSrc && boardFrameClass)}
             style={boardSrc ? { backgroundImage: `url(${boardSrc})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}
@@ -252,10 +240,10 @@ export default function OnlineGame() {
         </div>
 
         <div className={roomButtonsClass}>
-          <button className={primaryRoomButtonClass} onClick={handleRestart}>
+          <button className={primaryRoomButtonClass}  type="button" onClick={handleRestart}>
             Restart
           </button>
-          <button className={dangerRoomButtonClass} onClick={() => navigate(-1)}>
+          <button className={dangerRoomButtonClass}  type="button" onClick={() => navigate(-1)}>
             Leave
           </button>
         </div>

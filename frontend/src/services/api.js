@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 import { getUser, logout, setUser } from "./auth.js";
 
@@ -60,7 +60,6 @@ export async function apiRequest(endpoint, options = {}, skipAuth = false) {
     const refreshData = await parseJsonSafe(refreshResponse);
     const newAccessToken = refreshData.accessToken;
 
-    // Store refreshed session back in cookies
     setUser({
       user,
       accessToken: newAccessToken,

@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { apiRequest } from "../../../services/api";
+import { apiRequest } from "../../services/api";
 import {
   actionContainerClass,
   actionGhostClass,
@@ -9,13 +9,17 @@ import {
   actionPrimaryClass,
   roomInputClass,
   roomPageStyle,
-} from "../gameUi";
+} from "./gameUi";
 
 export default function JoinRoom() {
   const navigate = useNavigate();
   const [roomCode, setRoomCode] = useState("");
   const [error, setError] = useState("");
   const [isJoining, setIsJoining] = useState(false);
+
+  useEffect(() => {
+    document.title = "ft_transcendence - Playing vs Friend";
+  }, [])
 
   const joinRoom = async () => {
     if (!roomCode.trim()) {

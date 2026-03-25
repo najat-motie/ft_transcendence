@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   FiShield,
@@ -23,6 +24,11 @@ const listItemClass = "flex items-start gap-3 text-[0.96rem] leading-[1.55] text
 const listDotClass = "mt-[10px] h-1.5 w-1.5 shrink-0 rounded-full bg-yellow-400 shadow-[0_0_0_5px_rgba(250,204,21,0.12)]";
 
 export default function PrivacyPolicy() {
+
+  useEffect(() => {
+    document.title = "ft_transcendence - Privacy Policy";
+  }, []);
+
   return (
     <div className="min-h-screen text-slate-200" style={pageStyle}>
       <div className="mx-auto w-full max-w-[1100px] px-6 pb-[120px] pt-[88px] max-[700px]:px-4 max-[700px]:pb-24 max-[700px]:pt-[68px]">

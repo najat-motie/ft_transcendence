@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { apiRequest } from "../../services/api";
 import {
   alertError,
@@ -23,6 +23,10 @@ export default function ForgotPassword() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    document.title = "ft_transcendence - Forgot Password";
+  }, []);
 
   const handleSubmit = async (event) => {
     event.preventDefault();

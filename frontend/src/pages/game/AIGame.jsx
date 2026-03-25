@@ -1,38 +1,40 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { apiRequest } from "../../../services/api";
-import { connectSocket, getSocket, closeSocket } from "../../../services/socket";
-import { useSettings } from "../../../state/settings/settings.context";
-import boardsConfig from "../../../config/boards.config.json";
-import { resolveSkinAssets } from "../../../utils/skinAssets";
-import { playSound } from "../../../utils/soundPlayer";
-import { cn } from "../../../lib/cn";
+import { apiRequest } from "../../services/api";
+import { connectSocket, getSocket, closeSocket } from "../../services/socket";
+import { getUser } from "../../services/auth";
+import { useSettings } from "../../state/settings/settings.context";
+import boardsConfig from "../../config/boards.config.json";
+import { resolveSkinAssets } from "../../utils/skinAssets";
+import { playSound } from "../../utils/soundPlayer";
+import { cn } from "../../lib/cn";
+import aiAvatar from "../../assets/ai.png"
 import {
-  boardActionsClass,
   boardBaseClass,
-  boardChipClass,
   boardFrameClass,
-  boardMetaClass,
   boardShellClass,
   boardSkinClass,
-  boardToolbarClass,
   cellBackgroundClass,
   cellBaseClass,
   cellGlowClass,
   cellOClass,
   cellXClass,
+  roomButtonsClass,
   gameMessageClass,
+  playerAvatarClass,
+  playerCardClass,
+  playerInfoClass,
   roomContainerClass,
   roomLeaveButtonClass,
-  roomPageStyle,
   roomRestartButtonClass,
+  roomPageStyle,
   roomSectionClass,
   roomTitleClass,
   statusTextClass,
-  turnIndicatorClass,
+  winnerLoseClass,
   winnerTieClass,
   winnerWinClass,
-} from "../gameUi";
+} from "./gameUi";
 
 const emptyBoard = [
   ["", "", ""],
@@ -45,16 +47,35 @@ export default function AIGame() {
   const connectionRef = useRef(0);
   const { settings } = useSettings();
   const { xSrc, oSrc, boardSrc } = resolveSkinAssets(settings);
-  const boardLabel = boardsConfig.themes.find((theme) => theme.id === settings.board.theme)?.label || "Board";
+  const session = getUser();
+  const user = session?.user;
 
   const [board, setBoard] = useState(emptyBoard);
   const [turn, setTurn] = useState("X");
+  const [role, setRole] = useState("X");
   const [winner, setWinner] = useState(null);
   const [gameStatus, setGameStatus] = useState("starting");
   const [statusText, setStatusText] = useState("Starting AI game...");
   const [message, setMessage] = useState("");
   const [lastBoardSignature, setLastBoardSignature] = useState("");
   const [isStarting, setIsStarting] = useState(false);
+  const aiMessages = [
+    "Nice move!",
+    "Keep going!",
+    "Smart choice!",
+    "Let me think...",
+    "I see your move.",
+    "Interesting move...",
+    "You're doing great!",
+    "Hmm... interesting.",
+    "You're challenging me 👀",
+    "Let's see what happens next!",
+  ];
+  const aiUsername = user ? "NovaBot" : "AI";
+
+  useEffect(() => {
+    document.title = "ft_transcendence - Playing vs AI";
+  }, [])
 
   const startGame = async () => {
     if (isStarting) {
@@ -68,9 +89,10 @@ export default function AIGame() {
     closeSocket();
     setBoard(emptyBoard);
     setTurn("X");
+    setRole("X");
     setWinner(null);
     setGameStatus("starting");
-    setStatusText("Starting AI game...");
+    setStatusText("");
     setMessage("");
 
     try {
@@ -90,11 +112,8 @@ export default function AIGame() {
         const data = JSON.parse(event.data);
 
         if (data.board) setBoard(data.board);
-        if (data.turn !== undefined) setTurn(data.turn);
         if (data.game_status) setGameStatus(data.game_status);
-        if (data.status) setStatusText(data.status);
         if (data.winner) setWinner(data.winner);
-        if (data.message) setMessage(data.message);
         if (data.error) setMessage(data.error);
       };
 
@@ -102,7 +121,8 @@ export default function AIGame() {
         if (connectionId !== connectionRef.current) {
           return;
         }
-        setStatusText("Disconnected from server.");
+        setStatusText(`${aiUsername}` + " disconnected from server.");
+        setMessage("");
       };
     } catch (error) {
       if (connectionId !== connectionRef.current) {
@@ -139,6 +159,39 @@ export default function AIGame() {
     }
   }, [board, gameStatus, lastBoardSignature, settings.sound.enabled, settings.sound.selected, settings.sound.volume]);
 
+
+  const prevBoardRef = useRef(board);
+  const lastMessageRef = useRef("");
+
+  useEffect(() => {
+    const prevBoard = prevBoardRef.current;
+
+    const xMoved = board.some((row, r) =>
+      row.some((cell, c) => cell === "X" && prevBoard[r][c] !== "X")
+    );
+
+    const isBoardEmpty = board.flat().every(cell => cell === "");
+
+    if (isBoardEmpty || !xMoved) {
+      prevBoardRef.current = board;
+      return;
+    }
+
+    let randomMessage;
+
+    do {
+      randomMessage =
+        aiMessages[Math.floor(Math.random() * aiMessages.length)];
+    } while (randomMessage === lastMessageRef.current);
+
+    lastMessageRef.current = randomMessage;
+
+    setMessage(randomMessage);
+
+    prevBoardRef.current = board;
+
+  }, [board]);
+
   const handleClick = (row, col) => {
     if (board[row][col] !== "" || gameStatus !== "ongoing" || turn !== "X") return;
 
@@ -147,13 +200,6 @@ export default function AIGame() {
       socket.send(JSON.stringify({ row, col }));
     }
   };
-
-  const winnerText =
-    winner === "Tie" || gameStatus === "tie"
-      ? "It's a Tie!"
-      : winner
-        ? `${winner} Wins!`
-        : null;
 
   const renderCellContent = (cell) => {
     if (cell === "X") {
@@ -164,41 +210,43 @@ export default function AIGame() {
     }
     return cell;
   };
-
+  
   return (
     <section className={roomSectionClass} style={roomPageStyle}>
       <div className={roomContainerClass}>
-        <h2 className={roomTitleClass}>Challenge Yourself with an AI</h2>
-        {gameStatus === "ongoing" ? (
-          <p className={turnIndicatorClass}>
-            {turn === "X" ? "Your turn" : "AI is thinking..."}
-          </p>
-        ) : null}
-        {winnerText ? (
-          <div className={gameStatus === "tie" ? winnerTieClass : winnerWinClass}>{winnerText}</div>
+        {!user && <h2 className={roomTitleClass}>Challenge Yourself with an AI</h2>}
+        {user ? (
+        <div className={playerCardClass}>
+          <div className={playerInfoClass}>
+              <img src={aiAvatar} alt="ai avatar" className={playerAvatarClass} />
+            <div>
+              <h4 className="mb-[0.15rem] text-[0.9rem] font-semibold text-slate-100">{aiUsername}</h4>
+              <span className={statusTextClass}>
+                <span className="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.5)]"></span>
+                Online
+              </span>
+            </div>
+          </div>
+        </div>
         ) : null}
 
         <div aria-live="polite">
-          <p className={statusTextClass}>{statusText}</p>
-          {message ? <p className={gameMessageClass}>{message}</p> : null}
+          {statusText ? <p className={statusTextClass}>{statusText}</p> : null}
         </div>
 
-        <div className={boardShellClass}>
-          <div className={boardToolbarClass}>
-            <div className={boardMetaClass}>
-              <span className={boardChipClass}>Board</span>
-              <strong>{boardLabel}</strong>
-            </div>
-            <div className={boardActionsClass}>
-              <button className={roomRestartButtonClass} type="button" onClick={startGame} disabled={isStarting}>
-                Restart
-              </button>
-              <button className={roomLeaveButtonClass} type="button" onClick={() => navigate("/play")}>
-                Leave
-              </button>
-            </div>
-          </div>
+        {gameStatus === "ongoing" ? (
+          <p className={gameMessageClass}>{message}</p>
+        ) : null}
 
+        {gameStatus === "win" ? (
+          <div className={winner === role ? winnerWinClass : winnerLoseClass}>
+            {winner === role ? "You Win!" : "You Lose!"}
+          </div>
+        ) : null}
+
+        {gameStatus === "tie" ? <div className={winnerTieClass}>It's a Tie!</div> : null}
+
+        <div className={boardShellClass}>
           <div
             className={cn(boardBaseClass, boardSrc && boardFrameClass)}
             style={boardSrc ? { backgroundImage: `url(${boardSrc})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}
@@ -224,6 +272,33 @@ export default function AIGame() {
             )}
           </div>
         </div>
+
+        <div className={roomButtonsClass}>
+          <button className={roomRestartButtonClass} type="button" onClick={startGame} disabled={isStarting}>
+            Restart
+          </button>
+          <button className={roomLeaveButtonClass}  type="button" onClick={() => navigate(-1)}>
+            Leave
+          </button>
+        </div>
+
+        {user ? (
+        <div className={playerCardClass}>
+          <div className={playerInfoClass}>
+            {user.avatar ? (
+              <img src={user.avatar} alt={`${user.username} avatar`} className={playerAvatarClass} />
+            ) : null}
+            <div>
+              <h4 className="mb-[0.15rem] text-[0.9rem] font-semibold text-slate-100">{user.username} (You)</h4>
+              <span className={statusTextClass}>
+                <span className="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.5)]"></span>
+                Online
+              </span>
+            </div>
+          </div>
+        </div>
+        ) : null}
+
       </div>
     </section>
   );

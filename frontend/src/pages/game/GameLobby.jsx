@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "../../lib/cn";
 import { goldPill, slabHeading } from "../../lib/ui";
@@ -5,6 +6,10 @@ import { lobbyPageStyle, playCardButtonClass, playCardClass, playShellClass } fr
 
 export default function GameLobby() {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    document.title = "ft_transcendence - Game Lobby";
+  }, [])
 
   const gameModes = [
     {

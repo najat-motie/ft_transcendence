@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { apiRequest } from "../../services/api";
-import { validateForm } from "../../utils/validator";
+import { readImageFile } from "../../utils/fileReader";
+import { validateForm } from "../../utils/formValidation";
 import {
   alertError,
   alertSuccess,
@@ -43,7 +44,6 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
-
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -53,16 +53,38 @@ export default function Register() {
     avatar: "",
   });
 
-  const handleChange = (event) => {
-    setForm({ ...form, [event.target.name]: event.target.value });
-  };
+  useEffect(() => {
+    document.title = "ft_transcendence - Register";
+  }, []);
 
-  const handleAvatarChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => setForm({ ...form, avatar: reader.result });
-      reader.readAsDataURL(file);
+  const handleChange = async (e) => {
+    setError("");
+    const { name, value, type, files } = e.target;
+
+    if (type === "file") {
+      const file = files?.[0];
+      if (!file) return;
+
+      try {
+        const file = e.target.files?.[0];
+        const dataUrl = await readImageFile(file);
+    
+        setForm(prev => ({
+          ...prev,
+          [name]: dataUrl
+        }));
+    
+        setError(null);
+      } catch (err) {
+        console.error("File processing error:", err);
+        setError(err?.message || "Something went wrong");
+      }
+      
+    } else {
+      setForm(prev => ({
+        ...prev,
+        [name]: value
+      }));
     }
   };
 
@@ -86,6 +108,7 @@ export default function Register() {
     setError("");
     const errorMessage = validateForm(form, {
       username: true,
+      bio: true,
     });
     if (errorMessage) {
       setError(errorMessage);
@@ -149,8 +172,8 @@ export default function Register() {
         </aside>
 
         <form
+          onSubmit={handleRegister}
           className={`${frostedPanelStrong} grid content-center gap-4 p-[clamp(1.35rem,3vw,2rem)]`}
-          onSubmit={step === 1 ? handleContinue : handleRegister}
         >
           {!submitted ? (
             <>
@@ -207,9 +230,7 @@ export default function Register() {
                     />
                   </div>
 
-                  <button type="submit" className={goldButton}>
-                    Continue
-                  </button>
+                  <button type="button" className={goldButton} onClick={handleContinue}>Continue</button>
 
                   <p className="text-center text-slate-400">
                     Already have an account?{" "}
@@ -258,7 +279,7 @@ export default function Register() {
                       id="register-avatar"
                       type="file"
                       accept="image/*"
-                      onChange={handleAvatarChange}
+                      onChange={handleChange}
                       className={fileInputGold}
                     />
                   </div>

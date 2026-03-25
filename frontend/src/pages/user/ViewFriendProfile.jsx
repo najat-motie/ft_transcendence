@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { apiRequest } from "../../services/api";
-import defaultAvatar from "../../assets/default-avatar.svg";
 import { cn } from "../../lib/cn";
 import { slabHeading } from "../../lib/ui";
 import {
@@ -28,7 +27,7 @@ import {
   userPageShell,
 } from "./userUi";
 
-export default function UserProfileView() {
+export default function ViewFriendProfile() {
   const { userId } = useParams();
   const navigate = useNavigate();
 
@@ -59,6 +58,10 @@ export default function UserProfileView() {
       setLoading(false);
     }
   }, [userId]);
+
+  useEffect(() => {
+    document.title = "ft_transcendence - View Profile";
+  }, [])
 
   useEffect(() => {
     fetchData();
@@ -147,7 +150,7 @@ export default function UserProfileView() {
           <div className={identityCardClass}>
             <div className="relative h-[140px] w-[140px]">
               <img
-                src={profile?.avatar || defaultAvatar}
+                src={profile?.avatar}
                 alt={profile?.username}
                 className={avatarClass}
               />

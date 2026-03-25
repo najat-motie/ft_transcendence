@@ -1,18 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { apiRequest } from "../../../services/api";
-import { cn } from "../../../lib/cn";
+import { apiRequest } from "../../services/api";
+import { cn } from "../../lib/cn";
 import {
   actionContainerClass,
   actionGhostClass,
   actionHeadingClass,
   actionLeadClass,
   actionSectionClass,
-  actionPrimaryClass,
   roomCodeClass,
   roomPageStyle,
   roomPlayerItemClass,
-} from "../gameUi";
+} from "./gameUi";
 
 export default function CreateRoom() {
   const navigate = useNavigate();
@@ -24,6 +23,10 @@ export default function CreateRoom() {
   const [players, setPlayers] = useState([]);
   const [error, setError] = useState("");
   const [status, setStatus] = useState("Creating room...");
+
+  useEffect(() => {
+    document.title = "ft_transcendence - Create Room";
+  }, [])
 
   useEffect(() => {
     mountedRef.current = true;

@@ -21,8 +21,6 @@ services:
       OAUTH_42_CALLBACK_URL: ${OAUTH_42_CALLBACK_URL}
       GAME_SERVICE_URL: ${GAME_SERVICE_URL}
       SERVICE_API_KEY: ${SERVICE_API_KEY}
-    # ports:
-    #   - "3000:3000"
     volumes:
       - ./uploads:/app/uploads
     depends_on:
@@ -42,8 +40,6 @@ services:
       SERVICE_API_KEY: ${SERVICE_API_KEY}
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
       CORS_ORIGIN: ${CORS_ORIGIN}
-    # ports:
-    #   - "8000:8000"
     restart: on-failure
     networks:
       - ft_transcendence
@@ -56,8 +52,6 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
-    # ports:
-    #   - "5432:5432"
     networks:
       - ft_transcendence
     volumes:
@@ -75,8 +69,6 @@ services:
     environment:
       VITE_API_BASE_URL: ${VITE_API_BASE_URL}
       VITE_WS_BASE_URL: ${VITE_WS_BASE_URL}
-    # ports:
-    #   - "5173:5173"
     networks:
       - ft_transcendence
 
@@ -102,9 +94,13 @@ services:
 
 volumes:
   db_data:
+    name: db_data
   caddy_data:
+    name: caddy_data
   caddy_config:
+    name: caddy_config
 
 networks:
   ft_transcendence:
+    name: tic-tac-toe
     driver: bridge

@@ -5,7 +5,6 @@ import {
   frostedPanel,
   frostedPanelStrong,
   ghostButton,
-  goldButton,
   goldPill,
   inputSky,
   redButton,

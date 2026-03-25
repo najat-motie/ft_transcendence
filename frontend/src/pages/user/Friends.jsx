@@ -37,6 +37,10 @@ export default function Friends() {
   }, []);
 
   useEffect(() => {
+    document.title = "ft_transcendence - Friends";
+  }, []);
+
+  useEffect(() => {
     fetchAllFriendsData();
   }, [fetchAllFriendsData]);
 

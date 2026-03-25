@@ -1,4 +1,4 @@
-.PHONY: help build up down restart clean logs logs-backend logs-frontend logs-db shell-backend shell-frontend shell-db ps migrate migrate-dev migrate-reset db-push db-seed prune dev stop start rebuild
+.PHONY: help build up down restart clean clean-all logs logs-backend logs-frontend logs-db shell-backend shell-frontend shell-db ps migrate migrate-dev migrate-reset db-push db-seed prune dev stop start rebuild
 
 export DOCKER_CONFIG := $(PWD)/.docker
 COMPOSE := docker compose --env-file .env
@@ -34,74 +34,79 @@ help:
 	@echo "  make prune          - Remove all unused Docker resources"
 
 build:
-	$(COMPOSE) build
+	@$(COMPOSE) build
 
 up:
-	$(COMPOSE) up -d
-
-down:
-	$(COMPOSE) down
-
-restart:
-	$(COMPOSE) restart
+	@$(COMPOSE) up -d
 
 dev:
-	$(COMPOSE) up
+	@$(COMPOSE) up
+
+down:
+	@$(COMPOSE) down
 
 stop:
-	$(COMPOSE) stop
+	@$(COMPOSE) stop
 
 start:
-	$(COMPOSE) start
+	@$(COMPOSE) start
 
-rebuild:
-	$(COMPOSE) down
-	$(COMPOSE) build --no-cache
-	$(COMPOSE) up -d
+restart:
+	@$(COMPOSE) restart
+
+rebuild: down
+	@$(COMPOSE) build --no-cache
+	@$(COMPOSE) up -d
+
+clean:
+	@$(COMPOSE) down -v --rmi all --remove-orphans
+	@docker system prune -f
+
+clean-all: clean
+	-@docker rm -f $$(docker ps -qa) 2>/dev/null || true
+	-@docker rmi -f $$(docker images -qa) 2>/dev/null || true
+	-@docker volume rm $$(docker volume ls -q) 2>/dev/null || true
+	-@docker network rm $$(docker network ls -q) 2>/dev/null || true
 
 logs:
-	$(COMPOSE) logs -f
+	@$(COMPOSE) logs -f
+
+ps:
+	@$(COMPOSE) ps
 
 logs-backend:
-	$(COMPOSE) logs -f backend
+	@$(COMPOSE) logs -f backend
 
 logs-frontend:
-	$(COMPOSE) logs -f frontend
+	@$(COMPOSE) logs -f frontend
 
 logs-db:
-	$(COMPOSE) logs -f db
+	@$(COMPOSE) logs -f db
 
 shell-backend:
 	$(COMPOSE) exec backend sh
 
 shell-frontend:
-	$(COMPOSE) exec frontend sh
+	@$(COMPOSE) exec frontend sh
 
 shell-db:
-	$(COMPOSE) exec db psql -U $(shell grep POSTGRES_USER .env | cut -d '=' -f2) -d $(shell grep POSTGRES_DB .env | cut -d '=' -f2)
-
-ps:
-	$(COMPOSE) ps
+	@$(COMPOSE) exec db psql -U $(shell grep POSTGRES_USER .env | cut -d '=' -f2) -d $(shell grep POSTGRES_DB .env | cut -d '=' -f2)
 
 migrate:
-	$(COMPOSE) exec backend npx prisma migrate deploy
+	@$(COMPOSE) exec backend npx prisma migrate deploy
 
 migrate-dev:
-	$(COMPOSE) exec backend npx prisma migrate dev
+	@$(COMPOSE) exec backend npx prisma migrate dev
 
 migrate-reset:
-	$(COMPOSE) exec backend npx prisma migrate reset
+	@$(COMPOSE) exec backend npx prisma migrate reset
 
 db-push:
-	$(COMPOSE) exec backend npx prisma db push
+	@$(COMPOSE) exec backend npx prisma db push
 
 db-seed:
-	$(COMPOSE) exec backend npx prisma db seed
-
-clean:
-	$(COMPOSE) down -v
-	docker system prune -f
+	@$(COMPOSE) exec backend npx prisma db seed
 
 prune:
-	docker system prune -af
-	docker volume prune -f
+	@docker system prune -af
+	@docker volume prune -f

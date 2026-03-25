@@ -1,10 +1,10 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { apiRequest } from "../../services/api";
-import { validateForm } from "../../utils/validator";
+import { validateForm } from "../../utils/formValidation";
+import { readImageFile } from "../../utils/fileReader";
 import { getUserFromCookie, setCookie, setUserInCookie } from "../../utils/cookies";
-import defaultAvatar from "../../assets/default-avatar.svg";
-import { alertInfo, ghostButton, slabHeading } from "../../lib/ui";
+import { slabHeading } from "../../lib/ui";
 import { cn } from "../../lib/cn";
 import {
   avatarClass,
@@ -44,7 +44,7 @@ export default function Profile() {
 
   const [user, setUser] = useState(null);
   const [kpis, setKpis] = useState(null);
-  const [formData, setFormData] = useState({
+  const [form, setForm] = useState({
     username: "",
     email: "",
     avatar: "",
@@ -82,7 +82,7 @@ export default function Profile() {
 
       setKpis(kpiData);
       setUser(syncedUser);
-      setFormData({
+      setForm({
         username: kpiData.username || "",
         email: kpiData.email || "",
         avatar: kpiData.avatar || "",
@@ -102,11 +102,15 @@ export default function Profile() {
   }, []);
 
   useEffect(() => {
+    document.title = "ft_transcendence - Profile";
+  }, [])
+
+  useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
 
   const resetFormFromUser = useCallback(() => {
-    setFormData({
+    setForm({
       username: user?.username || "",
       email: user?.email || "",
       avatar: user?.avatar || "",
@@ -114,24 +118,42 @@ export default function Profile() {
     });
   }, [user]);
 
-  const handleChange = (event) => {
-    const { name, value, type, files } = event.target;
+  const handleChange = async (e) => {
+    const { name, value, type, files } = e.target;
 
-    if (type === "file" && files?.[0]) {
-      const file = files[0];
-      const reader = new FileReader();
-      reader.onload = () => setFormData((prev) => ({ ...prev, [name]: reader.result }));
-      reader.readAsDataURL(file);
+    if (type === "file") {
+      const file = files?.[0];
+      if (!file) return;
+
+      try {
+        const file = e.target.files?.[0];
+        const dataUrl = await readImageFile(file);
+    
+        setForm(prev => ({
+          ...prev,
+          [name]: dataUrl
+        }));
+    
+        setError(null);
+      } catch (err) {
+        console.error("File processing error:", err);
+        setError(err?.message || "Something went wrong");
+      }
+      
     } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
+      setForm(prev => ({
+        ...prev,
+        [name]: value
+      }));
     }
   };
 
   const handleSave = async () => {
     setError("");
 
-    const errorMessage = validateForm(formData, {
+    const errorMessage = validateForm(form, {
       username: true,
+      bio: true,
     });
     if (errorMessage) {
       setError(errorMessage);
@@ -142,9 +164,9 @@ export default function Profile() {
       setIsSaving(true);
       const isCreate = !user;
       const payload = {
-        ...formData,
-        username: formData.username.trim(),
-        bio: formData.bio.trim(),
+        ...form,
+        username: form.username.trim(),
+        bio: form.bio.trim(),
       };
 
       const updated = await apiRequest(`/profile`, {
@@ -163,7 +185,7 @@ export default function Profile() {
           return syncedUser;
         });
         setCookie("userProfile", JSON.stringify(updatedData), 7);
-        setFormData((prev) => ({ ...prev, ...updatedData }));
+        setForm((prev) => ({ ...prev, ...updatedData }));
         setEditMode(false);
       }
     } catch (err) {
@@ -263,7 +285,7 @@ export default function Profile() {
         <div className={heroGridClass}>
           <div className={identityCardClass}>
             <div className="relative h-[140px] w-[140px]">
-              <img src={formData.avatar || defaultAvatar} alt="avatar" className={avatarClass} />
+              <img src={form.avatar} alt="avatar" className={avatarClass} />
               {editMode ? (
                 <>
                   <input
@@ -318,11 +340,11 @@ export default function Profile() {
                 {error ? <p className="rounded-[14px] border border-red-500/25 bg-red-500/10 px-[0.95rem] py-3 text-sm leading-[1.5] text-red-200">{error}</p> : null}
                 <label className={formLabelClass}>
                   <span>Username</span>
-                  <input type="text" name="username" value={formData.username} onChange={handleChange} className={formInputClass} />
+                  <input type="text" name="username" value={form.username} onChange={handleChange} className={formInputClass} />
                 </label>
                 <label className={formLabelClass}>
                   <span>Bio</span>
-                  <textarea name="bio" value={formData.bio} onChange={handleChange} rows="4" className={formTextAreaClass} />
+                  <textarea name="bio" value={form.bio} onChange={handleChange} rows="4" className={formTextAreaClass} />
                 </label>
                 <div className={buttonRowClass}>
                   <button className={mainActionButtonClass} type="button" onClick={handleSave} disabled={isSaving}>

@@ -1,26 +1,23 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { apiRequest } from "../../../services/api";
-import { connectSocket, getSocket, closeSocket } from "../../../services/socket";
-import { useSettings } from "../../../state/settings/settings.context";
-import boardsConfig from "../../../config/boards.config.json";
-import { resolveSkinAssets } from "../../../utils/skinAssets";
-import { playSound } from "../../../utils/soundPlayer";
-import { cn } from "../../../lib/cn";
+import { apiRequest } from "../../services/api";
+import { connectSocket, getSocket, closeSocket } from "../../services/socket";
+import { useSettings } from "../../state/settings/settings.context";
+import boardsConfig from "../../config/boards.config.json";
+import { resolveSkinAssets } from "../../utils/skinAssets";
+import { playSound } from "../../utils/soundPlayer";
+import { cn } from "../../lib/cn";
 import {
-  boardActionsClass,
   boardBaseClass,
-  boardChipClass,
   boardFrameClass,
-  boardMetaClass,
   boardShellClass,
   boardSkinClass,
-  boardToolbarClass,
   cellBackgroundClass,
   cellBaseClass,
   cellGlowClass,
   cellOClass,
   cellXClass,
+  roomButtonsClass,
   gameMessageClass,
   roomContainerClass,
   roomLeaveButtonClass,
@@ -29,10 +26,9 @@ import {
   roomSectionClass,
   roomTitleClass,
   statusTextClass,
-  turnIndicatorClass,
   winnerTieClass,
   winnerWinClass,
-} from "../gameUi";
+} from "./gameUi";
 
 const emptyBoard = [
   ["", "", ""],
@@ -45,8 +41,6 @@ export default function LocalGame() {
   const connectionRef = useRef(0);
   const { settings } = useSettings();
   const { xSrc, oSrc, boardSrc } = resolveSkinAssets(settings);
-  const boardLabel = boardsConfig.themes.find((theme) => theme.id === settings.board.theme)?.label || "Board";
-
   const [board, setBoard] = useState(emptyBoard);
   const [turn, setTurn] = useState("X");
   const [winner, setWinner] = useState(null);
@@ -55,6 +49,10 @@ export default function LocalGame() {
   const [message, setMessage] = useState("");
   const [lastBoardSignature, setLastBoardSignature] = useState("");
   const [isStarting, setIsStarting] = useState(false);
+
+  useEffect(() => {
+    document.title = "ft_transcendence - Playing vs Friend Locally";
+  }, [])
 
   const startGame = async () => {
     if (isStarting) {
@@ -70,7 +68,7 @@ export default function LocalGame() {
     setTurn("X");
     setWinner(null);
     setGameStatus("starting");
-    setStatusText("Starting local game...");
+    setStatusText("");
     setMessage("");
 
     try {
@@ -92,17 +90,14 @@ export default function LocalGame() {
         if (data.board) setBoard(data.board);
         if (data.turn !== undefined) setTurn(data.turn);
         if (data.game_status) setGameStatus(data.game_status);
-        if (data.status) setStatusText(data.status);
         if (data.winner) setWinner(data.winner);
-        if (data.message) setMessage(data.message);
-        if (data.error) setMessage(data.error);
+        if (data.error) setStatusText(data.error);
       };
 
       socket.onclose = () => {
         if (connectionId !== connectionRef.current) {
           return;
         }
-        setStatusText("Disconnected from server.");
       };
     } catch (error) {
       if (connectionId !== connectionRef.current) {
@@ -110,6 +105,7 @@ export default function LocalGame() {
       }
 
       setStatusText(error.message || "Failed to start local game.");
+      setMessage("");
       setGameStatus("error");
     } finally {
       if (connectionId === connectionRef.current) {
@@ -139,6 +135,14 @@ export default function LocalGame() {
     }
   }, [board, gameStatus, lastBoardSignature, settings.sound.enabled, settings.sound.selected, settings.sound.volume]);
 
+  useEffect(() => {
+    if (turn === "X") {
+      setMessage("X Turn");
+    } else {
+      setMessage("O turn");
+    }
+  }, [turn]);
+
   const handleClick = (row, col) => {
     if (board[row][col] !== "" || gameStatus !== "ongoing") return;
 
@@ -147,13 +151,6 @@ export default function LocalGame() {
       socket.send(JSON.stringify({ row, col }));
     }
   };
-
-  const winnerText =
-    winner === "Tie" || gameStatus === "tie"
-      ? "It's a Tie!"
-      : winner
-        ? `${winner} Wins!`
-        : null;
 
   const renderCellContent = (cell) => {
     if (cell === "X") {
@@ -168,37 +165,21 @@ export default function LocalGame() {
   return (
     <section className={roomSectionClass} style={roomPageStyle}>
       <div className={roomContainerClass}>
-        <h2 className={roomTitleClass}>Local Game</h2>
-        {gameStatus === "ongoing" ? (
-          <p className={turnIndicatorClass}>
-            {turn === "X" ? "Player X - your turn" : "Player O - your turn"}
-          </p>
-        ) : null}
-        {winnerText ? (
-          <div className={gameStatus === "tie" ? winnerTieClass : winnerWinClass}>{winnerText}</div>
-        ) : null}
-
+        <h2 className={roomTitleClass}>Play with your friend on the same device</h2>
+        
         <div aria-live="polite">
-          <p className={statusTextClass}>{statusText}</p>
-          {message ? <p className={gameMessageClass}>{message}</p> : null}
+          {statusText ? <p className={statusTextClass}>{statusText}</p> : null}
         </div>
 
-        <div className={boardShellClass}>
-          <div className={boardToolbarClass}>
-            <div className={boardMetaClass}>
-              <span className={boardChipClass}>Board</span>
-              <strong>{boardLabel}</strong>
-            </div>
-            <div className={boardActionsClass}>
-              <button className={roomRestartButtonClass} type="button" onClick={startGame} disabled={isStarting}>
-                Restart
-              </button>
-              <button className={roomLeaveButtonClass} type="button" onClick={() => navigate(-1)}>
-                Leave
-              </button>
-            </div>
-          </div>
+        {gameStatus === "ongoing" ? (
+          <p className={gameMessageClass}>{message}</p>
+        ) : null}
 
+        { gameStatus === "win" ? <div className={winnerWinClass}>`${winner} Wins!`</div> : null}
+
+        {gameStatus === "tie" ? <div className={winnerTieClass}>It's a Tie!</div> : null}
+
+        <div className={boardShellClass}>
           <div
             className={cn(boardBaseClass, boardSrc && boardFrameClass)}
             style={boardSrc ? { backgroundImage: `url(${boardSrc})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}
@@ -224,6 +205,16 @@ export default function LocalGame() {
             )}
           </div>
         </div>
+
+        <div className={roomButtonsClass}>
+          <button className={roomRestartButtonClass} type="button" onClick={startGame} disabled={isStarting}>
+            Restart
+          </button>
+          <button className={roomLeaveButtonClass} type="button" onClick={() => navigate(-1)}>
+            Leave
+          </button>
+        </div>
+
       </div>
     </section>
   );

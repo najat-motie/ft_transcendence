@@ -33,9 +33,8 @@ export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    const session = getUser();
-    setIsLoggedIn(Boolean(session?.user?.userId && session?.accessToken));
-  }, []);
+    document.title = "ft_transcendence - Home";
+  }, [])
 
   return (
     <div className="min-h-screen" style={pageStyle}>
@@ -55,11 +54,6 @@ export default function Home() {
 
             <div className="mt-[1.7rem] flex flex-wrap gap-[0.8rem]">
               <Link to="/play" className={primaryButtonClass}>Play Now</Link>
-              {isLoggedIn ? (
-                <Link to="/profile" className={ghostButtonClass}>My Profile</Link>
-              ) : (
-                <Link to="/register" className={ghostButtonClass}>Create Account</Link>
-              )}
             </div>
 
             <div className="mt-[1.8rem] grid gap-[0.7rem] min-[681px]:grid-cols-3 max-[680px]:grid-cols-1" aria-label="Platform statistics">

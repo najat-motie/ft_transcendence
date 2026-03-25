@@ -5,7 +5,6 @@ import logo from "../assets/logo.png";
 import { apiRequest } from "../services/api.js";
 import { logout } from "../services/auth.js";
 import { getUserFromCookie, getUserProfileFromCookie } from "../utils/cookies.js";
-import defaultAvatar from "../assets/default-avatar.svg";
 import { cn } from "../lib/cn.js";
 
 const navItemClass = ({ isActive }) =>
@@ -118,7 +117,7 @@ export default function SideBar() {
                 aria-haspopup="menu"
               >
                 <img
-                  src={user?.avatar || defaultAvatar}
+                  src={user?.avatar}
                   alt="avatar"
                   className="h-[42px] w-[42px] rounded-full border-2 border-yellow-400 object-cover"
                 />
@@ -127,13 +126,12 @@ export default function SideBar() {
 
               {open ? (
                 <div className="absolute bottom-[110%] left-0 right-0 z-[100] mb-2 flex min-w-full w-max flex-col gap-[0.2rem] rounded-[14px] border border-white/10 bg-slate-900 p-[0.4rem] shadow-[0_-10px_30px_rgba(0,0,0,0.45),0_0_0_1px_rgba(255,255,255,0.03)]">
-                  <Link
-                    to="/profile"
-                    onClick={closeSidebar}
-                    className="flex items-center rounded-[10px] px-[0.8rem] py-[0.65rem] text-[0.9rem] font-medium text-slate-200 transition hover:bg-white/[0.06] hover:no-underline"
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center rounded-[10px] px-[0.8rem] py-[0.65rem] text-[0.9rem] font-medium text-red-400 transition hover:bg-red-400/10"
                   >
-                    View Profile
-                  </Link>
+                    Logout
+                  </button>
                   <Link
                     to="/settings"
                     onClick={closeSidebar}
@@ -141,12 +139,13 @@ export default function SideBar() {
                   >
                     Settings
                   </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="flex items-center rounded-[10px] px-[0.8rem] py-[0.65rem] text-[0.9rem] font-medium text-red-400 transition hover:bg-red-400/10"
+                  <Link
+                    to="/profile"
+                    onClick={closeSidebar}
+                    className="flex items-center rounded-[10px] px-[0.8rem] py-[0.65rem] text-[0.9rem] font-medium text-slate-200 transition hover:bg-white/[0.06] hover:no-underline"
                   >
-                    Logout
-                  </button>
+                    View Profile
+                  </Link>
                 </div>
               ) : null}
             </div>

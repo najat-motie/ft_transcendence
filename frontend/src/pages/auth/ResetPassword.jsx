@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { validateForm } from "../../utils/validator";
+import { validateForm } from "../../utils/formValidation";
 import { apiRequest } from "../../services/api";
 import {
   alertError,
@@ -29,6 +29,10 @@ export default function ResetPassword() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    document.title = "ft_transcendence - Reset Password";
+  }, []);
 
   const handleSubmit = async (event) => {
     event.preventDefault();

@@ -15,6 +15,10 @@ function OAuthCallback() {
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
+    document.title = "ft_transcendence - OAuth 42";
+  }, []);
+
+  useEffect(() => {
     const syncOAuthUser = async () => {
       const accessToken = searchParams.get("accessToken");
       const refreshToken = searchParams.get("refreshToken");
