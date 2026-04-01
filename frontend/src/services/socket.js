@@ -1,4 +1,5 @@
 let socket = null;
+let connectionId = 0;
 
 import { getUser } from "./auth";
 
@@ -20,7 +21,6 @@ const resolveSocketUrl = (path, baseUrl) => {
   if (path.startsWith("ws://") || path.startsWith("wss://")) {
     return path;
   }
-
   return `${baseUrl}${path}`;
 };
 
@@ -34,27 +34,43 @@ export const connectSocket = (path = "", options = {}) => {
     return socket;
   }
 
+  const myId = ++connectionId;
+
   if (socket) {
     socket.close();
   }
 
-  socket = new WebSocket(targetUrl);
+  let reconnectAttempts = 0;
 
-  socket.onerror = (error) => {
-    console.error("WebSocket error:", error);
+  const connect = () => {
+    if (connectionId !== myId) return;
+
+    socket = new WebSocket(targetUrl);
+
+    socket.onopen = () => {
+      reconnectAttempts = 0;
+    };
+
+    socket.onclose = () => {
+      socket = null;
+      if (connectionId !== myId) return;
+
+      setTimeout(() => {
+        if (connectionId !== myId) return;
+        reconnectAttempts++;
+        connect();
+      }, Math.min(1000 * reconnectAttempts + 1000, 30000));
+    };
   };
 
-  socket.onclose = () => {
-    console.log("WebSocket disconnected");
-    socket = null;
-  };
-
+  connect();
   return socket;
 };
 
 export const getSocket = () => socket;
 
 export const closeSocket = () => {
+  connectionId++;
   if (socket) {
     socket.close();
     socket = null;

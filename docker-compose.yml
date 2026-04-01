@@ -1,8 +1,20 @@
 
 services:
 
+  frontend:
+    build: ./frontend
+    image: ft_frontend:1337
+    container_name: ft_frontend
+    pull_policy: if_not_present
+    environment:
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL}
+      VITE_WS_BASE_URL: ${VITE_WS_BASE_URL}
+    networks:
+      - ft_transcendence
+
   backend:
     build: ./backend
+    image: ft_backend:1337
     container_name: ft_backend
     pull_policy: if_not_present
     environment:
@@ -34,6 +46,7 @@ services:
 
   game:
     build: ./game
+    image: ft_game:1337
     container_name: ft_game
     pull_policy: if_not_present
     environment:
@@ -61,16 +74,6 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
-
-  frontend:
-    build: ./frontend
-    container_name: ft_frontend
-    pull_policy: if_not_present
-    environment:
-      VITE_API_BASE_URL: ${VITE_API_BASE_URL}
-      VITE_WS_BASE_URL: ${VITE_WS_BASE_URL}
-    networks:
-      - ft_transcendence
 
   caddy:
     image: caddy:2

@@ -30,8 +30,9 @@ help:
 	@echo "  make db-seed        - Seed the database"
 	@echo ""
 	@echo "  make ps             - Show running containers"
-	@echo "  make clean          - Stop and remove containers, networks, volumes"
 	@echo "  make prune          - Remove all unused Docker resources"
+	@echo "  make clean          - Stop and remove containers, networks, volumes"
+	@echo "  make clean-all      - Remove all Docker resources (WARNING: this will delete resources from ALL projects)"
 
 build:
 	@$(COMPOSE) build
@@ -58,6 +59,10 @@ rebuild: down
 	@$(COMPOSE) build --no-cache
 	@$(COMPOSE) up -d
 
+prune:
+	@docker system prune -af
+	@docker volume prune -f
+	
 clean:
 	@$(COMPOSE) down -v --rmi all --remove-orphans
 	@docker system prune -f
@@ -106,7 +111,3 @@ db-push:
 
 db-seed:
 	@$(COMPOSE) exec backend npx prisma db seed
-
-prune:
-	@docker system prune -af
-	@docker volume prune -f

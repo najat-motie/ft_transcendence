@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { validateForm } from "../../utils/formValidation";
+import { validateForm } from "../../utils/formValidator";
 import { apiRequest } from "../../services/api";
 import {
   alertError,
