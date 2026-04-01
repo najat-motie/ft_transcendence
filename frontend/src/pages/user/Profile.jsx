@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { apiRequest } from "../../services/api";
-import { validateForm } from "../../utils/formValidation";
+import { validateForm } from "../../utils/formValidator";
 import { readImageFile } from "../../utils/fileReader";
 import { getUserFromCookie, setCookie, setUserInCookie } from "../../utils/cookies";
 import { slabHeading } from "../../lib/ui";
@@ -40,7 +40,7 @@ export default function Profile() {
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("");
 
   const [user, setUser] = useState(null);
   const [kpis, setKpis] = useState(null);
@@ -119,6 +119,7 @@ export default function Profile() {
   }, [user]);
 
   const handleChange = async (e) => {
+    setError("")
     const { name, value, type, files } = e.target;
 
     if (type === "file") {
@@ -134,9 +135,8 @@ export default function Profile() {
           [name]: dataUrl
         }));
     
-        setError(null);
+        setError("");
       } catch (err) {
-        console.error("File processing error:", err);
         setError(err?.message || "Something went wrong");
       }
       
@@ -196,14 +196,14 @@ export default function Profile() {
   };
 
   const handleCancelEdit = () => {
-    setError(null);
+    setError("");
     resetFormFromUser();
     setEditMode(false);
   };
 
   const retry = () => {
     setLoading(true);
-    setError(null);
+    setError("");
     fetchProfile();
   };
 

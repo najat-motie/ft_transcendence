@@ -85,7 +85,8 @@ export default function OnlineGame() {
     if (socket.readyState === WebSocket.OPEN) {
       sendPlayerId();
     } else {
-      socket.onopen = sendPlayerId;
+      // socket.onopen = sendPlayerId;
+      socket.addEventListener("open", sendPlayerId);
     }
 
     socket.onmessage = (event) => {
@@ -97,16 +98,21 @@ export default function OnlineGame() {
       if (data.turn !== undefined) setTurn(data.turn);
       if (data.game_status) setGameStatus(data.game_status);
       if (data.winner) setWinner(data.winner);
-      if (data.last_move !== undefined) setLastMove(data.last_move);
       if (data.message) setMessage(data.message);
-      if (data.status) setStatusText(data.status);
+      // if (data.status) setStatusText(data.status);
+      // if (data.last_move !== undefined) setLastMove(data.last_move);
       if (data.error) setMessage(data.error);
     };
 
-    socket.onclose = () => {
-      setStatusText(`${opponentName} disconnected from server.`);
+    // socket.onclose = () => {
+    //   setMessage("");
+    //   setStatusText("disconnected from server.");
+    // };
+
+    socket.addEventListener("close", () => {
       setMessage("");
-    };
+      setStatusText("disconnected from server.");
+    });
 
     return () => {
       closeSocket();
@@ -200,7 +206,7 @@ export default function OnlineGame() {
           {statusText ? <p className={statusTextClass}>{statusText}</p> : null}
         </div>
 
-        {gameStatus === "ongoing" || gameStatus === "ongoing" ? (
+        {gameStatus === "Waiting" || gameStatus === "ongoing" ? (
           <p className={gameMessageClass}>{message}</p>
         ) : null}
 

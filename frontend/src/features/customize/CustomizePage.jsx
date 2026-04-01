@@ -60,7 +60,6 @@ export default function CustomizePage() {
             type="button"
             onClick={() => {
               saveSettings(settings);
-              console.log(JSON.stringify(settings, null, 2));
             }}
           >
             Save settings

@@ -71,7 +71,7 @@ export default function AIGame() {
     "You're challenging me 👀",
     "Let's see what happens next!",
   ];
-  const aiUsername = user ? "NovaBot" : "AI";
+  const aiUsername = NovaBot;
 
   useEffect(() => {
     document.title = "ft_transcendence - Playing vs AI";
@@ -121,7 +121,7 @@ export default function AIGame() {
         if (connectionId !== connectionRef.current) {
           return;
         }
-        setStatusText(`${aiUsername}` + " disconnected from server.");
+        setStatusText("disconnected from server.");
         setMessage("");
       };
     } catch (error) {

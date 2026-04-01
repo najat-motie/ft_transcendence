@@ -26,7 +26,6 @@ function OAuthCallback() {
       const email = searchParams.get("email");
 
       if (!accessToken || !refreshToken || !userId || !email) {
-        console.error("Missing OAuth callback parameters");
         navigate("/login");
         return;
       }

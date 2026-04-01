@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { apiRequest } from "../../services/api";
 import { readImageFile } from "../../utils/fileReader";
-import { validateForm } from "../../utils/formValidation";
+import { validateForm } from "../../utils/formValidator";
 import {
   alertError,
   alertSuccess,
@@ -74,9 +74,8 @@ export default function Register() {
           [name]: dataUrl
         }));
     
-        setError(null);
+        setError("");
       } catch (err) {
-        console.error("File processing error:", err);
         setError(err?.message || "Something went wrong");
       }
       
@@ -172,6 +171,7 @@ export default function Register() {
         </aside>
 
         <form
+          key={step}
           onSubmit={handleRegister}
           className={`${frostedPanelStrong} grid content-center gap-4 p-[clamp(1.35rem,3vw,2rem)]`}
         >

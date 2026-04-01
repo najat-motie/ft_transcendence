@@ -139,7 +139,7 @@ export default function LocalGame() {
     if (turn === "X") {
       setMessage("X Turn");
     } else {
-      setMessage("O turn");
+      setMessage("O Turn");
     }
   }, [turn]);
 

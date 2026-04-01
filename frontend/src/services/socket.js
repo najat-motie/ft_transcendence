@@ -40,12 +40,9 @@ export const connectSocket = (path = "", options = {}) => {
 
   socket = new WebSocket(targetUrl);
 
-  socket.onerror = (error) => {
-    console.error("WebSocket error:", error);
-  };
+  socket.onerror = (error) => {};
 
   socket.onclose = () => {
-    console.log("WebSocket disconnected");
     socket = null;
   };
 
