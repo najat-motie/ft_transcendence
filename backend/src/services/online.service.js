@@ -173,6 +173,7 @@ const initializeGameRoom = async (playerX, playerO) => {
     finished: false,
     persisted: false,
     closing: false,
+    disconnectTimer: null,
     turn: 'X',
     finalState: null,
     lock: Promise.resolve(),

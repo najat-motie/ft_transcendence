@@ -6,6 +6,7 @@ const aiSessionService = require('../services/ai-session.service');
 const ONLINE_ROOM_PATH = /^\/ws\/online\/([^/]+)$/;
 const OFFLINE_ROOM_PATH = /^\/ws\/offline\/([^/]+)$/;
 const AI_ROOM_PATH = /^\/ws\/ai\/([^/]+)$/;
+const ONLINE_DISCONNECT_GRACE_MS = 1500;
 
 const sendJson = (socket, payload) => {
   if (socket.readyState === WebSocket.OPEN) {
@@ -33,6 +34,11 @@ const closeOnlineRoom = async (room, reason, winnerId = null) => {
   }
 
   room.closing = true;
+
+  if (room.disconnectTimer) {
+    clearTimeout(room.disconnectTimer);
+    room.disconnectTimer = null;
+  }
 
   if (!room.finished && winnerId && room.roles[winnerId]) {
     room.finalState = {
@@ -137,6 +143,11 @@ const handleOnlineJoin = async (socket, room, playerId) => {
     return;
   }
 
+  if (room.disconnectTimer) {
+    clearTimeout(room.disconnectTimer);
+    room.disconnectTimer = null;
+  }
+
   socket.playerId = playerId;
   room.sockets.set(playerId, socket);
 
@@ -149,19 +160,20 @@ const handleOnlineJoin = async (socket, room, playerId) => {
   });
 
   if (room.sockets.size < 2) {
-    sendJson(socket, { message: 'Waiting for the other player to connect.' });
+    sendJson(socket, {
+      message: room.started
+        ? 'Waiting for the other player to reconnect.'
+        : 'Waiting for the other player to connect.',
+    });
     return;
   }
-
-  if (room.started) {
-    return;
-  }
-
-  room.started = true;
 
   try {
-    broadcast(room, { message: 'Enabled: Game Start' });
     const state = await onlineService.fetchGameState(room.gameId);
+    if (!room.started) {
+      room.started = true;
+      broadcast(room, { message: 'Enabled: Game Start' });
+    }
     room.turn = state.turn || room.turn;
     broadcast(room, state);
   } catch (error) {
@@ -202,6 +214,10 @@ const attachOnlineConnection = (socket, room) => {
     }
 
     await onlineService.withRoomLock(room, async () => {
+      if (room.closing) {
+        return;
+      }
+
       if (room.sockets.get(socket.playerId) === socket) {
         room.sockets.delete(socket.playerId);
       }
@@ -213,13 +229,40 @@ const attachOnlineConnection = (socket, room) => {
         return;
       }
 
-      if (room.sockets.size > 0) {
-        const remainingId = Array.from(room.sockets.keys())[0];
-        await closeOnlineRoom(room, 'A player disconnected.', remainingId);
-        return;
+      if (room.disconnectTimer) {
+        clearTimeout(room.disconnectTimer);
       }
 
-      await closeOnlineRoom(room);
+      room.disconnectTimer = setTimeout(() => {
+        onlineService.withRoomLock(room, async () => {
+          room.disconnectTimer = null;
+
+          if (room.closing) {
+            return;
+          }
+
+          if (room.finished) {
+            if (room.sockets.size === 0) {
+              await closeOnlineRoom(room);
+            }
+            return;
+          }
+
+          if (room.sockets.size >= 2) {
+            return;
+          }
+
+          if (room.sockets.size > 0) {
+            const remainingId = Array.from(room.sockets.keys())[0];
+            await closeOnlineRoom(room, 'A player disconnected.', remainingId);
+            return;
+          }
+
+          await closeOnlineRoom(room);
+        }).catch((error) => {
+          console.error('Failed to close online room after disconnect:', error.message);
+        });
+      }, ONLINE_DISCONNECT_GRACE_MS);
     });
   });
 
@@ -423,7 +466,7 @@ const attachOnlineGateway = (server) => {
     try {
       const cookieHeader = request.headers.cookie || '';
       const cookies = require('cookie').parse(cookieHeader);
-      const token = requestUrl.searchParams.get('token') || cookies.jwt_access;
+      const token = cookies.jwt_access || requestUrl.searchParams.get('token');
 
       if (token) {
         const decoded = require('jsonwebtoken').verify(token, process.env.JWT_ACCESS_SECRET);
