@@ -98,12 +98,10 @@ Open your browser and go to https://localhost.
 AI tools were used as a development assistant for:
 
 * Debugging and understanding errors
+* Generating ideas for testing scenarios
 * Suggesting code structure improvements and best practices
 * Writing and improving documentation (README)
-* Generating ideas for testing scenarios
 * Design assistance for project branding (logo and favicon generation)
-
-⚠️ AI was not used to generate core application logic or replace development work
 
 ---
 
@@ -459,16 +457,16 @@ Minor modules = 4 → 4 points
 - Game customization features
 - Application state (user data, authentication tokens, loading states)
 - Error handling using Error Boundaries
-- Infrastructure setup (Docker, environment config)
 - Privacy and legal pages
+- Infrastructure setup (Docker, environment config)
 
 **Technical Details**:
 - Built responsive UI using Tailwind CSS utility classes
 - Implemented customization features (themes, skins, audio)
 - Managed UI state (authentication, loading, error states) for a smoother user experience
 - Improved application stability through proper error handling and fallback UI
-- Configured Docker environment and reverse proxy setup
 - Implemented privacy policy and terms of service pages
+- Configured Docker environment and reverse proxy setup
 
 **Challenges & Solutions**:
 - *Challenge*:  

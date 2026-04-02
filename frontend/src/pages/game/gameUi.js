@@ -24,7 +24,7 @@ export const matchmakingPageStyle = {
 };
 
 export const playShellClass = `${frostedPanel} mx-auto w-full max-w-[1180px] px-[clamp(1.25rem,3vw,3rem)] py-[clamp(1.25rem,3vw,3rem)]`;
-export const playCardClass = "flex min-h-full flex-col justify-between gap-6 rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(30,41,59,0.94),rgba(15,23,42,0.92))] p-[clamp(1.1rem,2vw,1.6rem)] backdrop-blur-[10px] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition duration-200 hover:-translate-y-1.5 hover:border-yellow-400/30 hover:shadow-[0_18px_35px_rgba(2,6,23,0.28)]";
+export const playCardClass = "min-w-[240px] max-w-[280px] flex-grow flex min-h-full flex-col justify-between gap-6 rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(30,41,59,0.94),rgba(15,23,42,0.92))] p-[clamp(1.1rem,2vw,1.6rem)] backdrop-blur-[10px] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition duration-200 hover:-translate-y-1.5 hover:border-yellow-400/30 hover:shadow-[0_18px_35px_rgba(2,6,23,0.28)]";
 export const playCardButtonClass = "inline-flex min-h-12 w-full items-center justify-center rounded-[14px] bg-[linear-gradient(135deg,#facc15,#f59e0b)] px-4 py-[0.85rem] text-[0.98rem] font-bold text-slate-900 transition duration-200 hover:brightness-105";
 
 export const actionSectionClass = "flex min-h-screen items-start justify-center px-[clamp(1rem,4vw,3rem)] py-[clamp(1rem,4vw,3rem)] text-slate-200";

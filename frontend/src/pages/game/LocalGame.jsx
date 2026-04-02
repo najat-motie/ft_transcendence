@@ -175,7 +175,7 @@ export default function LocalGame() {
           <p className={gameMessageClass}>{message}</p>
         ) : null}
 
-        { gameStatus === "win" ? <div className={winnerWinClass}>`${winner} Wins!`</div> : null}
+        { gameStatus === "win" ? <div className={winnerWinClass}>{winner} Wins!</div> : null}
 
         {gameStatus === "tie" ? <div className={winnerTieClass}>It's a Tie!</div> : null}
 
