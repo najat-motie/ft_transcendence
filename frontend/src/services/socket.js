@@ -1,13 +1,9 @@
 let socket = null;
+let connectionId = 0;
 
 import { getUser } from "./auth";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const DEFAULT_WS_BASE_URL =
-  import.meta.env.VITE_WS_BASE_URL ||
-  API_BASE_URL.replace(/^http/i, (protocol) =>
-    protocol.toLowerCase() === "https" ? "wss" : "ws"
-  );
+const DEFAULT_WS_BASE_URL = import.meta.env.VITE_WS_BASE_URL;
 
 const appendToken = (url, token) => {
   if (!token) return url;
@@ -20,7 +16,6 @@ const resolveSocketUrl = (path, baseUrl) => {
   if (path.startsWith("ws://") || path.startsWith("wss://")) {
     return path;
   }
-
   return `${baseUrl}${path}`;
 };
 
@@ -34,24 +29,43 @@ export const connectSocket = (path = "", options = {}) => {
     return socket;
   }
 
+  const myId = ++connectionId;
+
   if (socket) {
     socket.close();
   }
 
-  socket = new WebSocket(targetUrl);
+  let reconnectAttempts = 0;
 
-  socket.onerror = (error) => {};
+  const connect = () => {
+    if (connectionId !== myId) return;
 
-  socket.onclose = () => {
-    socket = null;
+    socket = new WebSocket(targetUrl);
+
+    socket.onopen = () => {
+      reconnectAttempts = 0;
+    };
+
+    socket.onclose = () => {
+      socket = null;
+      if (connectionId !== myId) return;
+
+      setTimeout(() => {
+        if (connectionId !== myId) return;
+        reconnectAttempts++;
+        connect();
+      }, Math.min(1000 * reconnectAttempts + 1000, 30000));
+    };
   };
 
+  connect();
   return socket;
 };
 
 export const getSocket = () => socket;
 
 export const closeSocket = () => {
+  connectionId++;
   if (socket) {
     socket.close();
     socket = null;

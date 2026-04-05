@@ -85,7 +85,6 @@ export default function OnlineGame() {
     if (socket.readyState === WebSocket.OPEN) {
       sendPlayerId();
     } else {
-      // socket.onopen = sendPlayerId;
       socket.addEventListener("open", sendPlayerId);
     }
 
@@ -99,15 +98,8 @@ export default function OnlineGame() {
       if (data.game_status) setGameStatus(data.game_status);
       if (data.winner) setWinner(data.winner);
       if (data.message) setMessage(data.message);
-      // if (data.status) setStatusText(data.status);
-      // if (data.last_move !== undefined) setLastMove(data.last_move);
       if (data.error) setMessage(data.error);
     };
-
-    // socket.onclose = () => {
-    //   setMessage("");
-    //   setStatusText("disconnected from server.");
-    // };
 
     socket.addEventListener("close", () => {
       setMessage("");
@@ -206,7 +198,7 @@ export default function OnlineGame() {
           {statusText ? <p className={statusTextClass}>{statusText}</p> : null}
         </div>
 
-        {gameStatus === "Waiting" || gameStatus === "ongoing" ? (
+        {gameStatus === "waiting" || gameStatus === "ongoing" ? (
           <p className={gameMessageClass}>{message}</p>
         ) : null}
 
@@ -249,7 +241,7 @@ export default function OnlineGame() {
           <button className={primaryRoomButtonClass}  type="button" onClick={handleRestart}>
             Restart
           </button>
-          <button className={dangerRoomButtonClass}  type="button" onClick={() => navigate(-1)}>
+          <button className={dangerRoomButtonClass}  type="button" onClick={() => navigate("/play")}>
             Leave
           </button>
         </div>

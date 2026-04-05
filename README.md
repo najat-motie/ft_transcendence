@@ -98,12 +98,10 @@ Open your browser and go to https://localhost.
 AI tools were used as a development assistant for:
 
 * Debugging and understanding errors
+* Generating ideas for testing scenarios
 * Suggesting code structure improvements and best practices
 * Writing and improving documentation (README)
-* Generating ideas for testing scenarios
 * Design assistance for project branding (logo and favicon generation)
-
-⚠️ AI was not used to generate core application logic or replace development work
 
 ---
 
@@ -229,11 +227,6 @@ The backend handles business logic, authentication, and real-time communication:
 
 ## Database Schema
 
-### Overview
-
-The database is built using PostgreSQL and managed with Prisma.
-It follows a relational model with normalized tables to ensure data integrity, scalability, and maintainability.
-
 ### Entity Relationship Diagram
 
 ```
@@ -338,70 +331,6 @@ It follows a relational model with normalized tables to ensure data integrity, s
 
 ```
 
-### Relationships
-
-- **User ↔ UserProfile (1:1)**  
-  Each user has exactly one profile containing public and gameplay-related data.
-
-- **UserProfile → FriendRequest (1:N)**  
-  Users can send and receive multiple friend requests.
-
-- **UserProfile → Friendship (1:N)**  
-  Represents established relationships between users.
-
-- **UserProfile → Message (1:N)**  
-  Enables messaging between users.
-
-- **User → RefreshToken / ResetToken (1:N)**  
-  Supports session management and password recovery.
-
-- **User → OAuthAccount (1:N)**  
-  Links users to external authentication providers.
-
-### Key Fields and Data Types
-
-**User**
-id — UUID (Primary Key)
-- email — String (unique)
-- password — String (nullable for OAuth users)
-- isActive — Boolean
-- createdAt, updatedAt — DateTime
-
-**UserProfile**
-- userId — UUID (PK + Foreign Key)
-- username — String (unique)
-- avatar, bio — String (optional)
-- level, experience, wins, losses, rank — Integer
-- status — String (online/offline/away)
-- lastSeen — DateTime
-
-**FriendRequest**
-- senderId, receiverId — UUID (Foreign Keys)
-- status — String (pending/accepted)
-- message — String (optional)
-- createdAt, updatedAt — DateTime
-
-**Friendship**
-- user1Id, user2Id — UUID (Foreign Keys)
-- createdAt, updatedAt — DateTime
-- Unique constraint prevents duplicate friendships
-
-**Message**
-- senderId, receiverId — UUID (Foreign Keys)
-- content — String
-- isRead — Boolean
-- createdAt, updatedAt — DateTime
-
-**Token Tables (RefreshToken / ResetToken)**
-- token — String (unique)
-- userId — UUID (Foreign Key)
-- expiresAt — DateTime
-
-**OAuthAccount**
-- provider — String (e.g., "42")
-- accountId — String
-- data — JSON (optional)
-
 ### Key Constraints
 
 * User email is globally unique (prevents duplicate accounts)
@@ -423,18 +352,18 @@ id — UUID (Primary Key)
 | OAuth 2.0 (42 Login) | abattagi | abattagi: OAuth flow and callback implementation |
 | User Profiles | abattagi, nmotie- | abattagi: API & database • nmotie-: UI display and editing |
 | Friends System | abattagi | abattagi: friend requests, relationships, and status logic |
-| Real-Time Gameplay | jmayou, nmotie- | jmayou: server-side logic • nmotie-: client-side state handling |
-| Multiplayer Matchmaking | jmayou | jmayou: player matching and session management |
-| Private Game Rooms | jmayou | jmayou: room creation and join system |
+| API Integration | nmotie- | nmotie-: centralized request handling and API connection |
+| Database Management | abattagi | abattagi: schema design, Prisma, and migrations |
 | Tic-Tac-Toe Game Logic | jmayou | jmayou: core game rules and state transitions |
 | AI Opponent | jmayou | jmayou: AI logic and behavior balancing |
+| Multiplayer Matchmaking | jmayou | jmayou: player matching and session management |
+| Private Game Rooms | jmayou | jmayou: room creation and join system |
+| Real-Time Gameplay | jmayou, nmotie- | jmayou: server-side logic • nmotie-: client-side state handling |
+| WebSocket Connection Handling | jmayou, nmotie- | jmayou: server events • nmotie-: client synchronization |
 | Game Customization | ien-niou | ien-niou: state logic and UI controls |
 | Gamification System | abattagi, ien-niou | abattagi: backend stats • ien-niou: frontend display |
 | Responsive UI | ien-niou | ien-niou: layout, responsiveness, and styling |
-| WebSocket Connection Handling | jmayou, nmotie- | jmayou: server events • nmotie-: client synchronization |
-| Error Handling (Error Boundary) | ien-niou | ien-niou: frontend error boundary and fallback UI |
-| API Integration | nmotie- | nmotie-: centralized request handling and API connection |
-| Database Management | abattagi | abattagi: schema design, Prisma, and migrations |
+| Privacy & Legal Compliance | ien-niou | ien-niou: privacy policy and terms of service |
 
 ### Feature Descriptions
 
@@ -449,11 +378,11 @@ id — UUID (Primary Key)
 - **AI Opponent**: Competitive AI with human-like behavior
 - **Game Customization**: Themes, board styles, X/O skins, and sound settings
 - **Gamification System**: XP, levels, rankings, and match statistics
-- **Responsive UI**: Mobile-friendly interface with adaptive layout
 - **WebSocket Connection Handling**: Handles connection, disconnection, and reconnection
-- **Error Handling (Error Boundary)**: Prevents app crashes and shows fallback UI on errors
 - **API Integration**: Frontend communication with backend services
 - **Database Management**: Schema, migrations, and data handling with ORM
+- **Responsive UI**: Mobile-friendly interface with adaptive layout
+- **Privacy & Legal Compliance**: Providing users with clear information about data usage, user rights, and platform terms
 
 ---
 
@@ -462,12 +391,12 @@ id — UUID (Primary Key)
 | Module                          | Points | Justification                                       | Implementation                                             | Team Members       |
 | --------------------------------| ------ | --------------------------------------------------- | ---------------------------------------------------------- | ------------------ |
 | Frameworks (Frontend + Backend) | 2      | Required for full-stack SPA and API architecture    | React (Vite + Router) frontend + Express backend APIs      | nmotie-, abattagi  |
-| Real-Time Features (WebSockets) | 2      | Core requirement for real-time multiplayer gameplay | WebSocket rooms, live game-state sync, disconnect handling | jmayou, nmotie-    |
-| ORM (Prisma)                    | 1      | Simplifies database access and schema management    | Prisma schema, migrations, DB queries                      | abattagi           |
 | User Management & Authentication| 2      | Core system for security and user identity          | JWT auth, refresh tokens, profiles, friends system         | abattagi, nmotie-  |
 | OAuth 2.0 (42 Login)            | 1      | Enables external authentication integration         | 42 OAuth login + callback flow                             | abattagi           |
+| ORM (Prisma)                    | 1      | Simplifies database access and schema management    | Prisma schema, migrations, DB queries                      | abattagi           |
 | AI Opponent                     | 2      | Adds single-player gameplay experience              | AI logic for Tic-Tac-Toe with balanced difficulty          | jmayou             |
 | Web-Based Multiplayer Game      | 2      | Core playable game feature                          | Game rules, win/draw detection, online matchmaking         | jmayou             |
+| Real-Time Features (WebSockets) | 2      | Core requirement for real-time multiplayer gameplay | WebSocket rooms, live game-state sync, disconnect handling | jmayou, nmotie-    |
 | Remote Multiplayer System       | 2      | Enables real-time cross-device gameplay             | Sync, latency handling, reconnection system                | jmayou, nmotie-    |
 | Game Customization              | 1      | Improves user experience and personalization        | Themes, skins, sound settings, defaults                    | ien-niou           |
 | Gamification System             | 1      | Increases engagement and progression                | XP, wins/losses, leaderboard stats                         | abattagi, ien-niou |
@@ -494,13 +423,12 @@ Minor modules = 4 → 4 points
 - Modeled database schema and relationships using Prisma ORM
 - Implemented JWT authentication with refresh token flow
 - Integrated 42 OAuth using authorization and callback routes
+- Developed user profile management (profile data, avatars, stats)
 - Built friend system with request lifecycle (send/accept/reject)
 
 **Challenges & Solutions**:
-- *Challenge*: Secure authentication and token management  
-  *Solution*: Implemented refresh token rotation and protected routes
-- *Challenge*: Managing relational data (users, friends)  
-  *Solution*: Used Prisma relations and optimized queries
+- *Challenge*:  
+  *Solution*:
 
 ### nmotie-
 
@@ -519,31 +447,30 @@ Minor modules = 4 → 4 points
 - Connected WebSocket client to handle real-time updates in UI
 
 **Challenges & Solutions**:
-- *Challenge*: Synchronizing UI state with real-time WebSocket updates  
-  *Solution*: Introduced centralized state handling and event-based updates to ensure consistency
-- *Challenge*: Handling WebSocket disconnections and reconnections in real-time gameplay  
-  *Solution*: Implemented connection lifecycle management with reconnection logic and server-side session recovery to maintain game continuity
+- *Challenge*: Handling WebSocket disconnections in real-time gameplay  
+  *Solution*: Implemented connection lifecycle management with automatic reconnection
 
 ### ien-niou
 
 **Contributions**:
 - UI styling (Tailwind CSS)
 - Game customization features
-- Error and loading handling
-- Infrastructure setup (Docker, environment config)
+- Application state (user data, authentication tokens, loading states)
+- Error handling using Error Boundaries
 - Privacy and legal pages
+- Infrastructure setup (Docker, environment config)
 
 **Technical Details**:
 - Built responsive UI using Tailwind CSS utility classes
 - Implemented customization features (themes, skins, audio)
-- Managed UI states for loading and error handling to improve user experience
+- Managed UI state (authentication, loading, error states) for a smoother user experience
+- Improved application stability through proper error handling and fallback UI
+- Implemented privacy policy and terms of service pages
 - Configured Docker environment and reverse proxy setup
 
 **Challenges & Solutions**:
-- *Challenge*: Maintaining consistent UI across devices  
-  *Solution*: Used responsive design patterns and tested multiple screen sizes
-- *Challenge*: Managing global UI state  
-  *Solution*: Structured state logic for scalability and maintainability
+- *Challenge*:  
+  *Solution*:
 
 ### jmayou
 
@@ -560,7 +487,5 @@ Minor modules = 4 → 4 points
 - Developed AI logic with non-perfect decision-making
 
 **Challenges & Solutions:**
-- *Challenge*: Handling real-time synchronization between players  
-  *Solution*: Implemented event-based updates and server-side validation
-- *Challenge*: Making AI competitive but not unbeatable  
-  *Solution*: Balanced decision logic to simulate human-like gameplay  
+- *Challenge*:  
+  *Solution*:
