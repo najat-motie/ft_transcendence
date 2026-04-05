@@ -62,7 +62,7 @@ export default function GameLobby() {
           </p>
         </div>
 
-        <div className="grid items-stretch gap-[clamp(1rem,2vw,1.5rem)] [grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))] max-[640px]:grid-cols-1">
+        <div className="flex flex-wrap justify-center gap-4">
           {gameModes.map((mode) => (
             <article key={mode.title} className={playCardClass}>
               <div className="grid gap-[0.85rem]">

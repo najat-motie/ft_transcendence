@@ -71,7 +71,7 @@ export default function AIGame() {
     "You're challenging me 👀",
     "Let's see what happens next!",
   ];
-  const aiUsername = NovaBot;
+  const aiUsername = "NovaBot";
 
   useEffect(() => {
     document.title = "ft_transcendence - Playing vs AI";

@@ -32,7 +32,7 @@ help:
 	@echo "  make ps             - Show running containers"
 	@echo "  make prune          - Remove all unused Docker resources"
 	@echo "  make clean          - Stop and remove containers, networks, volumes"
-	@echo "  make clean-all      - Remove all Docker resources (WARNING: this will delete resources from ALL projects)"
+	@echo "  make clean-all      - Remove all Docker resources (⚠️ this will delete resources from ALL projects)"
 
 build:
 	@$(COMPOSE) build
