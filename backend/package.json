@@ -11,8 +11,7 @@
     "test:coverage": "jest --coverage",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
-    "prisma:studio": "prisma studio",
-    "seed:admin": "node scripts/create-admin.js"
+    "prisma:studio": "prisma studio"
   },
   "keywords": [
     "authentication",

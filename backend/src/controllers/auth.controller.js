@@ -1,43 +1,14 @@
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
-const fs = require('fs');
-const path = require('path');
 const prisma = require('../config/database');
 const tokenService = require('../services/token.service');
 const oauthService = require('../services/oauth.service');
 const { formatAvatarUrl, generateDefaultAvatarUrl } = require('../utils/avatar');
-
-const AVATAR_DIR = path.join(__dirname, '..', '..', 'uploads', 'avatars');
+const { saveAvatarIfProvided } = require('../utils/avatar-storage');
+const { sendServerError, getDevelopmentError } = require('../utils/controller');
 
 function isHttpsRequest(req) {
   return req.secure || req.headers['x-forwarded-proto'] === 'https';
-}
-
-function ensureAvatarDir() {
-  if (!fs.existsSync(AVATAR_DIR)) {
-    fs.mkdirSync(AVATAR_DIR, { recursive: true });
-  }
-}
-
-function saveAvatarIfProvided(avatarPayload) {
-  if (!avatarPayload) return null;
-
-  const match = avatarPayload.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
-  if (!match) {
-    return avatarPayload;
-  }
-
-  const mime = match[1];
-  const base64Data = match[2];
-  const extension = mime.split('/')[1] || 'png';
-  const filename = `avatar-${Date.now()}-${Math.round(Math.random() * 1e6)}.${extension}`;
-
-  ensureAvatarDir();
-  const filePath = path.join(AVATAR_DIR, filename);
-  const buffer = Buffer.from(base64Data, 'base64');
-  fs.writeFileSync(filePath, buffer);
-
-  return `/uploads/avatars/${filename}`;
 }
 
 async function generateUniqueUsername(tx, desiredUsername, email) {
@@ -115,17 +86,7 @@ const register = async (req, res) => {
     });
   } catch (error) {
     console.error('Registration error:', error);
-    let errorMessage;
-    if (process.env.NODE_ENV === 'development') {
-      errorMessage = error.message;
-    } else {
-      errorMessage = undefined;
-    }
-    return res.status(500).json({
-      success: false,
-      message: 'Registration failed',
-      error: errorMessage,
-    });
+    return sendServerError(res, 'Registration failed', error);
   }
 };
 
@@ -200,17 +161,7 @@ const login = async (req, res) => {
     });
   } catch (error) {
     console.error('Login error:', error);
-    let errorMessage;
-    if (process.env.NODE_ENV === 'development') {
-      errorMessage = error.message;
-    } else {
-      errorMessage = undefined;
-    }
-    return res.status(500).json({
-      success: false,
-      message: 'Login failed',
-      error: errorMessage,
-    });
+    return sendServerError(res, 'Login failed', error);
   }
 };
 
@@ -240,17 +191,7 @@ const logout = async (req, res) => {
     });
   } catch (error) {
     console.error('Logout error:', error);
-    let errorMessage;
-    if (process.env.NODE_ENV === 'development') {
-      errorMessage = error.message;
-    } else {
-      errorMessage = undefined;
-    }
-    return res.status(500).json({
-      success: false,
-      message: 'Login failed',
-      error: errorMessage,
-    });
+    return sendServerError(res, 'Login failed', error);
   }
 };
 
@@ -288,17 +229,7 @@ const refresh = async (req, res) => {
     });
   } catch (error) {
     console.error('Refresh error:', error);
-    let errorMessage;
-    if (process.env.NODE_ENV === 'development') {
-      errorMessage = error.message;
-    } else {
-      errorMessage = undefined;
-    }
-    return res.status(500).json({
-      success: false,
-      message: 'Token refresh failed',
-      error: errorMessage,
-    });
+    return sendServerError(res, 'Token refresh failed', error);
   }
 };
 
@@ -351,17 +282,7 @@ const changePassword = async (req, res) => {
     });
   } catch (error) {
     console.error('Change password error:', error);
-    let errorMessage;
-    if (process.env.NODE_ENV === 'development') {
-      errorMessage = error.message;
-    } else {
-      errorMessage = undefined;
-    }
-    return res.status(500).json({
-      success: false,
-      message: 'Password change failed',
-      error: errorMessage,
-    });
+    return sendServerError(res, 'Password change failed', error);
   }
 };
 
@@ -387,27 +308,11 @@ const requestPasswordReset = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'If an account with this email exists, a password reset link has been sent.',
-      data: (() => {
-        if (process.env.NODE_ENV === 'development') {
-          return { resetToken };
-        } else {
-          return undefined;
-        }
-      })(),
+      data: process.env.NODE_ENV === 'development' ? { resetToken } : undefined,
     });
   } catch (error) {
     console.error('Password reset request error:', error);
-    let errorMessage;
-    if (process.env.NODE_ENV === 'development') {
-      errorMessage = error.message;
-    } else {
-      errorMessage = undefined;
-    }
-    return res.status(500).json({
-      success: false,
-      message: 'Password reset request failed',
-      error: errorMessage,
-    });
+    return sendServerError(res, 'Password reset request failed', error);
   }
 };
 
@@ -458,17 +363,7 @@ const completePasswordReset = async (req, res) => {
     });
   } catch (error) {
     console.error('Password reset error:', error);
-    let errorMessage;
-    if (process.env.NODE_ENV === 'development') {
-      errorMessage = error.message;
-    } else {
-      errorMessage = undefined;
-    }
-    return res.status(500).json({
-      success: false,
-      message: 'Password reset failed',
-      error: errorMessage,
-    });
+    return sendServerError(res, 'Password reset failed', error);
   }
 };
 
@@ -496,16 +391,10 @@ const oauth42Login = async (req, res) => {
     return res.redirect(authUrl);
   } catch (error) {
     console.error('OAuth 42 login error:', error);
-    let errorDetails;
-    if (process.env.NODE_ENV === 'development') {
-      errorDetails = error.message;
-    } else {
-      errorDetails = undefined;
-    }
     return res.status(500).json({
       success: false,
       message: 'OAuth login failed',
-      error: errorDetails,
+      error: getDevelopmentError(error),
     });
   }
 };

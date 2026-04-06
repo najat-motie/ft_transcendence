@@ -76,37 +76,50 @@ export default function OnlineGame() {
       return;
     }
 
-    const socket = connectSocket(wsPath);
+    let isMounted = true;
 
-    const sendPlayerId = () => {
-      socket.send(JSON.stringify({ player_id: savedUser.userId }));
-    };
+    connectSocket(wsPath, {
+      onOpen: (_, openedSocket) => {
+        if (!isMounted || openedSocket.readyState !== WebSocket.OPEN) {
+          return;
+        }
 
-    if (socket.readyState === WebSocket.OPEN) {
-      sendPlayerId();
-    } else {
-      socket.addEventListener("open", sendPlayerId);
-    }
+        openedSocket.send(JSON.stringify({ player_id: savedUser.userId }));
+        setStatusText("");
+      },
+      onMessage: (event) => {
+        if (!isMounted) {
+          return;
+        }
 
-    socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
+        let data;
+        try {
+          data = JSON.parse(event.data);
+        } catch {
+          return;
+        }
 
-      if (data.role) setRole(data.role);
-      if (data.players) setPlayers(mapPlayers(data.players, savedUser.userId));
-      if (data.board) setBoard(data.board);
-      if (data.turn !== undefined) setTurn(data.turn);
-      if (data.game_status) setGameStatus(data.game_status);
-      if (data.winner) setWinner(data.winner);
-      if (data.message) setMessage(data.message);
-      if (data.error) setMessage(data.error);
-    };
+        if (data.role) setRole(data.role);
+        if (data.players) setPlayers(mapPlayers(data.players, savedUser.userId));
+        if (data.board) setBoard(data.board);
+        if (data.turn !== undefined) setTurn(data.turn);
+        if (data.game_status) setGameStatus(data.game_status);
+        if (data.winner) setWinner(data.winner);
+        if (data.message) setMessage(data.message);
+        if (data.error) setMessage(data.error);
+      },
+      onClose: () => {
+        if (!isMounted) {
+          return;
+        }
 
-    socket.addEventListener("close", () => {
-      setMessage("");
-      setStatusText("disconnected from server.");
+        setMessage("");
+        setStatusText("Reconnecting to server...");
+      },
     });
 
     return () => {
+      isMounted = false;
       closeSocket();
     };
   }, [navigate, savedUser?.userId, wsPath]);

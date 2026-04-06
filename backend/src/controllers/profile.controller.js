@@ -1,36 +1,7 @@
-const fs = require('fs');
-const path = require('path');
 const prisma = require('../config/database');
 const { formatAvatarUrl, generateDefaultAvatarUrl } = require('../utils/avatar');
-
-const AVATAR_DIR = path.join(__dirname, '..', '..', 'uploads', 'avatars');
-
-const ensureAvatarDir = () => {
-  if (!fs.existsSync(AVATAR_DIR)) {
-    fs.mkdirSync(AVATAR_DIR, { recursive: true });
-  }
-};
-
-const saveAvatarIfProvided = (avatarPayload) => {
-  if (!avatarPayload) return null;
-
-  const match = avatarPayload.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
-  if (!match) {
-    return avatarPayload;
-  }
-
-  const mime = match[1];
-  const base64Data = match[2];
-  const extension = mime.split('/')[1] || 'png';
-  const filename = `avatar-${Date.now()}-${Math.round(Math.random() * 1e6)}.${extension}`;
-
-  ensureAvatarDir();
-  const filePath = path.join(AVATAR_DIR, filename);
-  const buffer = Buffer.from(base64Data, 'base64');
-  fs.writeFileSync(filePath, buffer);
-
-  return `/uploads/avatars/${filename}`;
-};
+const { saveAvatarIfProvided } = require('../utils/avatar-storage');
+const { sendServerError, parsePagination } = require('../utils/controller');
 
 const getProfileKpis = async (req, res) => {
   try {
@@ -73,22 +44,16 @@ const getProfileKpis = async (req, res) => {
     ]);
 
     const totalMatches = profile.wins + profile.losses;
-    let winRate;
-    if (totalMatches > 0) {
-      winRate = Number(((profile.wins / totalMatches) * 100).toFixed(2));
-    } else {
-      winRate = 0;
-    }
+    const winRate = totalMatches > 0
+      ? Number(((profile.wins / totalMatches) * 100).toFixed(2))
+      : 0;
 
-    let accountAgeDays;
-    if (profile.user?.createdAt) {
-      accountAgeDays = Math.max(
+    const accountAgeDays = profile.user?.createdAt
+      ? Math.max(
         0,
         Math.floor((Date.now() - new Date(profile.user.createdAt).getTime()) / (1000 * 60 * 60 * 24))
-      );
-    } else {
-      accountAgeDays = null;
-    }
+      )
+      : null;
 
     const kpis = {
       userId: profile.userId,
@@ -121,17 +86,7 @@ const getProfileKpis = async (req, res) => {
     });
   } catch (error) {
     console.error('Get profile KPIs error:', error);
-    let errorMessage;
-    if (process.env.NODE_ENV === 'development') {
-      errorMessage = error.message;
-    } else {
-      errorMessage = undefined;
-    }
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to fetch profile KPIs',
-      error: errorMessage,
-    });
+    return sendServerError(res, 'Failed to fetch profile KPIs', error);
   }
 };
 
@@ -164,17 +119,7 @@ const getProfile = async (req, res) => {
     });
   } catch (error) {
     console.error('Get profile error:', error);
-    let errorMessage;
-    if (process.env.NODE_ENV === 'development') {
-      errorMessage = error.message;
-    } else {
-      errorMessage = undefined;
-    }
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to fetch profile',
-      error: errorMessage,
-    });
+    return sendServerError(res, 'Failed to fetch profile', error);
   }
 };
 
@@ -226,17 +171,7 @@ const createProfile = async (req, res) => {
     });
   } catch (error) {
     console.error('Create profile error:', error);
-    let errorMessage;
-    if (process.env.NODE_ENV === 'development') {
-      errorMessage = error.message;
-    } else {
-      errorMessage = undefined;
-    }
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to create profile',
-      error: errorMessage,
-    });
+    return sendServerError(res, 'Failed to create profile', error);
   }
 };
 
@@ -290,17 +225,7 @@ const updateProfile = async (req, res) => {
     });
   } catch (error) {
     console.error('Update profile error:', error);
-    let errorMessage;
-    if (process.env.NODE_ENV === 'development') {
-      errorMessage = error.message;
-    } else {
-      errorMessage = undefined;
-    }
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to update profile',
-      error: errorMessage,
-    });
+    return sendServerError(res, 'Failed to update profile', error);
   }
 };
 
@@ -335,23 +260,14 @@ const updateStatus = async (req, res) => {
     });
   } catch (error) {
     console.error('Update status error:', error);
-    let errorMessage;
-    if (process.env.NODE_ENV === 'development') {
-      errorMessage = error.message;
-    } else {
-      errorMessage = undefined;
-    }
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to update status',
-      error: errorMessage,
-    });
+    return sendServerError(res, 'Failed to update status', error);
   }
 };
 
 const getLeaderboard = async (req, res) => {
   try {
-    const { limit = 10, offset = 0 } = req.query;
+    const { limit, offset } = parsePagination(req.query);
+    const effectiveLimit = limit || 10;
 
     const leaderboard = await prisma.userProfile.findMany({
       orderBy: [
@@ -359,8 +275,8 @@ const getLeaderboard = async (req, res) => {
         { level: 'desc' },
         { experience: 'desc' },
       ],
-      take: parseInt(limit),
-      skip: parseInt(offset),
+      take: effectiveLimit,
+      skip: offset,
       include: {
         user: {
           select: { id: true, email: true },
@@ -380,23 +296,13 @@ const getLeaderboard = async (req, res) => {
       data: leaderboardWithAvatars,
       pagination: {
         total,
-        limit: parseInt(limit),
-        offset: parseInt(offset),
+        limit: effectiveLimit,
+        offset,
       },
     });
   } catch (error) {
     console.error('Get leaderboard error:', error);
-    let errorMessage;
-    if (process.env.NODE_ENV === 'development') {
-      errorMessage = error.message;
-    } else {
-      errorMessage = undefined;
-    }
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to fetch leaderboard',
-      error: errorMessage,
-    });
+    return sendServerError(res, 'Failed to fetch leaderboard', error);
   }
 };
 
@@ -416,23 +322,13 @@ const updateStats = async (req, res) => {
       });
     }
 
+    const didWin = Boolean(win);
+
     const updatedProfile = await prisma.userProfile.update({
       where: { userId },
       data: {
-        wins: (() => {
-          if (win) {
-            return profile.wins + 1;
-          } else {
-            return profile.wins;
-          }
-        })(),
-        losses: (() => {
-          if (!win) {
-            return profile.losses + 1;
-          } else {
-            return profile.losses;
-          }
-        })(),
+        wins: didWin ? profile.wins + 1 : profile.wins,
+        losses: didWin ? profile.losses : profile.losses + 1,
         ...(experience && { experience: profile.experience + experience }),
         ...(level && { level }),
         ...(rank !== undefined && { rank }),
@@ -449,17 +345,7 @@ const updateStats = async (req, res) => {
     });
   } catch (error) {
     console.error('Update stats error:', error);
-    let errorMessage;
-    if (process.env.NODE_ENV === 'development') {
-      errorMessage = error.message;
-    } else {
-      errorMessage = undefined;
-    }
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to update stats',
-      error: errorMessage,
-    });
+    return sendServerError(res, 'Failed to update stats', error);
   }
 };
 

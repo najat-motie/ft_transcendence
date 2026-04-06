@@ -1,5 +1,6 @@
 const prisma = require('../config/database');
 const { formatAvatarUrl } = require('../utils/avatar');
+const { sendServerError, parsePagination } = require('../utils/controller');
 
 const mapProfile = (profile) => ({
   id: profile.user.id,
@@ -10,12 +11,31 @@ const mapProfile = (profile) => ({
   online: profile.status === 'online',
 });
 
-const getDevelopmentError = (error) => {
-  if (process.env.NODE_ENV === 'development') {
-    return error.message;
-  }
-  return undefined;
-};
+const findFriendRequestById = (requestId) => prisma.friendRequest.findUnique({
+  where: { id: requestId },
+});
+
+const mapIncomingRequest = (request) => ({
+  id: request.id,
+  userId: request.sender.id,
+  senderId: request.sender.id,
+  username: request.sender.profile?.username || request.sender.email,
+  avatar: formatAvatarUrl(request.sender.profile?.avatar || null, request.sender.id),
+  status: request.status,
+  userStatus: request.sender.profile?.status || 'offline',
+  createdAt: request.createdAt,
+});
+
+const mapOutgoingRequest = (request) => ({
+  id: request.id,
+  userId: request.receiver.id,
+  receiverId: request.receiver.id,
+  username: request.receiver.profile?.username || request.receiver.email,
+  avatar: formatAvatarUrl(request.receiver.profile?.avatar || null, request.receiver.id),
+  status: request.status,
+  userStatus: request.receiver.profile?.status || 'offline',
+  createdAt: request.createdAt,
+});
 
 const sendFriendRequest = async (req, res) => {
   try {
@@ -118,12 +138,7 @@ const sendFriendRequest = async (req, res) => {
     });
   } catch (error) {
     console.error('Send friend request error:', error);
-    const errorMessage = getDevelopmentError(error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to send friend request',
-      error: errorMessage,
-    });
+    return sendServerError(res, 'Failed to send friend request', error);
   }
 };
 
@@ -132,9 +147,7 @@ const acceptFriendRequest = async (req, res) => {
     const userId = req.user.userId;
     const { requestId } = req.params;
 
-    const friendRequest = await prisma.friendRequest.findUnique({
-      where: { id: requestId },
-    });
+    const friendRequest = await findFriendRequestById(requestId);
 
     if (!friendRequest) {
       return res.status(404).json({
@@ -181,12 +194,7 @@ const acceptFriendRequest = async (req, res) => {
     });
   } catch (error) {
     console.error('Accept friend request error:', error);
-    const errorMessage = getDevelopmentError(error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to accept friend request',
-      error: errorMessage,
-    });
+    return sendServerError(res, 'Failed to accept friend request', error);
   }
 };
 
@@ -195,9 +203,7 @@ const rejectFriendRequest = async (req, res) => {
     const userId = req.user.userId;
     const { requestId } = req.params;
 
-    const friendRequest = await prisma.friendRequest.findUnique({
-      where: { id: requestId },
-    });
+    const friendRequest = await findFriendRequestById(requestId);
 
     if (!friendRequest) {
       return res.status(404).json({
@@ -225,12 +231,7 @@ const rejectFriendRequest = async (req, res) => {
     });
   } catch (error) {
     console.error('Reject friend request error:', error);
-    const errorMessage = getDevelopmentError(error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to reject friend request',
-      error: errorMessage,
-    });
+    return sendServerError(res, 'Failed to reject friend request', error);
   }
 };
 
@@ -239,9 +240,7 @@ const cancelFriendRequest = async (req, res) => {
     const userId = req.user.userId;
     const { requestId } = req.params;
 
-    const friendRequest = await prisma.friendRequest.findUnique({
-      where: { id: requestId },
-    });
+    const friendRequest = await findFriendRequestById(requestId);
 
     if (!friendRequest) {
       return res.status(404).json({
@@ -275,12 +274,7 @@ const cancelFriendRequest = async (req, res) => {
     });
   } catch (error) {
     console.error('Cancel friend request error:', error);
-    const errorMessage = getDevelopmentError(error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to cancel friend request',
-      error: errorMessage,
-    });
+    return sendServerError(res, 'Failed to cancel friend request', error);
   }
 };
 
@@ -305,16 +299,7 @@ const getIncomingFriendRequests = async (req, res) => {
       orderBy: { createdAt: 'desc' },
     });
 
-    const data = requests.map((request) => ({
-      id: request.id,
-      userId: request.sender.id,
-      senderId: request.sender.id,
-      username: request.sender.profile?.username || request.sender.email,
-      avatar: formatAvatarUrl(request.sender.profile?.avatar || null, request.sender.id),
-      status: request.status,
-      userStatus: request.sender.profile?.status || 'offline',
-      createdAt: request.createdAt,
-    }));
+    const data = requests.map(mapIncomingRequest);
 
     return res.status(200).json({
       success: true,
@@ -322,12 +307,7 @@ const getIncomingFriendRequests = async (req, res) => {
     });
   } catch (error) {
     console.error('Get incoming friend requests error:', error);
-    const errorMessage = getDevelopmentError(error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to fetch friend requests',
-      error: errorMessage,
-    });
+    return sendServerError(res, 'Failed to fetch friend requests', error);
   }
 };
 
@@ -352,16 +332,7 @@ const getOutgoingFriendRequests = async (req, res) => {
       orderBy: { createdAt: 'desc' },
     });
 
-    const data = requests.map((request) => ({
-      id: request.id,
-      userId: request.receiver.id,
-      receiverId: request.receiver.id,
-      username: request.receiver.profile?.username || request.receiver.email,
-      avatar: formatAvatarUrl(request.receiver.profile?.avatar || null, request.receiver.id),
-      status: request.status,
-      userStatus: request.receiver.profile?.status || 'offline',
-      createdAt: request.createdAt,
-    }));
+    const data = requests.map(mapOutgoingRequest);
 
     return res.status(200).json({
       success: true,
@@ -369,26 +340,22 @@ const getOutgoingFriendRequests = async (req, res) => {
     });
   } catch (error) {
     console.error('Get outgoing friend requests error:', error);
-    const errorMessage = getDevelopmentError(error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to fetch outgoing requests',
-      error: errorMessage,
-    });
+    return sendServerError(res, 'Failed to fetch outgoing requests', error);
   }
 };
 
 const getFriends = async (req, res) => {
   try {
     const userId = req.user.userId;
-    const { limit = 50, offset = 0 } = req.query;
+    const { limit, offset } = parsePagination(req.query);
+    const effectiveLimit = limit || 50;
 
     const friendships = await prisma.friendship.findMany({
       where: {
         OR: [{ user1Id: userId }, { user2Id: userId }],
       },
-      take: parseInt(limit, 10),
-      skip: parseInt(offset, 10),
+      take: effectiveLimit,
+      skip: offset,
     });
 
     const friendIds = friendships.map((f) => {
@@ -402,7 +369,7 @@ const getFriends = async (req, res) => {
       return res.status(200).json({
         success: true,
         data: [],
-        pagination: { limit: parseInt(limit, 10), offset: parseInt(offset, 10) },
+        pagination: { limit: effectiveLimit, offset },
       });
     }
 
@@ -419,18 +386,13 @@ const getFriends = async (req, res) => {
       success: true,
       data: friends,
       pagination: {
-        limit: parseInt(limit, 10),
-        offset: parseInt(offset, 10),
+        limit: effectiveLimit,
+        offset,
       },
     });
   } catch (error) {
     console.error('Get friends error:', error);
-    const errorMessage = getDevelopmentError(error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to fetch friends list',
-      error: errorMessage,
-    });
+    return sendServerError(res, 'Failed to fetch friends list', error);
   }
 };
 
@@ -465,12 +427,7 @@ const removeFriend = async (req, res) => {
     });
   } catch (error) {
     console.error('Remove friend error:', error);
-    const errorMessage = getDevelopmentError(error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to remove friend',
-      error: errorMessage,
-    });
+    return sendServerError(res, 'Failed to remove friend', error);
   }
 };
 
@@ -523,12 +480,7 @@ const checkFriendship = async (req, res) => {
     });
   } catch (error) {
     console.error('Check friendship error:', error);
-    const errorMessage = getDevelopmentError(error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to check friendship',
-      error: errorMessage,
-    });
+    return sendServerError(res, 'Failed to check friendship', error);
   }
 };
 

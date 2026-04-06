@@ -6,6 +6,9 @@ import {
   setUserInCookie,
 } from "../utils/cookies";
 
+const accessTokenKey = (userId) => `accessToken_${userId}`;
+const refreshTokenKey = (userId) => `refreshToken_${userId}`;
+
 export function setUser(session, days = 7) {
   const user = session?.user ?? session;
   const accessToken = session?.accessToken;
@@ -16,11 +19,11 @@ export function setUser(session, days = 7) {
   }
 
   if (user?.userId && accessToken) {
-    setCookie(`accessToken_${user.userId}`, accessToken, days);
+    setCookie(accessTokenKey(user.userId), accessToken, days);
   }
 
   if (user?.userId && refreshToken) {
-    setCookie(`refreshToken_${user.userId}`, refreshToken, days);
+    setCookie(refreshTokenKey(user.userId), refreshToken, days);
   }
 }
 
@@ -30,8 +33,8 @@ export function getUser() {
 
   return {
     user,
-    accessToken: getCookie(`accessToken_${user.userId}`),
-    refreshToken: getCookie(`refreshToken_${user.userId}`),
+    accessToken: getCookie(accessTokenKey(user.userId)),
+    refreshToken: getCookie(refreshTokenKey(user.userId)),
   };
 }
 
@@ -42,7 +45,11 @@ export function clearUser(userId) {
 export function logout(userId) {
   const id = userId ?? getUserFromCookie()?.userId;
   deleteCookie("user");
-  deleteCookie(`accessToken_${id}`);
-  deleteCookie(`refreshToken_${id}`);
+
+  if (id) {
+    deleteCookie(accessTokenKey(id));
+    deleteCookie(refreshTokenKey(id));
+  }
+
   deleteCookie("userProfile");
 }
