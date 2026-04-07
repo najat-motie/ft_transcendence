@@ -78,27 +78,31 @@ export default function LocalGame() {
         return;
       }
 
-      const socket = connectSocket(session.ws_path);
+      connectSocket(session.ws_path, {
+        autoReconnect: false,
+        onMessage: (event) => {
+          if (connectionId !== connectionRef.current) {
+            return;
+          }
 
-      socket.onmessage = (event) => {
-        if (connectionId !== connectionRef.current) {
-          return;
-        }
+          const data = JSON.parse(event.data);
 
-        const data = JSON.parse(event.data);
-
-        if (data.board) setBoard(data.board);
-        if (data.turn !== undefined) setTurn(data.turn);
-        if (data.game_status) setGameStatus(data.game_status);
-        if (data.winner) setWinner(data.winner);
-        if (data.error) setStatusText(data.error);
-      };
-
-      socket.onclose = () => {
-        if (connectionId !== connectionRef.current) {
-          return;
-        }
-      };
+          if (data.board) setBoard(data.board);
+          if (data.turn !== undefined) setTurn(data.turn);
+          if (data.game_status) setGameStatus(data.game_status);
+          if (data.winner) setWinner(data.winner);
+          if (data.error) {
+            setStatusText(data.error);
+            return;
+          }
+          setStatusText("");
+        },
+        onClose: () => {
+          if (connectionId !== connectionRef.current) {
+            return;
+          }
+        },
+      });
     } catch (error) {
       if (connectionId !== connectionRef.current) {
         return;

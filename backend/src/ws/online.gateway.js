@@ -1,4 +1,6 @@
 const { WebSocketServer, WebSocket } = require('ws');
+const cookie = require('cookie');
+const jwt = require('jsonwebtoken');
 const onlineService = require('../services/online.service');
 const offlineService = require('../services/offline.service');
 const aiSessionService = require('../services/ai-session.service');
@@ -6,7 +8,8 @@ const aiSessionService = require('../services/ai-session.service');
 const ONLINE_ROOM_PATH = /^\/ws\/online\/([^/]+)$/;
 const OFFLINE_ROOM_PATH = /^\/ws\/offline\/([^/]+)$/;
 const AI_ROOM_PATH = /^\/ws\/ai\/([^/]+)$/;
-const ONLINE_DISCONNECT_GRACE_MS = 1500;
+const ONLINE_DISCONNECT_GRACE_MS = 5000;
+const SINGLE_PLAYER_DISCONNECT_GRACE_MS = 5000;
 
 const sendJson = (socket, payload) => {
   if (socket.readyState === WebSocket.OPEN) {
@@ -25,6 +28,13 @@ const parseJsonMessage = (rawMessage) => {
 const broadcast = (room, payload) => {
   for (const socket of room.sockets.values()) {
     sendJson(socket, payload);
+  }
+};
+
+const clearSinglePlayerDisconnectTimer = (session) => {
+  if (session.disconnectTimer) {
+    clearTimeout(session.disconnectTimer);
+    session.disconnectTimer = null;
   }
 };
 
@@ -131,16 +141,24 @@ const handleOnlineMove = async (socket, room, playerId, message) => {
 };
 
 const handleOnlineJoin = async (socket, room, playerId) => {
+  if (socket.authUserId && socket.authUserId !== playerId) {
+    sendJson(socket, { error: 'Authenticated user does not match player_id.' });
+    socket.close();
+    return;
+  }
+
   if (!room.roles[playerId]) {
     sendJson(socket, { error: 'Unknown player_id for this game.' });
     socket.close();
     return;
   }
 
-  if (room.sockets.has(playerId)) {
-    sendJson(socket, { error: 'This player is already connected.' });
-    socket.close();
-    return;
+  const previousSocket = room.sockets.get(playerId);
+  if (previousSocket && previousSocket !== socket) {
+    room.sockets.delete(playerId);
+    if (previousSocket.readyState === WebSocket.OPEN) {
+      previousSocket.close();
+    }
   }
 
   if (room.disconnectTimer) {
@@ -218,9 +236,11 @@ const attachOnlineConnection = (socket, room) => {
         return;
       }
 
-      if (room.sockets.get(socket.playerId) === socket) {
-        room.sockets.delete(socket.playerId);
+      if (room.sockets.get(socket.playerId) !== socket) {
+        return;
       }
+
+      room.sockets.delete(socket.playerId);
 
       if (room.finished) {
         if (room.sockets.size === 0) {
@@ -279,6 +299,7 @@ const closeSinglePlayerSession = async (session, service) => {
   }
 
   session.closing = true;
+  clearSinglePlayerDisconnectTimer(session);
 
   if (session.socket && session.socket.readyState === WebSocket.OPEN) {
     session.socket.close();
@@ -286,6 +307,20 @@ const closeSinglePlayerSession = async (session, service) => {
 
   session.socket = null;
   await service.releaseSession(session.gameId);
+};
+
+const scheduleSinglePlayerRelease = (session, service) => {
+  clearSinglePlayerDisconnectTimer(session);
+  session.disconnectTimer = setTimeout(() => {
+    service.withSessionLock(session, async () => {
+      if (session.closing || session.socket) {
+        return;
+      }
+      await closeSinglePlayerSession(session, service);
+    }).catch((error) => {
+      console.error('Failed to close single-player session after disconnect:', error.message);
+    });
+  }, SINGLE_PLAYER_DISCONNECT_GRACE_MS);
 };
 
 const handleSinglePlayerMove = async (socket, session, service, errorPrefix, message) => {
@@ -323,13 +358,17 @@ const handleSinglePlayerMove = async (socket, session, service, errorPrefix, mes
 
 const attachSinglePlayerConnection = async (socket, session, service, startErrorMessage, moveErrorPrefix) => {
   await service.withSessionLock(session, async () => {
-    if (session.socket) {
-      sendJson(socket, { error: 'This game already has an active connection.' });
-      socket.close();
-      return;
+    clearSinglePlayerDisconnectTimer(session);
+
+    if (session.socket && session.socket !== socket) {
+      if (session.socket.readyState === WebSocket.OPEN) {
+        session.socket.close();
+      }
+      session.socket = null;
     }
 
     session.socket = socket;
+    session.closing = false;
 
     try {
       sendJson(socket, {
@@ -364,10 +403,18 @@ const attachSinglePlayerConnection = async (socket, session, service, startError
 
   socket.on('close', async () => {
     await service.withSessionLock(session, async () => {
-      if (session.socket === socket) {
-        session.socket = null;
+      if (session.socket !== socket) {
+        return;
       }
-      await closeSinglePlayerSession(session, service);
+
+      session.socket = null;
+
+      if (session.finished) {
+        await closeSinglePlayerSession(session, service);
+        return;
+      }
+
+      scheduleSinglePlayerRelease(session, service);
     });
   });
 
@@ -397,10 +444,31 @@ const resolveGatewayRoute = (pathname) => {
   return null;
 };
 
+const verifySocketAccessToken = (request) => {
+  const requestUrl = new URL(request.url, `http://${request.headers.host}`);
+  const cookies = cookie.parse(request.headers.cookie || '');
+  const candidates = [
+    requestUrl.searchParams.get('token'),
+    cookies.jwt_access,
+    cookies.accessToken,
+  ].filter(Boolean);
+
+  for (const candidate of candidates) {
+    try {
+      return jwt.verify(candidate, process.env.JWT_ACCESS_SECRET);
+    } catch (error) {
+    }
+  }
+
+  return null;
+};
+
 const attachOnlineGateway = (server) => {
   const wss = new WebSocketServer({ noServer: true });
 
   wss.on('connection', async (socket, request, route) => {
+    socket.authUserId = request.user?.userId || null;
+
     if (route.kind === 'online') {
       const room = onlineService.getRoom(route.gameId);
 
@@ -463,25 +531,15 @@ const attachOnlineGateway = (server) => {
     }
 
     const requireAuth = route.kind === 'online';
-    try {
-      const cookieHeader = request.headers.cookie || '';
-      const cookies = require('cookie').parse(cookieHeader);
-      const token = cookies.jwt_access || requestUrl.searchParams.get('token');
+    const decoded = verifySocketAccessToken(request);
 
-      if (token) {
-        const decoded = require('jsonwebtoken').verify(token, process.env.JWT_ACCESS_SECRET);
-        request.user = decoded;
-      } else if (requireAuth) {
-        throw new Error('No token');
-      } else {
-        request.user = { userId: 'guest' };
-      }
-    } catch (error) {
-      if (requireAuth) {
-        socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
-        socket.destroy();
-        return;
-      }
+    if (decoded) {
+      request.user = decoded;
+    } else if (requireAuth) {
+      socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+      socket.destroy();
+      return;
+    } else {
       request.user = { userId: 'guest' };
     }
 

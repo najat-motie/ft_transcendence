@@ -41,6 +41,36 @@ async function ensureUserProfile(userId, usernameSuggestion, avatarUrl = null) {
   });
 }
 
+function get42AvatarUrl(oauthData) {
+  return oauthData?.image?.versions?.large
+    || oauthData?.image?.versions?.medium
+    || oauthData?.image?.link
+    || oauthData?.image_url
+    || null;
+}
+
+async function syncOAuth42Profile(userId, usernameSuggestion, avatarUrl = null) {
+  const existing = await prisma.userProfile.findUnique({ where: { userId } });
+
+  if (!existing) {
+    return ensureUserProfile(userId, usernameSuggestion, avatarUrl);
+  }
+
+  const generatedDefaultAvatar = generateDefaultAvatarUrl(userId);
+  const shouldReplaceAvatar = avatarUrl && (!existing.avatar || existing.avatar === generatedDefaultAvatar);
+
+  if (!shouldReplaceAvatar) {
+    return existing;
+  }
+
+  return prisma.userProfile.update({
+    where: { userId },
+    data: {
+      avatar: avatarUrl,
+    },
+  });
+}
+
 const exchange42Code = async (code) => {
   try {
     const response = await axios.post(
@@ -79,6 +109,7 @@ const get42UserInfo = async (accessToken) => {
 
 const findOrCreateUserFrom42 = async (oauthData) => {
   const { id: accountId, email, login } = oauthData;
+  const avatarUrl = get42AvatarUrl(oauthData);
 
   let oauthAccount = await prisma.oAuthAccount.findUnique({
     where: {
@@ -93,6 +124,7 @@ const findOrCreateUserFrom42 = async (oauthData) => {
   });
 
   if (oauthAccount) {
+    await syncOAuth42Profile(oauthAccount.user.id, login, avatarUrl);
     return oauthAccount.user;
   }
 
@@ -118,7 +150,7 @@ const findOrCreateUserFrom42 = async (oauthData) => {
     },
   });
 
-  await ensureUserProfile(user.id, login, oauthData.image_url || null);
+  await syncOAuth42Profile(user.id, login, avatarUrl);
 
   return user;
 };

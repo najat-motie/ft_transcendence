@@ -21,6 +21,6 @@ RUN mkdir -p /app/certs \
             -subj "/CN=game" \
             -addext "subjectAltName=DNS:game,DNS:localhost,IP:127.0.0.1"
 
-EXPOSE 8443
+EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8443", "--app-dir", "/app/src", "--ssl-keyfile", "/app/certs/game.key", "--ssl-certfile", "/app/certs/game.crt"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--app-dir", "/app/src", "--ssl-keyfile", "/app/certs/game.key", "--ssl-certfile", "/app/certs/game.crt"]

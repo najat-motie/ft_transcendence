@@ -12,6 +12,7 @@ const { randomUUID } = require('crypto');
 const matchService = require('./match.service');
 
 const GAME_SERVICE_URL = process.env.GAME_SERVICE_URL || 'https://localhost:8443';
+const ONLINE_ROOM_GC_MS = 30000;
 
 const matchmakingQueue = [];
 const queuedPlayers = new Set();
@@ -189,7 +190,7 @@ const initializeGameRoom = async (playerX, playerO) => {
       console.log(`[Garbage Collection] Releasing inactive room ${gameId}`);
       releaseRoom(gameId).catch(() => {});
     }
-  }, 10000);
+  }, ONLINE_ROOM_GC_MS);
 
   return room;
 };

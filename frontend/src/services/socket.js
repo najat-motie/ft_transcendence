@@ -12,11 +12,21 @@ const appendToken = (url, token) => {
   return `${url}${separator}token=${encodeURIComponent(token)}`;
 };
 
+const trimTrailingSlash = (value) => value.replace(/\/+$/, "");
+
 const resolveSocketUrl = (path, baseUrl) => {
   if (path.startsWith("ws://") || path.startsWith("wss://")) {
     return path;
   }
-  return `${baseUrl}${path}`;
+
+  const normalizedBaseUrl = trimTrailingSlash(baseUrl);
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+
+  if (normalizedBaseUrl.endsWith("/ws") && normalizedPath.startsWith("/ws/")) {
+    return `${normalizedBaseUrl.slice(0, -3)}${normalizedPath}`;
+  }
+
+  return `${normalizedBaseUrl}${normalizedPath}`;
 };
 
 export const connectSocket = (path = "", options = {}) => {
@@ -25,10 +35,6 @@ export const connectSocket = (path = "", options = {}) => {
   const token = options.token || session?.accessToken;
   const targetUrl = appendToken(resolveSocketUrl(path, baseUrl), token);
   const shouldReconnect = options.autoReconnect !== false;
-
-  if (socket && socket.readyState === WebSocket.OPEN && socket.url === targetUrl) {
-    return socket;
-  }
 
   const myId = ++connectionId;
 
@@ -41,39 +47,41 @@ export const connectSocket = (path = "", options = {}) => {
   const connect = () => {
     if (connectionId !== myId) return;
 
-    socket = new WebSocket(targetUrl);
+    const currentSocket = new WebSocket(targetUrl);
+    socket = currentSocket;
 
-    socket.addEventListener("open", (event) => {
-      if (connectionId !== myId) return;
+    currentSocket.addEventListener("open", (event) => {
+      if (connectionId !== myId || socket !== currentSocket) return;
       if (typeof options.onOpen === "function") {
-        options.onOpen(event, socket);
+        options.onOpen(event, currentSocket);
       }
     });
 
-    socket.addEventListener("message", (event) => {
-      if (connectionId !== myId) return;
+    currentSocket.addEventListener("message", (event) => {
+      if (connectionId !== myId || socket !== currentSocket) return;
       if (typeof options.onMessage === "function") {
-        options.onMessage(event, socket);
+        options.onMessage(event, currentSocket);
       }
     });
 
-    socket.addEventListener("error", (event) => {
-      if (connectionId !== myId) return;
+    currentSocket.addEventListener("error", (event) => {
+      if (connectionId !== myId || socket !== currentSocket) return;
       if (typeof options.onError === "function") {
-        options.onError(event, socket);
+        options.onError(event, currentSocket);
       }
     });
 
-    socket.onopen = () => {
+    currentSocket.onopen = () => {
+      if (connectionId !== myId || socket !== currentSocket) return;
       reconnectAttempts = 0;
     };
 
-    socket.onclose = (event) => {
+    currentSocket.onclose = (event) => {
+      if (connectionId !== myId || socket !== currentSocket) return;
+      socket = null;
       if (typeof options.onClose === "function") {
         options.onClose(event);
       }
-      socket = null;
-      if (connectionId !== myId) return;
       if (!shouldReconnect) return;
 
       setTimeout(() => {

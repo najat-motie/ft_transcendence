@@ -79,6 +79,7 @@ export default function OnlineGame() {
     let isMounted = true;
 
     connectSocket(wsPath, {
+      autoReconnect: false,
       onOpen: (_, openedSocket) => {
         if (!isMounted || openedSocket.readyState !== WebSocket.OPEN) {
           return;
@@ -114,7 +115,7 @@ export default function OnlineGame() {
         }
 
         setMessage("");
-        setStatusText("Reconnecting to server...");
+        setStatusText("Disconnected from server.");
       },
     });
 

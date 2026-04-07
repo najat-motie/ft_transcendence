@@ -65,6 +65,7 @@ const createSession = async () => {
     playerChoice: 'X',
     aiChoice: 'O',
     socket: null,
+    disconnectTimer: null,
     finished: false,
     closing: false,
     lock: Promise.resolve(),

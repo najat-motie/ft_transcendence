@@ -79,6 +79,10 @@ export default function CreateRoom() {
 
         if (response.ready) {
           readyRef.current = true;
+          if (pollTimerRef.current) {
+            window.clearInterval(pollTimerRef.current);
+            pollTimerRef.current = null;
+          }
           navigate("/play/online", {
             state: {
               ...response,

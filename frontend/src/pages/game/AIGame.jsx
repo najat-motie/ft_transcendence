@@ -102,28 +102,36 @@ export default function AIGame() {
         return;
       }
 
-      const socket = connectSocket(session.ws_path);
+      connectSocket(session.ws_path, {
+        autoReconnect: false,
+        onMessage: (event) => {
+          if (connectionId !== connectionRef.current) {
+            return;
+          }
 
-      socket.onmessage = (event) => {
-        if (connectionId !== connectionRef.current) {
-          return;
-        }
+          const data = JSON.parse(event.data);
 
-        const data = JSON.parse(event.data);
-
-        if (data.board) setBoard(data.board);
-        if (data.game_status) setGameStatus(data.game_status);
-        if (data.winner) setWinner(data.winner);
-        if (data.error) setMessage(data.error);
-      };
-
-      socket.onclose = () => {
-        if (connectionId !== connectionRef.current) {
-          return;
-        }
-        setStatusText("disconnected from server.");
-        setMessage("");
-      };
+          if (data.board) setBoard(data.board);
+          if (data.turn !== undefined) setTurn(data.turn);
+          if (data.game_status) setGameStatus(data.game_status);
+          if (data.winner) setWinner(data.winner);
+          if (data.error) {
+            setMessage(data.error);
+            return;
+          }
+          if (data.message) {
+            setMessage(data.message);
+          }
+          setStatusText("");
+        },
+        onClose: () => {
+          if (connectionId !== connectionRef.current) {
+            return;
+          }
+          setStatusText("Disconnected from server.");
+          setMessage("");
+        },
+      });
     } catch (error) {
       if (connectionId !== connectionRef.current) {
         return;
@@ -193,7 +201,7 @@ export default function AIGame() {
   }, [board]);
 
   const handleClick = (row, col) => {
-    if (board[row][col] !== "" || gameStatus !== "ongoing" || turn !== "X") return;
+    if (board[row][col] !== "" || gameStatus !== "ongoing" || turn !== role) return;
 
     const socket = getSocket();
     if (socket && socket.readyState === WebSocket.OPEN) {

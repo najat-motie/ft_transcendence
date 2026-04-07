@@ -447,7 +447,14 @@ const oauth42Callback = async (req, res) => {
     });
 
     const frontendUrl = process.env.CORS_ORIGIN || 'https://localhost';
-    const redirectUrl = `${frontendUrl}/auth/callback?accessToken=${encodeURIComponent(accessToken)}&refreshToken=${encodeURIComponent(refreshToken)}&userId=${user.id}&email=${encodeURIComponent(user.email)}`;
+    const redirectParams = new URLSearchParams({
+      accessToken,
+      refreshToken,
+      userId: user.id,
+      email: user.email,
+    });
+
+    const redirectUrl = `${frontendUrl}/auth/callback?${redirectParams.toString()}`;
     
     return res.redirect(redirectUrl);
   } catch (error) {
