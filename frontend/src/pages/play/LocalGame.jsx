@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../../services/api";
 import { connectSocket, getSocket, closeSocket } from "../../services/socket";
 import { useSettings } from "../../state/settings/settings.context";
-import boardsConfig from "../../config/boards.config.json";
 import { resolveSkinAssets } from "../../utils/skinAssets";
 import { playSound } from "../../utils/soundPlayer";
 import { cn } from "../../lib/cn";
@@ -48,7 +47,6 @@ export default function LocalGame() {
   const [lastBoardSignature, setLastBoardSignature] = useState("");
   const [gameStatus, setGameStatus] = useState("starting");
   const [message, setMessage] = useState("Starting local game...");
-  const hasShownStartMessage = useRef(false);
 
   useEffect(() => {
     document.title = "ft_transcendence - Playing vs Friend Locally";
@@ -69,7 +67,6 @@ export default function LocalGame() {
     setWinner(null);
     setGameStatus("starting");
     setMessage("Starting local game...");
-    hasShownStartMessage.current = false;
 
     try {
       const session = await apiRequest("/offline", { method: "POST" }, true);
@@ -135,24 +132,10 @@ export default function LocalGame() {
   }, [board, gameStatus, lastBoardSignature, settings.sound.enabled, settings.sound.selected, settings.sound.volume]);
 
   useEffect(() => {
-    if (
-      gameStatus === "ongoing" &&
-      !hasShownStartMessage.current
-    ) {
-      setMessage("Make your move!");
-      hasShownStartMessage.current = true;
-    }
-  }, [gameStatus]);
-
-  useEffect(() => {
     if (gameStatus !== "ongoing") return;
-
-    if (turn === "X") {
-      setMessage("X Turn");
-    } else {
-      setMessage("O Turn");
-    }
-  }, [turn]);
+  
+    setMessage(`${turn} Turn`);
+  }, [turn, gameStatus]);
 
   const handleClick = (row, col) => {
     if (board[row][col] !== "" || gameStatus !== "ongoing") return;

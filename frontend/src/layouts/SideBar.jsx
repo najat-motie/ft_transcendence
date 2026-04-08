@@ -83,7 +83,7 @@ export default function SideBar() {
       <aside
         id="app-sidebar"
         className={cn(
-          "z-20 flex min-h-screen w-[220px] shrink-0 flex-col justify-between border-r border-white/5 bg-[linear-gradient(180deg,#0f1c3f_0%,#0b1220_100%)] px-4 py-8",
+          "z-[30] flex min-h-screen w-[220px] shrink-0 flex-col justify-between border-r border-white/5 bg-[linear-gradient(180deg,#0f1c3f_0%,#0b1220_100%)] px-4 py-8",
           "max-[900px]:fixed max-[900px]:left-0 max-[900px]:top-0 max-[900px]:h-dvh max-[900px]:min-h-dvh max-[900px]:w-[min(82vw,320px)] max-[900px]:overflow-y-auto max-[900px]:pt-20 max-[900px]:shadow-[24px_0_40px_rgba(2,6,23,0.35)] max-[900px]:transition-transform max-[900px]:duration-300",
           "max-[640px]:w-[min(88vw,320px)] max-[640px]:px-[0.9rem]",
           menuOpen ? "max-[900px]:translate-x-0" : "max-[900px]:-translate-x-full",

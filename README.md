@@ -90,7 +90,7 @@ To view the presentation:
 **FINAL SCORE CHECK**  
 Major modules = 6 → 12 points  
 Minor modules = 4 → 4 points  
-Total = 16 points  
+Total = 16 points
 
 ---
 
@@ -437,8 +437,8 @@ Implements features and collaborates on gameplay systems.
 - Wrote and organized the README file
 
 **Challenges & Solutions**:
-- *Challenge*:  
-  *Solution*:  
+- *Challenge*: Handling session expiration without breaking the user experience or requiring manual re-login on every token expiry.  
+  *Solution*: Introduced an automatic token refresh mechanism using the refresh token, with fallback to logout and redirect only when refresh fails.
 
 ### ien-niou
 

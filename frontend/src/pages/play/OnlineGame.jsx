@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { connectSocket, getSocket, closeSocket } from "../../services/socket";
 import { getUser } from "../../services/auth";
@@ -64,7 +64,6 @@ export default function OnlineGame() {
   const [gameStatus, setGameStatus] = useState("waiting");
   const [message, setMessage] = useState("Starting online game...");
   const opponentName = players.top?.username || "Opponent";
-  const hasShownStartMessage = useRef(false);
 
   useEffect(() => {
     document.title = "ft_transcendence - Playing vs Online Player";
@@ -121,17 +120,6 @@ export default function OnlineGame() {
       closeSocket();
     };
   }, [navigate, savedUser?.userId, wsPath]);
-
-  useEffect(() => {
-    if (
-      gameStatus === "ongoing" &&
-      turn === role &&
-      !hasShownStartMessage.current
-    ) {
-      setMessage("Make your move!");
-      hasShownStartMessage.current = true;
-    }
-  }, [gameStatus, turn, role]);
 
   useEffect(() => {
     if (gameStatus === "waiting") {
