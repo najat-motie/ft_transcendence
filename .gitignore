@@ -14,8 +14,7 @@ dist-ssr
 *.local
 .docker
 
-.vscode/*
-!.vscode/extensions.json
+.vscode
 .idea
 .DS_Store
 *.suo

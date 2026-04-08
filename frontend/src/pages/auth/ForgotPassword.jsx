@@ -1,7 +1,5 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { apiRequest } from "../../services/api";
-import { validateForm } from "../../utils/formValidator";
 import {
   alertError,
   alertSuccess,
@@ -21,28 +19,21 @@ const shellStyle = {
 };
 
 export default function ForgotPassword() {
-  const navigate = useNavigate();
   const [email, setEmail] = useState("");
-  const [secretAnswer, setSecretAnswer] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [recoveryPrompt, setRecoveryPrompt] = useState("What is your favorite book?");
-  const [step, setStep] = useState("email");
+  const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
     document.title = "ft_transcendence - Forgot Password";
   }, []);
 
-  const handleEmailSubmit = async (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    setError("");
 
     setLoading(true);
     try {
-      const response = await apiRequest(
+      await apiRequest(
         "/auth/reset-password",
         {
           method: "POST",
@@ -51,61 +42,9 @@ export default function ForgotPassword() {
         true,
       );
 
-      const payload = response?.data || response;
-      setRecoveryPrompt(payload?.recoveryPrompt || "What is your favorite book?");
-      setStep("verify");
+      setSubmitted(true);
     } catch (err) {
       setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleResetSubmit = async (event) => {
-    event.preventDefault();
-    setError("");
-
-    const errorMessage = validateForm(
-      { password, confirmPassword },
-      {
-        password: true,
-        confirmPassword: true,
-      },
-    );
-
-    if (errorMessage) {
-      setError(errorMessage);
-      return;
-    }
-
-    if (!secretAnswer.trim()) {
-      setError("Secret answer is required");
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      await apiRequest(
-        "/auth/reset-password/verify",
-        {
-          method: "POST",
-          body: JSON.stringify({
-            email,
-            secretAnswer,
-            newPassword: password,
-          }),
-        },
-        true,
-      );
-
-      setSuccess(true);
-
-      setTimeout(() => {
-        navigate("/login");
-      }, 2000);
-    } catch (err) {
-      setError(err.message || "Failed to reset password");
     } finally {
       setLoading(false);
     }
@@ -120,27 +59,18 @@ export default function ForgotPassword() {
             Get back into your account.
           </h1>
           <p className={cn("m-0 max-w-[52ch] leading-[1.7]", mutedText)}>
-            Confirm your email, answer your recovery prompt, and choose a new password to regain access.
+            We'll send a secure reset link so you can create a new password and get back to playing.
           </p>
         </aside>
 
-        <form
-          className={`${frostedPanelStrong} grid content-center gap-4 p-[clamp(1.35rem,3vw,2rem)]`}
-          onSubmit={step === "email" ? handleEmailSubmit : handleResetSubmit}
-        >
+        <form className={`${frostedPanelStrong} grid content-center gap-4 p-[clamp(1.35rem,3vw,2rem)]`} onSubmit={handleSubmit}>
           {error ? <p className={alertError}>{error}</p> : null}
           <h1 className={cn(slabHeading, "m-0 text-[clamp(1.7rem,3vw,2.2rem)] text-slate-50")}>Forgot your password?</h1>
           <p className="m-0 text-[0.95rem] leading-[1.6] text-slate-400">
-            {step === "email"
-              ? "Enter your email address to begin password recovery."
-              : "Answer your saved recovery prompt and set a new password."}
+            Enter your email address and we'll send you a link to reset your password.
           </p>
 
-          {success ? (
-            <p className={alertSuccess}>
-              Your password has been updated. Redirecting to sign in...
-            </p>
-          ) : step === "email" ? (
+          {!submitted ? (
             <>
               <div>
                 <label className="mb-[0.35rem] block text-[0.82rem] font-semibold uppercase tracking-[0.04em] text-slate-300" htmlFor="forgot-email">
@@ -158,82 +88,14 @@ export default function ForgotPassword() {
               </div>
 
               <button className={goldButton} type="submit" disabled={loading}>
-                {loading ? "Checking..." : "Continue"}
+                {loading ? "Sending..." : "Send reset link"}
               </button>
             </>
           ) : (
-            <>
-              <div>
-                <label className="mb-[0.35rem] block text-[0.82rem] font-semibold uppercase tracking-[0.04em] text-slate-300" htmlFor="forgot-secret-answer">
-                  {recoveryPrompt}
-                </label>
-                <input
-                  id="forgot-secret-answer"
-                  type="text"
-                  className={inputSky}
-                  placeholder="Your answer"
-                  required
-                  value={secretAnswer}
-                  onChange={(event) => setSecretAnswer(event.target.value)}
-                />
-              </div>
-
-              <div>
-                <label className="mb-[0.35rem] block text-[0.82rem] font-semibold uppercase tracking-[0.04em] text-slate-300" htmlFor="forgot-new-password">
-                  New password
-                </label>
-                <input
-                  id="forgot-new-password"
-                  type="password"
-                  className={inputSky}
-                  placeholder="New password"
-                  required
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                />
-              </div>
-
-              <div>
-                <label className="mb-[0.35rem] block text-[0.82rem] font-semibold uppercase tracking-[0.04em] text-slate-300" htmlFor="forgot-confirm-password">
-                  Confirm new password
-                </label>
-                <input
-                  id="forgot-confirm-password"
-                  type="password"
-                  className={inputSky}
-                  placeholder="Confirm new password"
-                  required
-                  value={confirmPassword}
-                  onChange={(event) => setConfirmPassword(event.target.value)}
-                />
-              </div>
-
-              <div className="grid gap-3 min-[561px]:grid-cols-[1fr_1.3fr]">
-                <button
-                  className="rounded-[16px] border border-white/12 bg-white/[0.03] px-5 py-3 text-[0.95rem] font-semibold text-slate-200 transition hover:bg-white/[0.08]"
-                  type="button"
-                  onClick={() => {
-                    setStep("email");
-                    setError("");
-                    setSecretAnswer("");
-                    setPassword("");
-                    setConfirmPassword("");
-                  }}
-                >
-                  Back
-                </button>
-                <button className={goldButton} type="submit" disabled={loading}>
-                  {loading ? "Updating..." : "Reset Password"}
-                </button>
-              </div>
-            </>
+            <p className={alertSuccess}>
+              If an account exists with this email, a reset link has been sent.
+            </p>
           )}
-
-          {!success ? (
-            <Link to="/login" className="inline-block text-[0.9rem] font-semibold text-sky-300 hover:text-sky-100 hover:no-underline">
-              Back to sign in
-            </Link>
-          ) : null}
         </form>
       </div>
     </div>

@@ -6,7 +6,6 @@ const {
   validateRegistration,
   validateLogin,
   validateResetPasswordRequest,
-  validateResetPasswordVerify,
   validateResetPasswordComplete,
   validateChangePassword,
 } = require('../middleware/validation');
@@ -52,13 +51,6 @@ router.post(
   validateResetPasswordRequest,
   handleValidationErrors,
   authController.requestPasswordReset
-);
-
-router.post(
-  '/reset-password/verify',
-  validateResetPasswordVerify,
-  handleValidationErrors,
-  authController.verifyPasswordResetAnswer
 );
 
 router.post(

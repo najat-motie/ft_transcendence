@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { apiRequest } from "../../services/api";
-import { setCookie, setUserInCookie, setUserProfileInCookie } from "../../utils/cookies";
+import { setCookie, setUserInCookie } from "../../utils/cookies";
 import {
   alertError,
   frostedPanel,
@@ -17,7 +17,6 @@ import { getApiBaseUrl } from "../../lib/runtime-config";
 
 function storeUserData(data) {
   setUserInCookie(data.user, 7);
-  setUserProfileInCookie(data.user, 7);
   setCookie(`accessToken_${data.user.userId}`, data.accessToken, 7);
   setCookie(`refreshToken_${data.user.userId}`, data.refreshToken, 7);
 }
@@ -74,16 +73,7 @@ function Login() {
       try {
         const kpiResponse = await apiRequest(`/profile/${payload.user.userId}/kpis`, { method: "GET" });
         const kpiData = kpiResponse?.data || kpiResponse;
-        const hydratedUser = {
-          ...payload.user,
-          username: kpiData?.username || payload.user.username,
-          avatar: kpiData?.avatar || payload.user.avatar,
-          bio: kpiData?.bio || payload.user.bio,
-          email: kpiData?.email || payload.user.email,
-        };
-
-        setUserInCookie(hydratedUser, 7);
-        setUserProfileInCookie(kpiData, 7);
+        setCookie("userProfile", JSON.stringify(kpiData), 7);
       } catch {}
 
       navigate("/");

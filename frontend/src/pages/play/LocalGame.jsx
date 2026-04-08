@@ -24,7 +24,6 @@ import {
   roomRestartButtonClass,
   roomSectionClass,
   roomTitleClass,
-  statusTextClass,
   winnerTieClass,
   winnerWinClass,
 } from "./gameUi";

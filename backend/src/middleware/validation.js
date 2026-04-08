@@ -26,20 +26,6 @@ const validateRegistration = [
     .withMessage('Password must contain at least one lowercase letter')
     .matches(/[0-9]/)
     .withMessage('Password must contain at least one number'),
-  body().custom((value) => {
-    const secretAnswer = value?.secretAnswer ?? value?.question ?? value?.secretQuestion;
-    const normalizedAnswer = String(secretAnswer || '').trim();
-
-    if (!normalizedAnswer) {
-      throw new Error('Secret answer is required');
-    }
-
-    if (normalizedAnswer.length < 2 || normalizedAnswer.length > 255) {
-      throw new Error('Secret answer must be between 2 and 255 characters');
-    }
-
-    return true;
-  }),
   body('username')
     .optional()
     .isLength({ min: 3, max: 30 })
@@ -71,30 +57,6 @@ const validateResetPasswordRequest = [
     .isEmail()
     .withMessage('Please provide a valid email')
     .normalizeEmail(),
-];
-
-const validateResetPasswordVerify = [
-  body('email')
-    .isEmail()
-    .withMessage('Please provide a valid email')
-    .normalizeEmail(),
-  body('secretAnswer')
-    .isString()
-    .withMessage('Secret answer is required')
-    .trim()
-    .notEmpty()
-    .withMessage('Secret answer is required')
-    .isLength({ min: 2, max: 255 })
-    .withMessage('Secret answer must be between 2 and 255 characters'),
-  body('newPassword')
-    .isLength({ min: 8 })
-    .withMessage('Password must be at least 8 characters long')
-    .matches(/[A-Z]/)
-    .withMessage('Password must contain at least one uppercase letter')
-    .matches(/[a-z]/)
-    .withMessage('Password must contain at least one lowercase letter')
-    .matches(/[0-9]/)
-    .withMessage('Password must contain at least one number'),
 ];
 
 const validateResetPasswordComplete = [
@@ -130,7 +92,6 @@ module.exports = {
   validateLogin,
   validateRefreshToken,
   validateResetPasswordRequest,
-  validateResetPasswordVerify,
   validateResetPasswordComplete,
   validateChangePassword,
 };

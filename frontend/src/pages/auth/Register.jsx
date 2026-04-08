@@ -48,7 +48,7 @@ export default function Register() {
     email: "",
     password: "",
     confirmPassword: "",
-    secretAnswer: "",
+    secretQuestion: "",
     username: "",
     bio: "",
     avatar: "",
@@ -95,8 +95,8 @@ export default function Register() {
       password: true,
       confirmPassword: true,
     });
-    if (errorMessage || !form.secretAnswer.trim()) {
-      setError(errorMessage || "Secret answer is required");
+    if (errorMessage) {
+      setError(errorMessage);
       setLoading(false);
       return;
     }
@@ -125,7 +125,7 @@ export default function Register() {
           body: JSON.stringify({
             email: form.email,
             password: form.password,
-            secretAnswer: form.secretAnswer,
+            question: form.secretQuestion,
             username: form.username,
             bio: form.bio,
             avatar: form.avatar,
@@ -233,15 +233,15 @@ export default function Register() {
                   </div>
 
                   <div>
-                    <label className={labelClass} htmlFor="register-secretAnswer">
-                      What is your favorite book? (secret recovery answer)
+                    <label className={labelClass} htmlFor="register-secretQuestion">
+                      What is your favorite book? (password recovery)
                     </label>
                     <input
-                      id="register-secretAnswer"
+                      id="register-secretQuestion"
                       type="text"
-                      name="secretAnswer"
-                      value={form.secretAnswer}
-                      placeholder="Enter your answer"
+                      name="secretQuestion"
+                      value={form.secretQuestion}
+                      placeholder="Your secret question answer"
                       className={inputGold}
                       onChange={handleChange}
                       required
@@ -296,7 +296,6 @@ export default function Register() {
                     <input
                       id="register-avatar"
                       type="file"
-                      name="avatar"
                       accept="image/*"
                       onChange={handleChange}
                       className={fileInputGold}

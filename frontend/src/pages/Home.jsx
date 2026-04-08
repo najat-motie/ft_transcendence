@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { getUser } from "../services/auth";
 import { cn } from "../lib/cn";
 import { slabHeading } from "../lib/ui";
 

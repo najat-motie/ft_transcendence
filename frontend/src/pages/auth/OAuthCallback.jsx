@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { apiRequest } from "../../services/api";
-import { setCookie, setUserInCookie, setUserProfileInCookie } from "../../utils/cookies";
+import { setCookie, setUserInCookie } from "../../utils/cookies";
 import { frostedPanelStrong, slabHeading } from "../../lib/ui";
 import { cn } from "../../lib/cn";
 
@@ -36,7 +36,6 @@ function OAuthCallback() {
       };
 
       setUserInCookie(userData, 7);
-      setUserProfileInCookie(userData, 7);
       setCookie(`accessToken_${userId}`, accessToken, 7);
       setCookie(`refreshToken_${userId}`, refreshToken, 7);
 
@@ -53,7 +52,7 @@ function OAuthCallback() {
         };
 
         setUserInCookie(hydratedUser, 7);
-        setUserProfileInCookie(kpiData, 7);
+        setCookie("userProfile", JSON.stringify(kpiData), 7);
       } catch {}
 
       navigate("/");

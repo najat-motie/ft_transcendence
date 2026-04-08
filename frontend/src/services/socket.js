@@ -4,43 +4,16 @@ let connectionId = 0;
 import { getUser } from "./auth";
 import { getWsBaseUrl } from "../lib/runtime-config";
 
-const normalizeSocketBaseUrl = (baseUrl) => {
-  const resolvedBaseUrl = baseUrl?.trim() || getWsBaseUrl();
+const DEFAULT_WS_BASE_URL = getWsBaseUrl();
 
-  try {
-    const normalizedUrl = new URL(resolvedBaseUrl, window.location.origin);
-
-    if (normalizedUrl.protocol === "http:") {
-      normalizedUrl.protocol = "ws:";
-    } else if (normalizedUrl.protocol === "https:") {
-      normalizedUrl.protocol = "wss:";
-    }
-
-    return normalizedUrl.toString();
-  } catch {
-    return getWsBaseUrl();
-  }
-};
-
-export const buildSocketUrl = (path = "", baseUrl, token) => {
-  const normalizedBaseUrl = normalizeSocketBaseUrl(baseUrl);
-  const resolvedUrl = new URL(path || "", normalizedBaseUrl);
-
-  if (resolvedUrl.protocol === "http:") {
-    resolvedUrl.protocol = "ws:";
-  } else if (resolvedUrl.protocol === "https:") {
-    resolvedUrl.protocol = "wss:";
-  }
-
-  if (token) {
-    resolvedUrl.searchParams.set("token", token);
-  }
-
-  return resolvedUrl.toString();
+const buildSocketUrl = (path, baseUrl, token) => {
+  const url = path.startsWith("ws") ? path : `${baseUrl}${path}`;
+  if (!token) return url;
+  return `${url}${url.includes("?") ? "&" : "?"}token=${encodeURIComponent(token)}`;
 };
 
 export const connectSocket = (path = "", options = {}) => {
-  const baseUrl = options.baseUrl || getWsBaseUrl();
+  const baseUrl = options.baseUrl || DEFAULT_WS_BASE_URL;
   const session = getUser();
   const token = options.token || session?.accessToken;
 

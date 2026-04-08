@@ -5,11 +5,9 @@
 ## Table of Contents
 
 - [Description](#description)
-- [Presentation](#presentation)
 - [Features List](#features-list)
 - [Modules](#modules)
 - [Technical Stack](#technical-stack)
-- [Architecture Overview](#architecture-overview)
 - [Database Schema](#database-schema)
 - [Instructions](#instructions)
 - [Project Management](#project-management)
@@ -44,13 +42,6 @@ The selected concept, a ***Real-Time Multiplayer Tic-Tac-Toe Platform***, provid
 
 ---
 
-## Presentation
-
-To view the presentation:
-- Open `presentation.html` in your browser
-
----
-
 ## Features List
 
 | Feature                         | Team Members      | Description                                                         |
@@ -63,7 +54,7 @@ To view the presentation:
 | Game Engine (Core Logic)        | jmayou            | Tic-Tac-Toe rules, turn handling, and win/draw detection            |
 | Matchmaking System              | jmayou            | Automatic player pairing for online matches                         |
 | AI Opponent                     | jmayou            | Single-player mode with AI opponent and difficulty logic            |
-| Private Game Rooms              | jmayou            | Custom rooms with create, join, leave, and session management        |
+| Private Game Rooms              | jmayou            | Custom rooms with create, join, leave, and session management       |
 | Local Game Mode                 | jmayou            | Offline two-player mode on the same device without authentication   |
 | Game Customization              | ien-niou          | Themes, board styles, and X/O skins customization                   |
 | Gamification System             | ien-niou          | XP progression system with wins, losses, matches, and win rate      |
@@ -145,46 +136,6 @@ The backend handles business logic, authentication, and real-time communication:
 - **Node.js + Express** – Unified JavaScript stack for scalability and maintainability
 - **WebSocket** – Required for real-time multiplayer gameplay
 - **PostgreSQL** – Reliable relational database for structured and complex data
-
----
-
-## Architecture Overview
-
-```
-            ┌───────────────────────┐
-            │        Browser        │
-            │       (Client)        │
-            └──────────┬────────────┘
-                       │ HTTPS
-                       ▼
-        ┌──────────────────────────────┐
-        │        Reverse Proxy         │
-        │                              │
-        │           Caddy              │
-        │      (Routing + HTTPS)       │
-        └──────────────┬───────────────┘
-                         │
-         ┌───────────────┴──────────────┐
-         │                              │
-         ▼                              ▼
-┌──────────────────────┐     ┌──────────────────────┐
-│       Frontend       │     │        Backend       │
-│                      │     │                      │
-│  React + Vite        │     │  Node.js + Express   │
-│  + Tailwind          │     │                      │
-│                      │     │  - REST API          │
-│                      │     │  - Auth (JWT/OAuth)  │
-│                      │     │  - WebSocket Server  │
-└──────────────────────┘     └──────────┬───────────┘
-                                        │
-                                        ▼
-                          ┌────────────────────────┐
-                          │        Database        │
-                          │                        │
-                          │      PostgreSQL        │
-                          │      (via Prisma)      │
-                          └────────────────────────┘
-```
 
 ---
 
@@ -317,7 +268,7 @@ cp ./infra/.env.example .env
 
 ### Run the application
 ```bash
-docker compose up --build
+docker compose -f ./infra/docker-compose.yml up --build
 ```
 Or using available makefile commands, run:
 ```bash
@@ -417,9 +368,8 @@ Implements features and collaborates on gameplay systems.
 - Ensured compatibility with the latest stable version of Google Chrome, with no console warnings or errors
 
 **Challenges & Solutions**:
-- *Challenge*: Designing a database that handles users, friends, OAuth, and game data without becoming too complex.
-  *Solution*:  Structured the schema with clear relationships using Prisma, added proper constraints (unique keys, foreign keys),
-               and kept things modular so it stays easy to maintain and extend.
+- *Challenge*: Designing a database that handles users, friends, OAuth, and game data without becoming too complex.  
+  *Solution*: Structured the schema with clear relationships using Prisma, added proper constraints (unique keys, foreign keys), and kept things modular so it stays easy to maintain and extend.
 
 ### nmotie-
 
@@ -460,49 +410,30 @@ Implements features and collaborates on gameplay systems.
 - Configured Docker environment and reverse proxy setup, with Makefile automation for streamlined project management
 
 **Challenges & Solutions**:
-
-Challenge:
-Keeping the app stable when errors happen.
-
-Solution:
-Used Error Boundaries to catch errors and show a simple fallback screen instead of crashing the whole app.
+- *Challenge*: Keeping the app stable when errors happen.  
+  *Solution*: Used Error Boundaries to catch errors and show a simple fallback screen instead of crashing the whole app.
 
 ### jmayou
 
-**Contributions:**
-- Core game logic implementation (Tic-Tac-Toe engine)
-- Offline game mode
-- Online (remote) multiplayer using WebSockets
-- AI opponent (Q-learning + Minimax fallback)
-- Move validation and turn management system
+**Contributions**:
+- Game logic (Tic-Tac-Toe rules)
+- WebSocket server-side implementation
+- Remote players
+- AI opponent
 
----
-
-**Technical Details:**
-- Designed and implemented a reusable game engine (`TicTacToeGame`) handling board state, player turns, and game status
-- Implemented win detection (rows, columns, diagonals) and draw logic
-- Built REST endpoints for offline gameplay
-- Developed real-time multiplayer using WebSockets with synchronized game state
-- Managed active game sessions and player connections using in-memory structures
-- Enforced strict validation for each move (turn checking, cell availability, game status)
-- Implemented AI decision system:
-  - Q-learning model for fast predictions
-  - Minimax algorithm as a fallback for optimal moves
-  - Safe fallback to available actions to ensure valid gameplay
-- Ensured consistent game flow across all modes (offline, online, AI)
-
----
+**Technical Details**:
+- Implemented game engine with win/draw detection
+- Built WebSocket server for real-time communication
+- Managed game sessions and player synchronization
+- Developed AI logic with non-perfect decision-making
 
 **Challenges & Solutions:**
-
-- *Challenge:* Maintaining a consistent and valid game state across multiple modes (offline, online, AI)  
-  *Solution:* Centralized all game rules inside a single game engine and reused it across all modes to ensure consistency and avoid duplicated logic  
-
-- *Challenge:* Handling real-time synchronization between remote players  
-  *Solution:* Used WebSockets with controlled message flow and validation to ensure correct turn order and prevent conflicts  
-
-- *Challenge:* Balancing AI performance and correctness  
-  *Solution:* Combined a trained Q-learning model with a Minimax fallback to achieve both fast and reliable decision-making  
+- *Challenge*: Maintaining a consistent and valid game state across multiple modes (offline, online, AI)  
+  *Solution*: Centralized all game rules inside a single game engine and reused it across all modes to ensure consistency and avoid duplicated logic
+- *Challenge*: Handling real-time synchronization between remote players  
+  *Solution*: Used WebSockets with controlled message flow and validation to ensure correct turn order and prevent conflicts
+- *Challenge*: Balancing AI performance and correctness  
+  *Solution*: Combined a trained Q-learning model with a Minimax fallback to achieve both fast and reliable decision-making
 
 ---
 

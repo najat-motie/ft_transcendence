@@ -3,7 +3,6 @@
 
 // Mock environment variables
 process.env.VITE_API_BASE_URL = 'http://localhost';
-process.env.VITE_WS_BASE_URL = '';
 
 // Mock localStorage
 const localStorageMock = {
@@ -24,22 +23,8 @@ const localStorageMock = {
   },
 };
 
-if (!globalThis.window) {
-  globalThis.window = globalThis;
-}
-
-if (!globalThis.document) {
-  globalThis.document = { cookie: '' };
-}
-
-Object.defineProperty(globalThis.window, 'localStorage', {
+Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
-  configurable: true,
-});
-
-Object.defineProperty(globalThis, 'localStorage', {
-  value: localStorageMock,
-  configurable: true,
 });
 
 // Mock fetch for API calls

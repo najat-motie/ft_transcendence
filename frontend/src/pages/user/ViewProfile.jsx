@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { apiRequest } from "../../services/api";
 import { validateForm } from "../../utils/formValidator";
 import { readImageFile } from "../../utils/fileReader";
-import { getUserFromCookie, setUserInCookie, setUserProfileInCookie } from "../../utils/cookies";
+import { getUserFromCookie, setCookie, setUserInCookie } from "../../utils/cookies";
 import { slabHeading } from "../../lib/ui";
 import { cn } from "../../lib/cn";
 import {
@@ -82,7 +82,7 @@ export default function Profile() {
       };
 
       setUserInCookie(syncedUser, 7);
-      setUserProfileInCookie(kpiData, 7);
+      setCookie("userProfile", JSON.stringify(kpiData), 7);
 
       setKpis(kpiData);
       setUser(syncedUser);
@@ -168,11 +168,10 @@ export default function Profile() {
       });
       const updatedData = updated?.data || updated;
 
-      const syncedUser = { ...user, ...updatedData };
+      const syncedUser = { ...prev, ...updatedData };
       setUser(syncedUser);
-      setKpis((prev) => ({ ...prev, ...updatedData }));
       setUserInCookie(syncedUser, 7);
-      setUserProfileInCookie(updatedData, 7);
+      setCookie("userProfile", JSON.stringify(updatedData), 7);
       setEditMode(false);
     } catch (err) {
       setError(err.message);
