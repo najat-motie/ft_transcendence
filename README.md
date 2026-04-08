@@ -417,8 +417,9 @@ Implements features and collaborates on gameplay systems.
 - Ensured compatibility with the latest stable version of Google Chrome, with no console warnings or errors
 
 **Challenges & Solutions**:
-- *Challenge*:  
-  *Solution*:
+- *Challenge*: Designing a database that handles users, friends, OAuth, and game data without becoming too complex.
+  *Solution*:  Structured the schema with clear relationships using Prisma, added proper constraints (unique keys, foreign keys),
+               and kept things modular so it stays easy to maintain and extend.
 
 ### nmotie-
 
