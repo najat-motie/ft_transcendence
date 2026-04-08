@@ -469,21 +469,40 @@ Used Error Boundaries to catch errors and show a simple fallback screen instead 
 
 ### jmayou
 
-**Contributions**:
-- Game logic (Tic-Tac-Toe rules)
-- WebSocket server-side implementation
-- Remote players
-- AI opponent
+**Contributions:**
+- Core game logic implementation (Tic-Tac-Toe engine)
+- Offline game mode
+- Online (remote) multiplayer using WebSockets
+- AI opponent (Q-learning + Minimax fallback)
+- Move validation and turn management system
 
-**Technical Details**:
-- Implemented game engine with win/draw detection
-- Built WebSocket server for real-time communication
-- Managed game sessions and player synchronization
-- Developed AI logic with non-perfect decision-making
+---
+
+**Technical Details:**
+- Designed and implemented a reusable game engine (`TicTacToeGame`) handling board state, player turns, and game status
+- Implemented win detection (rows, columns, diagonals) and draw logic
+- Built REST endpoints for offline gameplay
+- Developed real-time multiplayer using WebSockets with synchronized game state
+- Managed active game sessions and player connections using in-memory structures
+- Enforced strict validation for each move (turn checking, cell availability, game status)
+- Implemented AI decision system:
+  - Q-learning model for fast predictions
+  - Minimax algorithm as a fallback for optimal moves
+  - Safe fallback to available actions to ensure valid gameplay
+- Ensured consistent game flow across all modes (offline, online, AI)
+
+---
 
 **Challenges & Solutions:**
-- *Challenge*:  
-  *Solution*:
+
+- *Challenge:* Maintaining a consistent and valid game state across multiple modes (offline, online, AI)  
+  *Solution:* Centralized all game rules inside a single game engine and reused it across all modes to ensure consistency and avoid duplicated logic  
+
+- *Challenge:* Handling real-time synchronization between remote players  
+  *Solution:* Used WebSockets with controlled message flow and validation to ensure correct turn order and prevent conflicts  
+
+- *Challenge:* Balancing AI performance and correctness  
+  *Solution:* Combined a trained Q-learning model with a Minimax fallback to achieve both fast and reliable decision-making  
 
 ---
 
