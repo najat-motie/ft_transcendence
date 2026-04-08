@@ -1,6 +1,7 @@
 import { getUser, logout, setUser } from "./auth.js";
+import { getApiBaseUrl } from "../lib/runtime-config.js";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const BASE_URL = getApiBaseUrl();
 const JSON_HEADERS = { "Content-Type": "application/json" };
 const SESSION_EXPIRED_MESSAGE = "Session expired. Please login again.";
 const GENERIC_ERROR_MESSAGE = "Something went wrong";

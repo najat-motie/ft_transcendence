@@ -13,6 +13,7 @@ import {
   slabHeading,
 } from "../../lib/ui";
 import { cn } from "../../lib/cn";
+import { getApiBaseUrl } from "../../lib/runtime-config";
 
 function storeUserData(data) {
   setUserInCookie(data.user, 7);
@@ -33,7 +34,7 @@ function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+  const apiBaseUrl = getApiBaseUrl();
   const oauth42Url = `${apiBaseUrl}/auth/42`;
 
   const [email, setEmail] = useState("");

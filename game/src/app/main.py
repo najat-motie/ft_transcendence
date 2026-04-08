@@ -8,10 +8,15 @@ from .ai import router as ai_router
 
 
 app = FastAPI()
+cors_origins = [
+    origin.strip()
+    for origin in os.environ.get("CORS_ORIGIN", "https://localhost").split(",")
+    if origin.strip()
+]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[os.environ.get("CORS_ORIGIN")],
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

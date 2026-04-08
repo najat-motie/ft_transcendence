@@ -1,5 +1,3 @@
-const ASSET_BASE_URL = process.env.ASSET_BASE_URL || process.env.API_BASE_URL || 'https://localhost';
-
 const AVATAR_STYLES = [
   'adventurer',
   'adventurer-neutral',
@@ -36,7 +34,8 @@ const generateDefaultAvatarUrl = (seed) => {
 const formatAvatarUrl = (avatarPath, seed) => {
   if (!avatarPath) return generateDefaultAvatarUrl(seed);
   if (/^https?:\/\//i.test(avatarPath)) return avatarPath;
-  return `${ASSET_BASE_URL}${avatarPath}`;
+  if (avatarPath.startsWith('/')) return avatarPath;
+  return `/${avatarPath}`;
 };
 
 module.exports = {

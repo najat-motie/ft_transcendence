@@ -1,4 +1,8 @@
-localhost {
+{
+  default_sni {$CADDY_HOST}
+}
+
+localhost, {$CADDY_HOST} {
   tls internal
 
   handle /api/refresh {

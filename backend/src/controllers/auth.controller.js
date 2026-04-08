@@ -11,6 +11,18 @@ function isHttpsRequest(req) {
   return req.secure || req.headers['x-forwarded-proto'] === 'https';
 }
 
+function getRequestOrigin(req) {
+  const forwardedProto = req.headers['x-forwarded-proto'];
+  const protocol = forwardedProto ? forwardedProto.split(',')[0].trim() : (req.secure ? 'https' : 'http');
+  const host = req.headers['x-forwarded-host'] || req.headers.host;
+
+  if (!host) {
+    return null;
+  }
+
+  return `${protocol}://${host}`;
+}
+
 async function generateUniqueUsername(tx, desiredUsername, email) {
   let seedUsername;
   if (desiredUsername) {
@@ -446,7 +458,7 @@ const oauth42Callback = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
-    const frontendUrl = process.env.CORS_ORIGIN || 'https://localhost';
+    const frontendUrl = getRequestOrigin(req) || 'https://localhost';
     const redirectParams = new URLSearchParams({
       accessToken,
       refreshToken,
@@ -459,7 +471,7 @@ const oauth42Callback = async (req, res) => {
     return res.redirect(redirectUrl);
   } catch (error) {
     console.error('OAuth callback error:', error);
-    const frontendUrl = process.env.CORS_ORIGIN || 'https://localhost';
+    const frontendUrl = getRequestOrigin(req) || 'https://localhost';
     const errorMessage = encodeURIComponent('OAuth login failed. Please try again.');
     return res.redirect(`${frontendUrl}/login?error=${errorMessage}`);
   }

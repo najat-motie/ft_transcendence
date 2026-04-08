@@ -29,6 +29,10 @@ const parsePositiveInteger = (value, fallback) => {
 };
 
 const isProduction = process.env.NODE_ENV === 'production';
+const splitOrigins = (value) => String(value || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 let generalRateLimitDefault;
 if (isProduction) {
   generalRateLimitDefault = 300;
@@ -71,14 +75,17 @@ if (process.env.NODE_ENV === 'production') {
   app.use(helmet(helmetOptions));
 }
 
-let corsOrigin;
-if (process.env.CORS_ORIGIN) {
-  corsOrigin = process.env.CORS_ORIGIN;
-} else {
-  corsOrigin = 'https://localhost';
-}
+const corsOrigins = splitOrigins(process.env.CORS_ORIGIN);
+const allowedCorsOrigins = corsOrigins.length > 0 ? corsOrigins : ['https://localhost'];
 app.use(cors({
-  origin: corsOrigin,
+  origin: (origin, callback) => {
+    if (!origin || allowedCorsOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    callback(null, false);
+  },
   credentials: true,
 }));
 

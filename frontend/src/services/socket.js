@@ -2,8 +2,9 @@ let socket = null;
 let connectionId = 0;
 
 import { getUser } from "./auth";
+import { getWsBaseUrl } from "../lib/runtime-config";
 
-const DEFAULT_WS_BASE_URL = import.meta.env.VITE_WS_BASE_URL;
+const DEFAULT_WS_BASE_URL = getWsBaseUrl();
 
 const buildSocketUrl = (path, baseUrl, token) => {
   const url = path.startsWith("ws") ? path : `${baseUrl}${path}`;
