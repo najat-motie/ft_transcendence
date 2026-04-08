@@ -44,11 +44,11 @@ export default function LocalGame() {
   const [board, setBoard] = useState(emptyBoard);
   const [turn, setTurn] = useState("X");
   const [winner, setWinner] = useState(null);
-  const [gameStatus, setGameStatus] = useState("starting");
-  const [statusText, setStatusText] = useState("Starting local game...");
-  const [message, setMessage] = useState("");
-  const [lastBoardSignature, setLastBoardSignature] = useState("");
   const [isStarting, setIsStarting] = useState(false);
+  const [lastBoardSignature, setLastBoardSignature] = useState("");
+  const [gameStatus, setGameStatus] = useState("starting");
+  const [message, setMessage] = useState("Starting local game...");
+  const hasShownStartMessage = useRef(false);
 
   useEffect(() => {
     document.title = "ft_transcendence - Playing vs Friend Locally";
@@ -68,8 +68,8 @@ export default function LocalGame() {
     setTurn("X");
     setWinner(null);
     setGameStatus("starting");
-    setStatusText("");
-    setMessage("");
+    setMessage("Starting local game...");
+    hasShownStartMessage.current = false;
 
     try {
       const session = await apiRequest("/offline", { method: "POST" }, true);
@@ -91,16 +91,12 @@ export default function LocalGame() {
           if (data.turn !== undefined) setTurn(data.turn);
           if (data.game_status) setGameStatus(data.game_status);
           if (data.winner) setWinner(data.winner);
-          if (data.error) {
-            setStatusText(data.error);
-            return;
-          }
-          setStatusText("");
         },
         onClose: () => {
           if (connectionId !== connectionRef.current) {
             return;
           }
+          setMessage("Connection to the game was lost. You can restart or leave the match.");
         },
       });
     } catch (error) {
@@ -108,9 +104,8 @@ export default function LocalGame() {
         return;
       }
 
-      setStatusText(error.message || "Failed to start local game.");
-      setMessage("");
       setGameStatus("error");
+      setMessage(error.message || "Failed to start local game.");
     } finally {
       if (connectionId === connectionRef.current) {
         setIsStarting(false);
@@ -140,6 +135,18 @@ export default function LocalGame() {
   }, [board, gameStatus, lastBoardSignature, settings.sound.enabled, settings.sound.selected, settings.sound.volume]);
 
   useEffect(() => {
+    if (
+      gameStatus === "ongoing" &&
+      !hasShownStartMessage.current
+    ) {
+      setMessage("Make your move!");
+      hasShownStartMessage.current = true;
+    }
+  }, [gameStatus]);
+
+  useEffect(() => {
+    if (gameStatus !== "ongoing") return;
+
     if (turn === "X") {
       setMessage("X Turn");
     } else {
@@ -172,16 +179,14 @@ export default function LocalGame() {
         <h2 className={roomTitleClass}>Play with your friend on the same device</h2>
         
         <div aria-live="polite">
-          {statusText ? <p className={statusTextClass}>{statusText}</p> : null}
+          <p className={gameMessageClass}>{message}</p>
         </div>
 
-        {gameStatus === "ongoing" ? (
-          <p className={gameMessageClass}>{message}</p>
+        {gameStatus === "win" ? (
+          <div className={winnerWinClass}>{winner} Wins!</div>
+        ) : gameStatus === "tie" ? (
+          <div className={winnerTieClass}>It's a Tie!</div>
         ) : null}
-
-        { gameStatus === "win" ? <div className={winnerWinClass}>{winner} Wins!</div> : null}
-
-        {gameStatus === "tie" ? <div className={winnerTieClass}>It's a Tie!</div> : null}
 
         <div className={boardShellClass}>
           <div
@@ -214,7 +219,7 @@ export default function LocalGame() {
           <button className={roomRestartButtonClass} type="button" onClick={startGame} disabled={isStarting}>
             Restart
           </button>
-          <button className={roomLeaveButtonClass} type="button" onClick={() => navigate(-1)}>
+          <button className={roomLeaveButtonClass} type="button" onClick={() => navigate("/play")}>
             Leave
           </button>
         </div>

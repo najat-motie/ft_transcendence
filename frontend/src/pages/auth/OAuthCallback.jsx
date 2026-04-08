@@ -53,9 +53,7 @@ function OAuthCallback() {
 
         setUserInCookie(hydratedUser, 7);
         setCookie("userProfile", JSON.stringify(kpiData), 7);
-      } catch (error) {
-        console.warn("OAuth profile hydration skipped:", error?.message || error);
-      }
+      } catch {}
 
       navigate("/");
     };

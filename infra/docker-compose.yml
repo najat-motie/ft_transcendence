@@ -2,8 +2,8 @@
 services:
 
   frontend:
-    build: ./frontend
-    image: ft_frontend:1337
+    build: ../frontend
+    image: frontend:1337
     container_name: ft_frontend
     pull_policy: if_not_present
     environment:
@@ -13,8 +13,8 @@ services:
       - ft_transcendence
 
   backend:
-    build: ./backend
-    image: ft_backend:1337
+    build: ../backend
+    image: backend:1337
     container_name: ft_backend
     pull_policy: if_not_present
     environment:
@@ -45,8 +45,8 @@ services:
       - ft_transcendence
 
   game:
-    build: ./game
-    image: ft_game:1337
+    build: ../game
+    image: game:1337
     container_name: ft_game
     pull_policy: if_not_present
     environment:
@@ -107,4 +107,3 @@ networks:
   ft_transcendence:
     name: tic-tac-toe
     driver: bridge
- 

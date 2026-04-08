@@ -28,7 +28,7 @@ export default function GameLobby() {
     },
     {
       title: "Quick Match",
-      label: "Online",
+      label: "Random matchmaking",
       description: "Get matched instantly with an online player.",
       buttonText: "Start",
       route: "/play/matchmaking",

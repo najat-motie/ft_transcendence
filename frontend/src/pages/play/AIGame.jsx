@@ -4,7 +4,6 @@ import { apiRequest } from "../../services/api";
 import { connectSocket, getSocket, closeSocket } from "../../services/socket";
 import { getUser } from "../../services/auth";
 import { useSettings } from "../../state/settings/settings.context";
-import boardsConfig from "../../config/boards.config.json";
 import { resolveSkinAssets } from "../../utils/skinAssets";
 import { playSound } from "../../utils/soundPlayer";
 import { cn } from "../../lib/cn";
@@ -54,24 +53,26 @@ export default function AIGame() {
   const [turn, setTurn] = useState("X");
   const [role, setRole] = useState("X");
   const [winner, setWinner] = useState(null);
-  const [gameStatus, setGameStatus] = useState("starting");
-  const [statusText, setStatusText] = useState("Starting AI game...");
-  const [message, setMessage] = useState("");
-  const [lastBoardSignature, setLastBoardSignature] = useState("");
   const [isStarting, setIsStarting] = useState(false);
+  const [lastBoardSignature, setLastBoardSignature] = useState("");
+  const [gameStatus, setGameStatus] = useState("starting");
+  const [message, setMessage] = useState("Starting AI game...");
   const aiMessages = [
     "Nice move!",
     "Keep going!",
     "Smart choice!",
-    "Let me think...",
     "I see your move.",
-    "Interesting move...",
-    "You're doing great!",
     "Hmm... interesting.",
+    "Let me think... 🤔",
+    "You're doing great!",
+    "Interesting move...",
     "You're challenging me 👀",
     "Let's see what happens next!",
   ];
   const aiUsername = "NovaBot";
+  const prevBoardRef = useRef(board);
+  const lastMessageRef = useRef("");
+  const hasShownStartMessage = useRef(false);
 
   useEffect(() => {
     document.title = "ft_transcendence - Playing vs AI";
@@ -92,8 +93,8 @@ export default function AIGame() {
     setRole("X");
     setWinner(null);
     setGameStatus("starting");
-    setStatusText("");
-    setMessage("");
+    setMessage("Starting AI game...");
+    hasShownStartMessage.current = false;
 
     try {
       const session = await apiRequest("/ai", { method: "POST" }, true);
@@ -103,33 +104,28 @@ export default function AIGame() {
       }
 
       connectSocket(session.ws_path, {
-        autoReconnect: false,
         onMessage: (event) => {
           if (connectionId !== connectionRef.current) {
             return;
           }
 
-          const data = JSON.parse(event.data);
+          let data;
+          try {
+            data = JSON.parse(event.data);
+          } catch {
+            return;
+          }
 
           if (data.board) setBoard(data.board);
           if (data.turn !== undefined) setTurn(data.turn);
           if (data.game_status) setGameStatus(data.game_status);
           if (data.winner) setWinner(data.winner);
-          if (data.error) {
-            setMessage(data.error);
-            return;
-          }
-          if (data.message) {
-            setMessage(data.message);
-          }
-          setStatusText("");
         },
         onClose: () => {
           if (connectionId !== connectionRef.current) {
             return;
           }
-          setStatusText("Disconnected from server.");
-          setMessage("");
+          setMessage("Connection to the game was lost. You can restart or leave the match.");
         },
       });
     } catch (error) {
@@ -137,8 +133,8 @@ export default function AIGame() {
         return;
       }
 
-      setStatusText(error.message || "Failed to start AI game.");
       setGameStatus("error");
+      setMessage(error.message || "Failed to start AI game.");
     } finally {
       if (connectionId === connectionRef.current) {
         setIsStarting(false);
@@ -167,11 +163,20 @@ export default function AIGame() {
     }
   }, [board, gameStatus, lastBoardSignature, settings.sound.enabled, settings.sound.selected, settings.sound.volume]);
 
-
-  const prevBoardRef = useRef(board);
-  const lastMessageRef = useRef("");
+  useEffect(() => {
+    if (
+      gameStatus === "ongoing" &&
+      turn === role &&
+      !hasShownStartMessage.current
+    ) {
+      setMessage("Make your move!");
+      hasShownStartMessage.current = true;
+    }
+  }, [gameStatus, turn, role]);
 
   useEffect(() => {
+    if (gameStatus !== "ongoing") return;
+
     const prevBoard = prevBoardRef.current;
 
     const xMoved = board.some((row, r) =>
@@ -239,20 +244,16 @@ export default function AIGame() {
         ) : null}
 
         <div aria-live="polite">
-          {statusText ? <p className={statusTextClass}>{statusText}</p> : null}
-        </div>
-
-        {gameStatus === "ongoing" ? (
           <p className={gameMessageClass}>{message}</p>
-        ) : null}
+        </div>
 
         {gameStatus === "win" ? (
           <div className={winner === role ? winnerWinClass : winnerLoseClass}>
             {winner === role ? "You Win!" : "You Lose!"}
           </div>
+        ) : gameStatus === "tie" ? (
+          <div className={winnerTieClass}>It's a Tie!</div>
         ) : null}
-
-        {gameStatus === "tie" ? <div className={winnerTieClass}>It's a Tie!</div> : null}
 
         <div className={boardShellClass}>
           <div
@@ -285,7 +286,7 @@ export default function AIGame() {
           <button className={roomRestartButtonClass} type="button" onClick={startGame} disabled={isStarting}>
             Restart
           </button>
-          <button className={roomLeaveButtonClass}  type="button" onClick={() => navigate(-1)}>
+          <button className={roomLeaveButtonClass}  type="button" onClick={() => navigate("/play")}>
             Leave
           </button>
         </div>

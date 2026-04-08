@@ -1,7 +1,7 @@
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import SideBar from "./layouts/SidebarLayout";
-import ProtectedRoute from "./components/ProtectedRoute";
+import SideBar from "./layouts/SideBar";
+import ProtectedRoute from "./routes/ProtectedRoute";
 import PageLoader from "./components/PageLoader";
 import ErrorBoundary from "./components/ErrorBoundary";
 import PrivacyPolicy from "./pages/PolicyPage.jsx";
@@ -14,17 +14,17 @@ const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
 const ChangePassword = lazy(() => import("./pages/auth/ChangePassword"));
 const OAuthCallback = lazy(() => import("./pages/auth/OAuthCallback"));
-const Profile = lazy(() => import("./pages/user/Profile"));
-const FriendProfile = lazy(() => import("./pages/user/ViewFriendProfile"));
+const Profile = lazy(() => import("./pages/user/ViewProfile"));
+const FriendProfile = lazy(() => import("./pages/user/ViewFriendProfile.jsx"));
 const Friends = lazy(() => import("./pages/user/Friends"));
-const Lobby = lazy(() => import("./pages/game/GameLobby"));
-const CreateRoom = lazy(() => import("./pages/game/CreateRoom.jsx"));
-const JoinRoom = lazy(() => import("./pages/game/JoinRoom.jsx"));
-const LocalGame = lazy(() => import("./pages/game/LocalGame.jsx"));
-const Matchmaking = lazy(() => import("./pages/game/Matchmaking.jsx"));
-const AIGame = lazy(() => import("./pages/game/AIGame.jsx"));
+const Lobby = lazy(() => import("./pages/play/GameLobby"));
+const CreateRoom = lazy(() => import("./pages/play/CreateRoom.jsx"));
+const JoinRoom = lazy(() => import("./pages/play/JoinRoom.jsx"));
+const Matchmaking = lazy(() => import("./pages/play/Matchmaking.jsx"));
+const LocalGame = lazy(() => import("./pages/play/LocalGame.jsx"));
+const AIGame = lazy(() => import("./pages/play/AIGame.jsx"));
+const OnlineGame = lazy(() => import("./pages/play/OnlineGame"));
 const CustomizePage = lazy(() => import("./features/customize/CustomizePage"));
-const OnlineGame = lazy(() => import("./pages/game/OnlineGame"));
 
 export default function App() {
   return (
@@ -41,7 +41,7 @@ export default function App() {
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms-of-service" element={<TermsOfService />} />
           
-          {/* Fullscreen Public Routes - Offline Game */}
+          {/* Fullscreen Public Routes */}
           <Route path="/play/local-game" element={<LocalGame />} />
           <Route path="/play/ai-game" element={<AIGame />} />
 
@@ -51,9 +51,8 @@ export default function App() {
             <Route path="/play" element={<Lobby />} />
           </Route>
 
-          {/* Protected Routes */}
+          {/* Protected Routes - With Sidebar */}
           <Route element={<ProtectedRoute />}>
-            {/* Routes that need the sidebar shell */}
             <Route element={<SideBar />}>
               <Route path="/play/create-room" element={<CreateRoom />} />
               <Route path="/play/join-room" element={<JoinRoom />} />
@@ -65,7 +64,7 @@ export default function App() {
               <Route path="/change-password" element={<ChangePassword />} />
             </Route>
 
-            {/* Fullscreen Protected Route - Offline Game */}
+            {/* Fullscreen Protected Route */}
             <Route path="/play/online" element={<OnlineGame />} />
           </Route>
 

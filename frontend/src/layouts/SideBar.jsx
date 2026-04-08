@@ -50,9 +50,8 @@ export default function SideBar() {
   const handleLogout = async () => {
     try {
       await apiRequest("/logout", { method: "POST" });
-    } catch (err) {
-      console.error(err);
-    } finally {
+    } catch {} 
+    finally {
       logout(user?.userId);
       closeSidebar();
       navigate("/login");

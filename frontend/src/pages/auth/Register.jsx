@@ -48,6 +48,7 @@ export default function Register() {
     email: "",
     password: "",
     confirmPassword: "",
+    secretQuestion: "",
     username: "",
     bio: "",
     avatar: "",
@@ -67,11 +68,11 @@ export default function Register() {
 
       try {
         const file = e.target.files?.[0];
-        const dataUrl = await readImageFile(file);
+        const image = await readImageFile(file);
     
         setForm(prev => ({
           ...prev,
-          [name]: dataUrl
+          [name]: image
         }));
     
         setError("");
@@ -124,6 +125,7 @@ export default function Register() {
           body: JSON.stringify({
             email: form.email,
             password: form.password,
+            question: form.secretQuestion,
             username: form.username,
             bio: form.bio,
             avatar: form.avatar,
@@ -224,6 +226,22 @@ export default function Register() {
                       name="confirmPassword"
                       value={form.confirmPassword}
                       placeholder="Confirm password"
+                      className={inputGold}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className={labelClass} htmlFor="register-secretQuestion">
+                      What is your favorite book? (password recovery)
+                    </label>
+                    <input
+                      id="register-secretQuestion"
+                      type="text"
+                      name="secretQuestion"
+                      value={form.secretQuestion}
+                      placeholder="Your secret question answer"
                       className={inputGold}
                       onChange={handleChange}
                       required

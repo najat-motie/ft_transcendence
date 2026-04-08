@@ -1,7 +1,7 @@
 .PHONY: help build up down restart clean clean-all logs logs-backend logs-frontend logs-db shell-backend shell-frontend shell-db ps migrate migrate-dev migrate-reset db-push db-seed prune dev stop start rebuild
 
 export DOCKER_CONFIG := $(PWD)/.docker
-COMPOSE := docker compose --env-file .env
+COMPOSE := docker compose -p ft_transcendence -f infra/docker-compose.yml --env-file .env
 
 help:
 	@echo "Available commands:"
@@ -67,11 +67,12 @@ clean:
 	@$(COMPOSE) down -v --rmi all --remove-orphans
 	@docker system prune -f
 
-clean-all: clean
-	-@docker rm -f $$(docker ps -qa) 2>/dev/null || true
-	-@docker rmi -f $$(docker images -qa) 2>/dev/null || true
+clean-all:
+	-@docker compose down -v --remove-orphans 2>/dev/null || true
+	-@docker rm -f $$(docker ps -aq) 2>/dev/null || true
 	-@docker volume rm $$(docker volume ls -q) 2>/dev/null || true
-	-@docker network rm $$(docker network ls -q) 2>/dev/null || true
+	-@docker network prune -f 2>/dev/null || true
+	-@docker image prune -a -f 2>/dev/null || true
 
 logs:
 	@$(COMPOSE) logs -f

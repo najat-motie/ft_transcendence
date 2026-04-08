@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { apiRequest } from "../../services/api";
 import { slabHeading } from "../../lib/ui";
 import { cn } from "../../lib/cn";
@@ -20,9 +21,7 @@ export default function OutgoingRequests({ outgoingRequests, setOutgoingRequests
     try {
       await apiRequest(`/requests/cancel/${requestId}`, { method: "POST" });
       setOutgoingRequests((prev) => prev.filter((request) => request.id !== requestId));
-    } catch (error) {
-      console.error(error.message);
-    }
+    } catch {}
   };
 
   return (

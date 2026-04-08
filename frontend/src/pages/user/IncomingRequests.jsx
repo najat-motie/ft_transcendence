@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { apiRequest } from "../../services/api";
 import { slabHeading } from "../../lib/ui";
 import { cn } from "../../lib/cn";
@@ -21,9 +22,7 @@ export default function IncomingRequests({ incomingRequests, setIncomingRequests
       await apiRequest(`/requests/accept/${requestId}`, { method: "POST" });
       setIncomingRequests((prev) => prev.filter((request) => request.id !== requestId));
       fetchAllFriendsData();
-    } catch (error) {
-      console.error(error.message);
-    }
+    } catch {}
   };
 
   const rejectIncomingRequest = async (requestId) => {

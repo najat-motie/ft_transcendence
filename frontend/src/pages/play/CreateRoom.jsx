@@ -131,7 +131,7 @@ export default function CreateRoom() {
       }
     }
 
-    navigate(-1);
+    navigate("/play");
   };
 
   return (

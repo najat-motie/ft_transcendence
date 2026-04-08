@@ -27,3 +27,6 @@ dist-ssr
 uploads/avatars/*
 !uploads/avatars/.gitkeep
 
+uploads
+
+__pycache__

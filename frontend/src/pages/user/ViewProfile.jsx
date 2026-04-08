@@ -56,6 +56,10 @@ export default function Profile() {
     return `${kpis.winRate?.toFixed ? kpis.winRate.toFixed(2) : kpis.winRate || 0}%`;
   }, [kpis]);
 
+  useEffect(() => {
+    document.title = "ft_transcendence - Profile";
+  }, [])
+
   const fetchProfile = useCallback(async () => {
     try {
       const storedUser = getUserFromCookie();
@@ -89,21 +93,11 @@ export default function Profile() {
         bio: kpiData.bio || "",
       });
     } catch (err) {
-      if (err.message?.includes("Profile not found") || err.message?.includes("not found")) {
-        setUser(null);
-        setKpis(null);
-        setEditMode(true);
-      } else {
-        setError(err.message);
-      }
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   }, []);
-
-  useEffect(() => {
-    document.title = "ft_transcendence - Profile";
-  }, [])
 
   useEffect(() => {
     fetchProfile();
@@ -128,11 +122,11 @@ export default function Profile() {
 
       try {
         const file = e.target.files?.[0];
-        const dataUrl = await readImageFile(file);
+        const image = await readImageFile(file);
     
         setForm(prev => ({
           ...prev,
-          [name]: dataUrl
+          [name]: image
         }));
     
         setError("");
@@ -162,7 +156,6 @@ export default function Profile() {
 
     try {
       setIsSaving(true);
-      const isCreate = !user;
       const payload = {
         ...form,
         username: form.username.trim(),
@@ -170,24 +163,16 @@ export default function Profile() {
       };
 
       const updated = await apiRequest(`/profile`, {
-        method: isCreate ? "POST" : "PUT",
+        method: "PUT",
         body: JSON.stringify(payload),
       });
       const updatedData = updated?.data || updated;
 
-      if (isCreate) {
-        setEditMode(false);
-        fetchProfile();
-      } else {
-        setUser((prev) => {
-          const syncedUser = { ...prev, ...updatedData };
-          setUserInCookie(syncedUser, 7);
-          return syncedUser;
-        });
-        setCookie("userProfile", JSON.stringify(updatedData), 7);
-        setForm((prev) => ({ ...prev, ...updatedData }));
-        setEditMode(false);
-      }
+      const syncedUser = { ...prev, ...updatedData };
+      setUser(syncedUser);
+      setUserInCookie(syncedUser, 7);
+      setCookie("userProfile", JSON.stringify(updatedData), 7);
+      setEditMode(false);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -276,10 +261,9 @@ export default function Profile() {
             <h1 className={topbarHeadingClass}>Profile overview</h1>
             <p className={mutedClass}>Track your progress, update your identity, and jump quickly into your social tools.</p>
           </div>
-          <div className="flex flex-wrap justify-end gap-3 max-[560px]:flex-col">
-            <button className={quickActionButtonClass} onClick={() => navigate("/friends")}>Friends</button>
-            <button className={quickActionButtonClass} onClick={() => navigate("/change-password")}>Change Password</button>
-          </div>
+          {/* <div className="flex flex-wrap justify-end gap-3 max-[560px]:flex-col">
+            <button className={quickActionButtonClass} type="button" onClick={() => navigate("/friends")}>Open Friends Hub</button>
+          </div> */}
         </header>
 
         <div className={heroGridClass}>
@@ -329,6 +313,7 @@ export default function Profile() {
 
                 <div className={buttonRowClass}>
                   <button className={mainActionButtonClass} type="button" onClick={() => setEditMode(true)}>Edit Profile</button>
+                  <button className={quickActionButtonClass} onClick={() => navigate("/change-password")}>Change Password</button>
                   <button className={quickActionButtonClass} type="button" onClick={() => navigate("/friends")}>Open Friends Hub</button>
                 </div>
               </>

@@ -37,30 +37,30 @@ export default function FriendsList({ friendList, setFriendList }) {
       <ul className={listClass}>
         {friendList.map((friend) => (
           <li key={friend.id} className={socialItemClass}>
-            <div className="flex items-center gap-[0.8rem]">
-              <div className="relative shrink-0">
-                <img
-                  src={friend.avatar}
-                  alt={friend.username}
-                  className="block h-[38px] w-[38px] rounded-full object-cover"
-                />
-                <span
-                  className={`${statusDotClass(friend.online)} absolute bottom-0 right-0`}
-                  title={friend.online ? "Online" : "Offline"}
-                />
+            <Link
+              to={`/profile/${friend.id}`}
+              className="block text-[0.98rem] font-bold text-slate-50 hover:no-underline"
+            >
+              <div className="flex items-center gap-[0.8rem]">
+                <div className="relative shrink-0">
+                  <img
+                    src={friend.avatar}
+                    alt={friend.username}
+                    className="block h-[38px] w-[38px] rounded-full object-cover"
+                  />
+                  <span
+                    className={`${statusDotClass(friend.online)} absolute bottom-0 right-0`}
+                    title={friend.online ? "Online" : "Offline"}
+                  />
+                </div>
+                <div>
+                    {friend.username}
+                  <span className="block text-xs opacity-55">
+                    {friend.online ? "Online" : "Offline"}
+                  </span>
+                </div>
               </div>
-              <div>
-                <Link
-                  to={`/profile/${friend.id}`}
-                  className="block text-[0.98rem] font-bold text-slate-50 hover:no-underline"
-                >
-                  {friend.username}
-                </Link>
-                <span className="block text-xs opacity-55">
-                  {friend.online ? "Online" : "Offline"}
-                </span>
-              </div>
-            </div>
+            </Link>
             <button className={removeButtonClass} onClick={() => removeFriend(friend.id)}>Remove</button>
           </li>
         ))}

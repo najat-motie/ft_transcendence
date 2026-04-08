@@ -81,7 +81,7 @@ export default function JoinRoom() {
             {isJoining ? "Joining..." : "Join"}
           </button>
 
-          <button className={actionGhostClass} type="button" onClick={() => navigate(-1)}>
+          <button className={actionGhostClass} type="button" onClick={() => navigate("/play")}>
             Cancel
           </button>
         </div>

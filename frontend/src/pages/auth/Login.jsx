@@ -73,9 +73,7 @@ function Login() {
         const kpiResponse = await apiRequest(`/profile/${payload.user.userId}/kpis`, { method: "GET" });
         const kpiData = kpiResponse?.data || kpiResponse;
         setCookie("userProfile", JSON.stringify(kpiData), 7);
-      } catch (kpiErr) {
-        console.warn("Could not prefetch profile KPIs:", kpiErr.message);
-      }
+      } catch {}
 
       navigate("/");
     } catch (err) {

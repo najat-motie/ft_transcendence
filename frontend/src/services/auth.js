@@ -1,3 +1,4 @@
+import { closeSocket } from "./socket";
 import {
   deleteCookie,
   getCookie,
@@ -52,4 +53,5 @@ export function logout(userId) {
   }
 
   deleteCookie("userProfile");
+  closeSocket();
 }

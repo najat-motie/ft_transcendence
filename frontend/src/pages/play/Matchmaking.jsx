@@ -66,7 +66,7 @@ export default function Matchmaking() {
   const handleCancel = () => {
     abortRef.current?.abort();
     setIsSearching(false);
-    navigate(-1);
+    navigate("/play");
   };
 
   return (

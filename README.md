@@ -1,174 +1,96 @@
-*This project has been created as part of the 42 curriculum by* <mark>nmotie-<mark>, <mark>jmayou<mark>, <mark>abattagi<mark>, <mark>ien-niou<mark>
+*This project has been created as part of the 42 curriculum by* **nmotie-**, **jmayou**, **abattagi**, **ien-niou**.
 
-# ft_transcendence — Real-Time Tic-Tac-Toe Platform
+# ft_transcendence — Real-Time Multiplayer Tic-Tac-Toe Platform
 
 ## Table of Contents
 
 - [Description](#description)
-- [Instructions](#instructions)
-- [Resources](#resources)
-- [Team Information](#team-information)
-- [Project Management](#project-management)
-- [Technical Stack](#technical-stack)
-- [Database Schema](#database-schema)
-- [Features Overview](#features-overview)
+- [Presentation](#presentation)
+- [Features List](#features-list)
 - [Modules](#modules)
+- [Technical Stack](#technical-stack)
+- [Architecture Overview](#architecture-overview)
+- [Database Schema](#database-schema)
+- [Instructions](#instructions)
+- [Project Management](#project-management)
+- [Team Information](#team-information)
 - [Individual Contributions](#individual-contributions)
+- [Resources](#resources)
 
 ---
 
 ## Description
 
+### Project Overview
+
 **ft_transcendence** is a full-stack, real-time web application designed to deliver a modern and interactive Tic-Tac-Toe gaming platform.
 
 The project integrates multiplayer gameplay, artificial intelligence, and social features within a secure and responsive web environment.
 
-The objective is to design and implement a modular full-stack application, demonstrating proficiency in modern web development, real-time communication, authentication systems, and scalable software architecture.
+The goal is to design and implement a modular full-stack application, demonstrating proficiency in modern web development, real-time communication, authentication systems, and scalable software architecture.
 
-The selected concept, a ***Real-Time Tic-Tac-Toe Platform***, provides a structured environment to explore client-server architecture, WebSocket-based communication, and interactive user experience design.
+The selected concept, a ***Real-Time Multiplayer Tic-Tac-Toe Platform***, provides a structured environment to explore client-server architecture, WebSocket-based communication, and interactive user experience design.
 
-## Key Features
+### Key Features
 
-- ***Authentication System***: Secure JWT-based authentication with email and password.
-- ***OAuth Integration***: Third-party authentication using 42 OAuth 2.0.
-- ***User Management System***: User profiles, friend relationships, and social interaction features.
-- ***Multiplayer System***: Real-time matchmaking, private game rooms, and local multiplayer mode.
-- ***AI Opponent***: Single-player mode with adaptive, human-like AI behavior.
-- ***Real-Time Communication***: WebSocket-based synchronization for live gameplay.
-- ***Game Customization***: Custom themes, board styles, and audio settings.
-- ***Gamification System***: Experience points, achievements, and progression system.
-- ***Responsive User Interface***: Adaptive design across devices with protected routes for authenticated users.
-- ***Legal & Privacy Compliance***: Privacy policy and terms of service pages.
+- Authentication System with OAuth (42 Intra)
+- User Management (Profiles & Friend System)
+- Real-Time Multiplayer (WebSocket-based synchronization)
+- Remote Players (Real-time play across separate devices)
+- Multiple Game Modes (Local, AI, Matchmaking, Private Rooms)
+- Gamification System (XP and player statistics)
+- Game Customization (Board styles, settings)
+- Responsive & Accessible UI
 
 ---
 
-## Instructions
+## Presentation
 
-### Prerequisites
-
-Make sure you have the following tools installed:
-
-- [Git](https://git-scm.com/downloads)  
-- [Docker](https://www.docker.com/get-started/)
-- [Docker Compose](https://docs.docker.com/compose/)  
-- [Node.js](https://nodejs.org/) (v18+ recommended)  
-- [npm](https://www.npmjs.com/) (comes with Node.js) or [Yarn](https://yarnpkg.com/)  
-
-### Setup
-```bash
-git clone <repository_url>
-cd ft_transcendence
-```
-
-### Configure environment variables
-```bash
-cp .env.example .env
-```
-
-### Run the application
-```bash
-docker-compose up --build
-```
-Or using available makefile commands, run:
-```bash
-make help
-```
-
-### After the application starts:
-Open your browser and go to https://localhost.
+To view the presentation:
+- Open `presentation.html` in your browser
 
 ---
 
-## Resources
+## Features List
 
-### Documentation & References
-- **React**: https://react.dev
-- **React Router**: https://reactrouter.com
-- **Vite**: https://vitejs.dev
-- **Express.js**: https://expressjs.com
-- **Prisma ORM**: https://www.prisma.io/docs
-- **PostgreSQL**: https://www.postgresql.org/docs
-- **JWT Authentication**: https://jwt.io
-- **OAuth 2.0**: https://oauth.net/2
-- **WebSockets**: https://developer.mozilla.org/en-US/docs/Web/API/WebSocket
-- **Docker**: https://docs.docker.com
-
-### Use of AI Tools
-
-AI tools were used as a development assistant for:
-
-* Debugging and understanding errors
-* Generating ideas for testing scenarios
-* Suggesting code structure improvements and best practices
-* Writing and improving documentation (README)
-* Design assistance for project branding (logo and favicon generation)
+| Feature                         | Team Members      | Description                                                         |
+| ------------------------------- | ----------------- | ------------------------------------------------------------------- |
+| Authentication System           | abattagi, nmotie- | JWT-based authentication with session handling and protected routes |
+| OAuth 2.0 (42 Login)            | abattagi          | Login via 42 Intra using OAuth authorization and callback flow      |
+| User Profiles                   | abattagi, nmotie- | User profile management with avatars and editable information       |
+| Friends System                  | abattagi          | Friend request system with add, accept, reject, and status tracking |
+| Real-Time Multiplayer           | jmayou, nmotie-   | WebSocket-based real-time gameplay synchronization between players  |
+| Game Engine (Core Logic)        | jmayou            | Tic-Tac-Toe rules, turn handling, and win/draw detection            |
+| Matchmaking System              | jmayou            | Automatic player pairing for online matches                         |
+| AI Opponent                     | jmayou            | Single-player mode with AI opponent and difficulty logic            |
+| Private Game Rooms              | jmayou            | Custom rooms with create, join, leave, and session management        |
+| Local Game Mode                 | jmayou            | Offline two-player mode on the same device without authentication   |
+| Game Customization              | ien-niou          | Themes, board styles, and X/O skins customization                   |
+| Gamification System             | ien-niou          | XP progression system with wins, losses, matches, and win rate      |
+| API Layer                       | nmotie-           | Centralized handling of frontend-backend communication              |
+| UI/UX (Responsive & Accessible) | ien-niou, nmotie- | Responsive design and accessibility support across devices          |
 
 ---
 
-## Team Information
+## Modules
 
-### abattagi
+| Module                          | Points | Justification                                                | Implementation                                             | Team Members       |
+| --------------------------------| ------ | -------------------------------------------------------------| ---------------------------------------------------------- | ------------------ |
+| Frameworks (Frontend + Backend) | 2      | Required for full-stack SPA and API architecture             | React (Vite + Router) frontend + Express backend APIs      | nmotie-, abattagi  |
+| User Management & Authentication| 2      | Core system for security and user identity                   | JWT auth, refresh tokens, profiles, friends system         | abattagi, nmotie-  |
+| OAuth 2.0 (42 Login)            | 1      | Enables external authentication integration                  | 42 OAuth login + callback flow                             | abattagi           |
+| ORM (Prisma)                    | 1      | Simplifies database access and schema management             | Prisma schema, migrations, DB queries                      | abattagi           |
+| AI Opponent                     | 2      | Adds single-player gameplay experience                       | AI logic for Tic-Tac-Toe with balanced difficulty          | jmayou             |
+| Web-Based Multiplayer Game      | 2      | Core playable game feature                                   | Game rules, win/draw detection, online matchmaking         | jmayou             |
+| Real-Time Features (WebSockets) | 2      | Core requirement for real-time multiplayer gameplay          | WebSocket rooms, live game-state sync, disconnect handling | jmayou, nmotie-    |
+| Remote players                  | 2      | Enable two players on different devices to play in real time | Sync, latency handling, reconnection system                | jmayou, nmotie-    |
+| Game Customization              | 1      | Improves user experience and personalization                 | Themes, skins, sound settings, defaults                    | ien-niou           |
+| Gamification System             | 1      | Increases engagement and progression                         | XP, wins/losses, matches, win rate                         | ien-niou           |
 
-**Assigned roles**:
-> Product Owner + Developer
-
-**PO Responsibilities**:
-
-Defines product vision, manages backlog, validates features.
-
-### nmotie-
-
-**Assigned role(s)**:
-> Project Manager / Scrum Master + Developer
-
-**PM Responsibilities**:
-
-Organizes planning, tracks progress, ensures communication and deadlines.
-
-### ien-niou
-
-**Assigned role(s)**:
-> Technical Lead / Architect + Developer
-
-**Teach Lead Responsibilities**:
-
-Defines architecture, ensures code quality, reviews implementations.
-
-### jmayou
-
-**Assigned role(s)**:
-> Developer
-
-**Responsibilities**
-
-Implements features and collaborates on gameplay systems.
-
----
-
-## Project Management
-
-### Work Organization
-
-Our team followed a structured and collaborative workflow to ensure efficient development:
-
-* Tasks were divided into small, manageable units and assigned based on each member’s strengths
-* We used a feature-based approach, where each developer worked on specific modules (frontend, backend, game logic)
-* Regular progress tracking helped ensure alignment with deadlines
-* Code reviews were performed before merging to maintain code quality
-
-### Project Management Tools
-
-We used the following tools to organize and track our work:
-
-- **Git** – Version control and collaboration through branches
-- **GitHub Issues** – Task management, bug tracking, and feature assignment
-
-### Communication
-
-To stay connected and collaborate effectively, we used:
-
-- **Discord** – Main platform for daily communication, discussions, and coordination
-- Regular remote and in-person (local) stand-up meetings to discuss progress, blockers, and next steps
+**FINAL SCORE CHECK**  
+Major modules = 6 → 12 points  
+Minor modules = 4 → 4 points  
+Total = 16 points  
 
 ---
 
@@ -176,7 +98,7 @@ To stay connected and collaborate effectively, we used:
 
 ### Frontend
 
-The frontend was built using modern technologies to ensure a responsive and interactive user experience:
+The frontend is built using modern technologies to deliver a responsive and interactive user experience:
 
 - **Vite** – Fast development server and optimized build tool
 - **React** – Component-based architecture for building dynamic UI
@@ -194,14 +116,14 @@ The backend handles business logic, authentication, and real-time communication:
 **Authentication & Security:**
 - **JWT** – Stateless authentication
 - **bcrypt** – Secure password hashing
-- Security middleware (CORS, Helmet, rate limiting, validation)
-
 - **Passport.js** – OAuth integration (42 login)
+- **Security middleware** – CORS, Helmet, rate limiting, input validation 
+- **Protected routes** — Authentication enforced on both client and server
 
 ### Database
 
 - **Prisma** – Type-safe ORM with migrations
-- **PostgreSQL** – Relational database for structured data
+- **PostgreSQL** – Reliable relational database
 
 **Why PostgreSQL:**
 - Strong support for relational data and complex queries
@@ -210,18 +132,59 @@ The backend handles business logic, authentication, and real-time communication:
 
 ### Infrastructure
 
-- **Git** – Version control system
-- **Docker** – Consistent development and deployment environment
+- **Git** – Version control
 - **Caddy** – Reverse proxy with automatic HTTPS
-- **Makefile** – Project automation (setup, build, run)
+- **Makefile** – Automates setup, build, and run commands
+- **Docker** – Consistent environment across development and deployment
+- **Docker Compose** – Manages multi-container services
 - **Environment variables (.env)** – Secure configuration management
 
 ### Technical Choices & Justification
 
 - **React + Vite** – Fast development and optimized frontend performance
-- **Node.js + Express** – Unified JavaScript stack for scalability
+- **Node.js + Express** – Unified JavaScript stack for scalability and maintainability
 - **WebSocket** – Required for real-time multiplayer gameplay
-- **PostgreSQL** – Reliable relational database for structured data
+- **PostgreSQL** – Reliable relational database for structured and complex data
+
+---
+
+## Architecture Overview
+
+```
+            ┌───────────────────────┐
+            │        Browser        │
+            │       (Client)        │
+            └──────────┬────────────┘
+                       │ HTTPS
+                       ▼
+        ┌──────────────────────────────┐
+        │        Reverse Proxy         │
+        │                              │
+        │           Caddy              │
+        │      (Routing + HTTPS)       │
+        └──────────────┬───────────────┘
+                         │
+         ┌───────────────┴──────────────┐
+         │                              │
+         ▼                              ▼
+┌──────────────────────┐     ┌──────────────────────┐
+│       Frontend       │     │        Backend       │
+│                      │     │                      │
+│  React + Vite        │     │  Node.js + Express   │
+│  + Tailwind          │     │                      │
+│                      │     │  - REST API          │
+│                      │     │  - Auth (JWT/OAuth)  │
+│                      │     │  - WebSocket Server  │
+└──────────────────────┘     └──────────┬───────────┘
+                                        │
+                                        ▼
+                          ┌────────────────────────┐
+                          │        Database        │
+                          │                        │
+                          │      PostgreSQL        │
+                          │      (via Prisma)      │
+                          └────────────────────────┘
+```
 
 ---
 
@@ -230,35 +193,35 @@ The backend handles business logic, authentication, and real-time communication:
 ### Entity Relationship Diagram
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                           User                              │
-├─────────────────────────────────────────────────────────────┤
-│ • id (UUID, PK)                                             │
-│ • email (String, unique)                                    │
-│ • password (String, optional - null for OAuth users)        │
-│ • isActive (Boolean)                                        │
-│ • createdAt (DateTime)                                      │
-│ • updatedAt (DateTime)                                      │
-└─────────────────────────────┬───────────────────────────────┘
+┌───────────────────────────────────────────────────────────┐
+│                           User                            │
+├───────────────────────────────────────────────────────────┤
+│ • id (UUID, PK)                                           │
+│ • email (String, unique)                                  │
+│ • password (String, optional - null for OAuth users)      │
+│ • isActive (Boolean)                                      │
+│ • createdAt (DateTime)                                    │
+│ • updatedAt (DateTime)                                    │
+└─────────────────────────────┬─────────────────────────────┘
                     (1 to 1)  │
                               │
-      ┌───────────────────────▼─────────────────────────┐
-      │                   UserProfile                   │
-      ├─────────────────────────────────────────────────┤
-      │ • userId (UUID, PK, FK)                         │
-      │ • username (String, unique)                     │
-      │ • avatar (String, optional URL)                 │
-      │ • bio (String, optional)                        │
-      │ • level (Int, default 1)                        │
-      │ • experience (Int, default 0)                   │
-      │ • wins (Int, default 0)                         │
-      │ • losses (Int, default 0)                       │
-      │ • rank (Int, optional)                          │
-      │ • status (String: online/offline/away)          │
-      │ • lastSeen (DateTime)                           │
-      │ • createdAt (DateTime)                          │
-      │ • updatedAt (DateTime)                          │
-      └────────┬────────────────────────────────────────┘
+    ┌───────────────────────▼─────────────────────────┐
+    │                   UserProfile                   │
+    ├─────────────────────────────────────────────────┤
+    │ • userId (UUID, PK, FK)                         │
+    │ • username (String, unique)                     │
+    │ • avatar (String, optional URL)                 │
+    │ • bio (String, optional)                        │
+    │ • level (Int, default 1)                        │
+    │ • experience (Int, default 0)                   │
+    │ • wins (Int, default 0)                         │
+    │ • losses (Int, default 0)                       │
+    │ • rank (Int, optional)                          │
+    │ • status (String: online/offline/away)          │
+    │ • lastSeen (DateTime)                           │
+    │ • createdAt (DateTime)                          │
+    │ • updatedAt (DateTime)                          │
+    └──────────┬──────────────────────────────────────┘
                │ (1 to Many)
                │
     ┌──────────┴──────────────────────────────┐
@@ -284,18 +247,6 @@ The backend handles business logic, authentication, and real-time communication:
     │  │ • createdAt (DateTime)                      │
     │  │ • updatedAt (DateTime)                      │
     │  │ (Unique constraint on unordered pair)       │
-    │  └─────────────────────────────────────────────┘
-    │
-    │  ┌─────────────────────────────────────────────┐
-    │  │           Message                           │
-    │  ├─────────────────────────────────────────────┤
-    │  │ • id (UUID, PK)                             │
-    │  │ • senderId (UUID, FK)                       │
-    │  │ • receiverId (UUID, FK)                     │
-    │  │ • content (String)                          │
-    │  │ • isRead (Boolean, default false)           │
-    │  │ • createdAt (DateTime)                      │
-    │  │ • updatedAt (DateTime)                      │
     │  └─────────────────────────────────────────────┘
     │
     │  ┌─────────────────────────────────────────────┐
@@ -335,76 +286,113 @@ The backend handles business logic, authentication, and real-time communication:
 
 * User email is globally unique (prevents duplicate accounts)
 * UserProfile username is globally unique (prevents duplicate usernames)
-* FriendRequest prevents duplicate pending requests
 * Friendship uses a composite unique constraint to avoid duplicate relationships
-* Message and FriendRequest prevent invalid self-interactions
+* FriendRequest prevents duplicate pending requests and invalid self-interactions
 * All foreign keys enforce referential integrity
 
 ---
 
-## Features List
+## Instructions
 
-### Features & Team Contributions
+### Prerequisites
 
-| Feature | Team Members | Contribution |
-|--------|--------------|--------------|
-| Authentication System | abattagi, nmotie- | abattagi: backend (JWT, tokens) • nmotie-: frontend forms & integration |
-| OAuth 2.0 (42 Login) | abattagi | abattagi: OAuth flow and callback implementation |
-| User Profiles | abattagi, nmotie- | abattagi: API & database • nmotie-: UI display and editing |
-| Friends System | abattagi | abattagi: friend requests, relationships, and status logic |
-| API Integration | nmotie- | nmotie-: centralized request handling and API connection |
-| Database Management | abattagi | abattagi: schema design, Prisma, and migrations |
-| Tic-Tac-Toe Game Logic | jmayou | jmayou: core game rules and state transitions |
-| AI Opponent | jmayou | jmayou: AI logic and behavior balancing |
-| Multiplayer Matchmaking | jmayou | jmayou: player matching and session management |
-| Private Game Rooms | jmayou | jmayou: room creation and join system |
-| Real-Time Gameplay | jmayou, nmotie- | jmayou: server-side logic • nmotie-: client-side state handling |
-| WebSocket Connection Handling | jmayou, nmotie- | jmayou: server events • nmotie-: client synchronization |
-| Game Customization | ien-niou | ien-niou: state logic and UI controls |
-| Gamification System | abattagi, ien-niou | abattagi: backend stats • ien-niou: frontend display |
-| Responsive UI | ien-niou | ien-niou: layout, responsiveness, and styling |
-| Privacy & Legal Compliance | ien-niou | ien-niou: privacy policy and terms of service |
+Make sure you have the following tools installed:
 
-### Feature Descriptions
+- [Git](https://git-scm.com/downloads)  
+- [Docker](https://www.docker.com/get-started/)
+- [Docker Compose](https://docs.docker.com/compose/)  
+- [Node.js](https://nodejs.org/) (v18+ recommended)  
+- [npm](https://www.npmjs.com/) (comes with Node.js) or [Yarn](https://yarnpkg.com/)  
 
-- **Authentication System**: JWT-based authentication with protected routes
-- **OAuth 2.0 (42 Login)**: External authentication via 42 Intra with callback flow
-- **User Profiles**: User accounts with avatars, stats, and personal information
-- **Friends System**: Send, accept, reject, and manage friend requests with online status
-- **Real-Time Gameplay**: Live game updates between players using WebSockets
-- **Multiplayer Matchmaking**: Connects players automatically for online matches
-- **Private Game Rooms**:  Allows users to create/join custom game sessions
-- **Tic-Tac-Toe Game Logic**: Handles rules, turns, and win/draw conditions
-- **AI Opponent**: Competitive AI with human-like behavior
-- **Game Customization**: Themes, board styles, X/O skins, and sound settings
-- **Gamification System**: XP, levels, rankings, and match statistics
-- **WebSocket Connection Handling**: Handles connection, disconnection, and reconnection
-- **API Integration**: Frontend communication with backend services
-- **Database Management**: Schema, migrations, and data handling with ORM
-- **Responsive UI**: Mobile-friendly interface with adaptive layout
-- **Privacy & Legal Compliance**: Providing users with clear information about data usage, user rights, and platform terms
+### Setup
+```bash
+git clone <repository_url>
+cd ft_transcendence
+```
+
+### Configure environment variables
+```bash
+cp ./infra/.env.example .env
+```
+
+### Run the application
+```bash
+docker compose up --build
+```
+Or using available makefile commands, run:
+```bash
+make help
+```
+
+### After the application starts:
+Open your browser and go to https://localhost.
 
 ---
 
-## Modules
+## Project Management
 
-| Module                          | Points | Justification                                       | Implementation                                             | Team Members       |
-| --------------------------------| ------ | --------------------------------------------------- | ---------------------------------------------------------- | ------------------ |
-| Frameworks (Frontend + Backend) | 2      | Required for full-stack SPA and API architecture    | React (Vite + Router) frontend + Express backend APIs      | nmotie-, abattagi  |
-| User Management & Authentication| 2      | Core system for security and user identity          | JWT auth, refresh tokens, profiles, friends system         | abattagi, nmotie-  |
-| OAuth 2.0 (42 Login)            | 1      | Enables external authentication integration         | 42 OAuth login + callback flow                             | abattagi           |
-| ORM (Prisma)                    | 1      | Simplifies database access and schema management    | Prisma schema, migrations, DB queries                      | abattagi           |
-| AI Opponent                     | 2      | Adds single-player gameplay experience              | AI logic for Tic-Tac-Toe with balanced difficulty          | jmayou             |
-| Web-Based Multiplayer Game      | 2      | Core playable game feature                          | Game rules, win/draw detection, online matchmaking         | jmayou             |
-| Real-Time Features (WebSockets) | 2      | Core requirement for real-time multiplayer gameplay | WebSocket rooms, live game-state sync, disconnect handling | jmayou, nmotie-    |
-| Remote Multiplayer System       | 2      | Enables real-time cross-device gameplay             | Sync, latency handling, reconnection system                | jmayou, nmotie-    |
-| Game Customization              | 1      | Improves user experience and personalization        | Themes, skins, sound settings, defaults                    | ien-niou           |
-| Gamification System             | 1      | Increases engagement and progression                | XP, wins/losses, leaderboard stats                         | abattagi, ien-niou |
+### Work Organization
 
-**✔ FINAL SCORE CHECK**  
-Major modules = 6 → 12 points  
-Minor modules = 4 → 4 points  
-👉 Total = 16 points  
+Our team followed a structured and collaborative workflow to ensure efficient development:
+
+* Tasks were divided into small, manageable units and assigned based on each member’s strengths
+* We used a feature-based approach, where each developer worked on specific modules (frontend, backend, game logic)
+* Regular progress tracking helped ensure alignment with deadlines
+* Code reviews were performed before merging to maintain code quality
+
+### Project Management Tools
+
+We used the following tools to organize and track our work:
+
+- **Git** – Version control and collaboration through branches
+- **GitHub Issues** – Task management, bug tracking, and feature assignment
+
+### Communication
+
+To stay connected and collaborate effectively, we used:
+
+- **Discord** – Main platform for daily communication, discussions, and coordination
+- Regular remote and in-person (local) stand-up meetings to discuss progress, blockers, and next steps
+
+---
+
+## Team Information
+
+### abattagi
+
+**Assigned roles**:
+> Product Owner + Developer
+
+**PO Responsibilities**:
+
+Defines product vision, manages backlog, validates features.
+
+### nmotie-
+
+**Assigned role(s)**:
+> Project Manager / Scrum Master + Developer
+
+**PM Responsibilities**:
+
+Organizes planning, tracks progress, ensures communication and deadlines.
+
+### ien-niou
+
+**Assigned role(s)**:
+> Technical Lead / Architect + Developer
+
+**Tech Lead Responsibilities**:
+
+Defines architecture, ensures code quality, reviews implementations.
+
+### jmayou
+
+**Assigned role(s)**:
+> Developer
+
+**Responsibilities**
+
+Implements features and collaborates on gameplay systems.
 
 ---
 
@@ -417,14 +405,16 @@ Minor modules = 4 → 4 points
 - Database design (Prisma)
 - Authentication and 42 OAuth integration
 - User and friends management system
+- Browser Compatibility
 
 **Technical Details**:
 - Designed RESTful APIs using Express
 - Modeled database schema and relationships using Prisma ORM
 - Implemented JWT authentication with refresh token flow
 - Integrated 42 OAuth using authorization and callback routes
-- Developed user profile management (profile data, avatars, stats)
-- Built friend system with request lifecycle (send/accept/reject)
+- Developed user profile management (profile data, avatars)
+- Built a friend system with a complete request lifecycle (send, accept, reject)
+- Ensured compatibility with the latest stable version of Google Chrome, with no console warnings or errors
 
 **Challenges & Solutions**:
 - *Challenge*:  
@@ -438,17 +428,17 @@ Minor modules = 4 → 4 points
 - API integration (REST requests)
 - WebSocket client integration
 - README documentation
-- Browser compatibility
 
 **Technical Details**:
 - Structured the frontend using reusable React components and routing (React Router)
 - Implemented controlled forms with validation logic
 - Integrated backend APIs using a centralized request utility
 - Connected WebSocket client to handle real-time updates in UI
+- Wrote and organized the README file
 
 **Challenges & Solutions**:
-- *Challenge*: Handling WebSocket disconnections in real-time gameplay  
-  *Solution*: Implemented connection lifecycle management with automatic reconnection
+- *Challenge*:  
+  *Solution*:  
 
 ### ien-niou
 
@@ -462,11 +452,11 @@ Minor modules = 4 → 4 points
 
 **Technical Details**:
 - Built responsive UI using Tailwind CSS utility classes
-- Implemented customization features (themes, skins, audio)
+- Implemented customization features (skins, audio)
 - Managed UI state (authentication, loading, error states) for a smoother user experience
 - Improved application stability through proper error handling and fallback UI
 - Implemented privacy policy and terms of service pages
-- Configured Docker environment and reverse proxy setup
+- Configured Docker environment and reverse proxy setup, with Makefile automation for streamlined project management
 
 **Challenges & Solutions**:
 - *Challenge*:  
@@ -489,3 +479,29 @@ Minor modules = 4 → 4 points
 **Challenges & Solutions:**
 - *Challenge*:  
   *Solution*:
+
+---
+
+## Resources
+
+### Documentation & References
+- **Vite**: https://vitejs.dev
+- **React**: https://react.dev
+- **React Router**: https://reactrouter.com
+- **Express.js**: https://expressjs.com
+- **Prisma ORM**: https://www.prisma.io/docs
+- **PostgreSQL**: https://www.postgresql.org/docs
+- **JWT Authentication**: https://jwt.io
+- **OAuth 2.0**: https://oauth.net/2
+- **Docker**: https://docs.docker.com
+- **WebSockets**: https://developer.mozilla.org/en-US/docs/Web/API/WebSocket
+
+### Use of AI Tools
+
+AI tools were used as a development assistant for:
+
+* Debugging and understanding errors
+* Generating ideas for testing scenarios
+* Suggesting code structure improvements and best practices
+* Writing and improving documentation (README)
+* Design assistance for project branding (logo and favicon generation)

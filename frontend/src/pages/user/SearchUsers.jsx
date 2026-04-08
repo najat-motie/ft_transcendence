@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useState } from "react";
 import { apiRequest } from "../../services/api";
 import { alertError, alertInfo, slabHeading } from "../../lib/ui";
@@ -35,9 +36,9 @@ export default function SearchUsers({
       const users = response?.data?.users || response?.data || [];
       const filteredUsers = users.filter(
         (user) =>
-          !friendList.find((friend) => friend.username === user.username) &&
-          !incomingRequests.find((request) => request.username === user.username) &&
-          !outgoingRequests.find((request) => request.username === user.username),
+          !friendList.find((friend) => friend.id === user.id) &&
+          !incomingRequests.find((request) => request.id === user.id) &&
+          !outgoingRequests.find((request) => request.id === user.id),
       );
       setSearchResults(filteredUsers);
       setHasSearched(true);
@@ -57,7 +58,6 @@ export default function SearchUsers({
         ...prev,
         {
           id: newRequest?.id || userId,
-          userId,
           username,
         },
       ]);

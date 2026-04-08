@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { apiRequest } from "../../services/api";
-import { alertError, alertInfo, frostedPanel, goldPill, slabHeading } from "../../lib/ui";
-import { cn } from "../../lib/cn";
 import SearchUsers from "./SearchUsers";
+import FriendsList from "./FriendsList";
 import OutgoingRequests from "./OutgoingRequests";
 import IncomingRequests from "./IncomingRequests";
-import FriendsList from "./FriendsList";
+import { cn } from "../../lib/cn";
 import { friendsPageStyle, userContainer, userPageShell } from "./userUi";
+import { alertError, alertInfo, frostedPanel, goldPill, slabHeading } from "../../lib/ui";
 
 const summaryCardClass = "grid gap-1 rounded-[18px] border border-white/10 bg-white/[0.04] px-[1.1rem] py-4";
 

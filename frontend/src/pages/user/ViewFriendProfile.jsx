@@ -120,8 +120,8 @@ export default function ViewFriendProfile() {
     );
   }
 
-  const friendStatus = friendship?.status || "none";
   const isOnline = profile?.status === "online";
+  const friendStatus = friendship?.status || "none";
 
   const stats = [
     { label: "Wins", value: kpis?.wins ?? 0 },

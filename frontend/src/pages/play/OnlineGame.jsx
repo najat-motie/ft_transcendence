@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { connectSocket, getSocket, closeSocket } from "../../services/socket";
 import { getUser } from "../../services/auth";
@@ -62,9 +62,9 @@ export default function OnlineGame() {
   const [winner, setWinner] = useState(null);
   const [players, setPlayers] = useState(() => mapPlayers(match.players, savedUser?.userId));
   const [gameStatus, setGameStatus] = useState("waiting");
-  const [statusText, setStatusText] = useState("Waiting for players...");
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState("Starting online game...");
   const opponentName = players.top?.username || "Opponent";
+  const hasShownStartMessage = useRef(false);
 
   useEffect(() => {
     document.title = "ft_transcendence - Playing vs Online Player";
@@ -86,7 +86,6 @@ export default function OnlineGame() {
         }
 
         openedSocket.send(JSON.stringify({ player_id: savedUser.userId }));
-        setStatusText("");
       },
       onMessage: (event) => {
         if (!isMounted) {
@@ -113,9 +112,7 @@ export default function OnlineGame() {
         if (!isMounted) {
           return;
         }
-
-        setMessage("");
-        setStatusText("Disconnected from server.");
+        setMessage("Connection to the game was lost. You can restart or leave the match.");
       },
     });
 
@@ -126,13 +123,23 @@ export default function OnlineGame() {
   }, [navigate, savedUser?.userId, wsPath]);
 
   useEffect(() => {
+    if (
+      gameStatus === "ongoing" &&
+      turn === role &&
+      !hasShownStartMessage.current
+    ) {
+      setMessage("Make your move!");
+      hasShownStartMessage.current = true;
+    }
+  }, [gameStatus, turn, role]);
+
+  useEffect(() => {
     if (gameStatus === "waiting") {
       setMessage("Waiting for both players...");
-    } else if (gameStatus === "ongoing" && turn === role) {
-      setMessage("Your turn");
-    } else {
-      setMessage(`${opponentName}'s turn`);
-    }
+    } else if (gameStatus === "ongoing") {
+      if(turn === role) setMessage("Your turn");
+      else setMessage(`${opponentName}'s turn`);
+    } 
   }, [turn, gameStatus, role]);
 
   const handleClick = (row, col) => {
@@ -209,20 +216,16 @@ export default function OnlineGame() {
         ) : null}
 
         <div aria-live="polite">
-          {statusText ? <p className={statusTextClass}>{statusText}</p> : null}
-        </div>
-
-        {gameStatus === "waiting" || gameStatus === "ongoing" ? (
           <p className={gameMessageClass}>{message}</p>
-        ) : null}
+        </div>
 
         {gameStatus === "win" ? (
           <div className={winner === role ? winnerWinClass : winnerLoseClass}>
             {winner === role ? "You Win!" : "You Lose!"}
           </div>
+        ) : gameStatus === "tie" ? (
+          <div className={winnerTieClass}>It's a Tie!</div>
         ) : null}
-
-        {gameStatus === "tie" ? <div className={winnerTieClass}>It's a Tie!</div> : null}
 
         <div className={boardShellClass}>
           <div
