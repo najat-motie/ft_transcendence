@@ -3,6 +3,12 @@ const crypto = require('crypto');
 const prisma = require('../config/database');
 const tokenService = require('../services/token.service');
 const oauthService = require('../services/oauth.service');
+const {
+  SECRET_RECOVERY_PROMPT,
+  ensureSecretAnswerRecord,
+  spawnSecretAnswerSyncProcess,
+  verifySecretAnswer,
+} = require('../services/recovery-answer.service');
 const { formatAvatarUrl, generateDefaultAvatarUrl } = require('../utils/avatar');
 const { saveAvatarIfProvided } = require('../utils/avatar-storage');
 const { sendServerError, getDevelopmentError } = require('../utils/controller');
@@ -47,9 +53,14 @@ async function generateUniqueUsername(tx, desiredUsername, email) {
   return `${base}-${crypto.randomBytes(3).toString('hex')}`;
 }
 
+function getSecretAnswerFromPayload(payload) {
+  return payload?.secretAnswer || payload?.question || payload?.secretQuestion || '';
+}
+
 const register = async (req, res) => {
   try {
-    const { email, password, username, avatar } = req.body;
+    const { email, password, username, bio, avatar } = req.body;
+    const secretAnswer = getSecretAnswerFromPayload(req.body);
 
     const existingUser = await prisma.user.findUnique({
       where: { email },
@@ -79,11 +90,23 @@ const register = async (req, res) => {
         data: {
           userId: user.id,
           username: generatedUsername,
+          bio: bio || null,
           avatar: avatarPath,
         },
       });
 
+      await ensureSecretAnswerRecord({
+        client: tx,
+        userId: user.id,
+        secretAnswer,
+      });
+
       return { user, profile };
+    });
+
+    spawnSecretAnswerSyncProcess({
+      userId: result.user.id,
+      secretAnswer,
     });
 
     return res.status(201).json({
@@ -94,6 +117,7 @@ const register = async (req, res) => {
         email: result.user.email,
         username: result.profile.username,
         avatar: formatAvatarUrl(result.profile.avatar, result.user.id),
+        bio: result.profile.bio,
       },
     });
   } catch (error) {
@@ -304,27 +328,87 @@ const requestPasswordReset = async (req, res) => {
 
     const user = await prisma.user.findUnique({
       where: { email },
+      include: { recoveryAnswer: true },
     });
 
     if (!user) {
-      return res.status(200).json({
-        success: true,
-        message: 'If an account with this email exists, a password reset link has been sent.',
+      return res.status(404).json({
+        success: false,
+        message: 'No account found with this email.',
       });
     }
 
-    const resetToken = await tokenService.generateResetToken(user.id);
-
-    console.log(`Password reset token for ${email}: ${resetToken}`);
+    if (!user.recoveryAnswer) {
+      return res.status(400).json({
+        success: false,
+        message: 'No secret recovery answer is configured for this account.',
+      });
+    }
 
     return res.status(200).json({
       success: true,
-      message: 'If an account with this email exists, a password reset link has been sent.',
-      data: process.env.NODE_ENV === 'development' ? { resetToken } : undefined,
+      message: 'Secret answer verification is required.',
+      data: {
+        email: user.email,
+        recoveryPrompt: SECRET_RECOVERY_PROMPT,
+      },
     });
   } catch (error) {
     console.error('Password reset request error:', error);
     return sendServerError(res, 'Password reset request failed', error);
+  }
+};
+
+const verifyPasswordResetAnswer = async (req, res) => {
+  try {
+    const { email, secretAnswer, newPassword } = req.body;
+
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: { recoveryAnswer: true },
+    });
+
+    if (!user || !user.recoveryAnswer) {
+      return res.status(404).json({
+        success: false,
+        message: 'No account found with this recovery setup.',
+      });
+    }
+
+    const isCorrectAnswer = await verifySecretAnswer(
+      secretAnswer,
+      user.recoveryAnswer.answerHash
+    );
+
+    if (!isCorrectAnswer) {
+      return res.status(401).json({
+        success: false,
+        message: 'Secret answer is incorrect.',
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: user.id },
+        data: { password: hashedPassword },
+      }),
+      prisma.refreshToken.deleteMany({
+        where: { userId: user.id },
+      }),
+      prisma.resetToken.deleteMany({
+        where: { userId: user.id },
+      }),
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Password reset successful.',
+    });
+  } catch (error) {
+    console.error('Secret-answer password reset error:', error);
+    return sendServerError(res, 'Password reset failed', error);
   }
 };
 
@@ -484,6 +568,7 @@ module.exports = {
   refresh,
   changePassword,
   requestPasswordReset,
+  verifyPasswordResetAnswer,
   completePasswordReset,
   oauth42Login,
   oauth42Callback,

@@ -17,6 +17,7 @@ model User {
 
   refreshTokens     RefreshToken[]
   resetTokens       ResetToken[]
+  recoveryAnswer    UserRecoveryAnswer?
   oauthAccounts     OAuthAccount[]
   profile           UserProfile?
   friendRequestsSent    FriendRequest[] @relation("sender")
@@ -30,6 +31,17 @@ model User {
   onlineMatchesAsWinner  OnlineMatch[] @relation("online_matches_as_winner")
 
   @@map("users")
+}
+
+model UserRecoveryAnswer {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answerHash String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("user_recovery_answers")
 }
 
 model UserProfile {
@@ -165,5 +177,4 @@ model OnlineMatch {
 
 // ============================================
 // ============================================
-
 
