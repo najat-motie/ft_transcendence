@@ -459,6 +459,7 @@ Implements features and collaborates on gameplay systems.
 - Configured Docker environment and reverse proxy setup, with Makefile automation for streamlined project management
 
 **Challenges & Solutions**:
+
 Challenge:
 Keeping the app stable when errors happen.
 
