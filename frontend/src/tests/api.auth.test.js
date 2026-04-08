@@ -6,6 +6,10 @@ describe('Frontend - Authentication API Integration', () => {
     email: 'frontend-test@example.com',
     password: 'TestPassword123',
   };
+  const registrationPayload = {
+    ...testUser,
+    secretAnswer: 'Dune',
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -30,7 +34,7 @@ describe('Frontend - Authentication API Integration', () => {
       const response = await fetch(`${baseUrl}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(testUser),
+        body: JSON.stringify(registrationPayload),
       });
 
       const data = await response.json();
@@ -54,7 +58,7 @@ describe('Frontend - Authentication API Integration', () => {
       const response = await fetch(`${baseUrl}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(testUser),
+        body: JSON.stringify(registrationPayload),
       });
 
       const data = await response.json();
@@ -122,6 +126,60 @@ describe('Frontend - Authentication API Integration', () => {
       expect(response.ok).toBe(false);
       expect(response.status).toBe(401);
       expect(data.success).toBe(false);
+    });
+  });
+
+  describe('Password Recovery', () => {
+    it('should request secret-answer verification for password recovery', async () => {
+      global.fetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          success: true,
+          message: 'Secret answer verification is required.',
+          data: {
+            email: testUser.email,
+            recoveryPrompt: 'What is your favorite book?',
+          },
+        }),
+      });
+
+      const response = await fetch(`${baseUrl}/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: testUser.email }),
+      });
+
+      const data = await response.json();
+
+      expect(response.ok).toBe(true);
+      expect(data.data.recoveryPrompt).toBe('What is your favorite book?');
+    });
+
+    it('should verify secret answer and reset password', async () => {
+      global.fetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          success: true,
+          message: 'Password reset successful.',
+        }),
+      });
+
+      const response = await fetch(`${baseUrl}/auth/reset-password/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: testUser.email,
+          secretAnswer: 'Dune',
+          newPassword: 'UpdatedPassword123',
+        }),
+      });
+
+      const data = await response.json();
+
+      expect(response.ok).toBe(true);
+      expect(data.success).toBe(true);
     });
   });
 });

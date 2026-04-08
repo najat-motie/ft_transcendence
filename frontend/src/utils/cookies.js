@@ -10,6 +10,21 @@ export function getCookie(name) {
   return null;
 }
 
+function parseJsonCookie(name) {
+  const rawValue = getCookie(name);
+  if (!rawValue) return null;
+
+  try {
+    return JSON.parse(decodeURIComponent(rawValue));
+  } catch {
+    try {
+      return JSON.parse(rawValue);
+    } catch {
+      return null;
+    }
+  }
+}
+
 /**
  * Set a cookie with optional expiry days
  */
@@ -34,14 +49,7 @@ export function deleteCookie(name) {
  * Get user data from cookie
  */
 export function getUserFromCookie() {
-  const userJson = getCookie("user");
-  if (!userJson) return null;
-  
-  try {
-    return JSON.parse(decodeURIComponent(userJson));
-  } catch {
-    return null;
-  }
+  return parseJsonCookie("user");
 }
 
 /**
@@ -52,16 +60,14 @@ export function setUserInCookie(userData, days = 7) {
   setCookie("user", encoded, days);
 }
 
+export function setUserProfileInCookie(profileData, days = 7) {
+  const encoded = encodeURIComponent(JSON.stringify(profileData));
+  setCookie("userProfile", encoded, days);
+}
+
 /**
  * Get user profile from cookie
  */
 export function getUserProfileFromCookie() {
-  const profileJson = getCookie("userProfile");
-  if (!profileJson) return null;
-  
-  try {
-    return JSON.parse(profileJson);
-  } catch {
-    return null;
-  }
+  return parseJsonCookie("userProfile");
 }

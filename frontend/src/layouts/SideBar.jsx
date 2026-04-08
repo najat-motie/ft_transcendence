@@ -20,13 +20,16 @@ export default function SideBar() {
 
   const baseUser = getUserFromCookie();
   const userProfile = getUserProfileFromCookie();
+  const activeUserProfile = baseUser && userProfile?.userId === baseUser.userId
+    ? userProfile
+    : null;
   const user = baseUser
     ? {
         ...baseUser,
-        username: userProfile?.username || baseUser.username,
-        avatar: userProfile?.avatar || baseUser.avatar,
-        bio: userProfile?.bio || baseUser.bio,
-        email: userProfile?.email || baseUser.email,
+        username: activeUserProfile?.username || baseUser.username,
+        avatar: activeUserProfile?.avatar || baseUser.avatar,
+        bio: activeUserProfile?.bio || baseUser.bio,
+        email: activeUserProfile?.email || baseUser.email,
       }
     : null;
   const isLoggedIn = !!user;
