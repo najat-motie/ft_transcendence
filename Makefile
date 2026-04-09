@@ -59,6 +59,9 @@ rebuild: down
 	@$(COMPOSE) build --no-cache
 	@$(COMPOSE) up -d
 
+recreate: down
+	@$(COMPOSE) up -d
+
 prune:
 	@docker system prune -af
 	@docker volume prune -f

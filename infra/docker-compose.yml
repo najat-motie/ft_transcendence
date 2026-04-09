@@ -58,6 +58,8 @@ services:
     image: caddy:2
     container_name: ft_caddy
     pull_policy: if_not_present
+    env_file:
+      - ../.env
     depends_on:
       backend:
         condition: service_started
