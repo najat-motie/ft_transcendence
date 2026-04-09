@@ -206,13 +206,20 @@ const updateProfile = async (req, res) => {
 
     const storedAvatar = saveAvatarIfProvided(avatar);
 
+    const nextData = {};
+    if (typeof username !== 'undefined') {
+      nextData.username = username;
+    }
+    if (typeof bio !== 'undefined') {
+      nextData.bio = bio;
+    }
+    if (storedAvatar) {
+      nextData.avatar = storedAvatar;
+    }
+
     const updatedProfile = await prisma.userProfile.update({
       where: { userId },
-      data: {
-        ...(username && { username }),
-        ...(bio && { bio }),
-        ...(storedAvatar && { avatar: storedAvatar }),
-      },
+      data: nextData,
     });
 
     return res.status(200).json({

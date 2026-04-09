@@ -49,7 +49,7 @@ async function generateUniqueUsername(tx, desiredUsername, email) {
 
 const register = async (req, res) => {
   try {
-    const { email, password, username, avatar } = req.body;
+    const { email, password, username, bio, avatar, question } = req.body;
 
     const existingUser = await prisma.user.findUnique({
       where: { email },
@@ -63,12 +63,14 @@ const register = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const recoveryAnswerHash = await bcrypt.hash(question.trim().toLowerCase(), 10);
 
     const result = await prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
         data: {
           email,
           password: hashedPassword,
+          recoveryAnswerHash,
         },
       });
 
@@ -79,6 +81,7 @@ const register = async (req, res) => {
         data: {
           userId: user.id,
           username: generatedUsername,
+          bio: bio?.trim() || null,
           avatar: avatarPath,
         },
       });
@@ -94,6 +97,7 @@ const register = async (req, res) => {
         email: result.user.email,
         username: result.profile.username,
         avatar: formatAvatarUrl(result.profile.avatar, result.user.id),
+        bio: result.profile.bio,
       },
     });
   } catch (error) {
@@ -300,7 +304,7 @@ const changePassword = async (req, res) => {
 
 const requestPasswordReset = async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email, question } = req.body;
 
     const user = await prisma.user.findUnique({
       where: { email },
@@ -310,6 +314,25 @@ const requestPasswordReset = async (req, res) => {
       return res.status(200).json({
         success: true,
         message: 'If an account with this email exists, a password reset link has been sent.',
+      });
+    }
+
+    if (!user.recoveryAnswerHash) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password recovery answer is not set for this account.',
+      });
+    }
+
+    const isRecoveryAnswerValid = await bcrypt.compare(
+      question.trim().toLowerCase(),
+      user.recoveryAnswerHash
+    );
+
+    if (!isRecoveryAnswerValid) {
+      return res.status(401).json({
+        success: false,
+        message: 'Password recovery answer is incorrect.',
       });
     }
 

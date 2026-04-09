@@ -121,7 +121,6 @@ export default function Profile() {
       if (!file) return;
 
       try {
-        const file = e.target.files?.[0];
         const image = await readImageFile(file);
     
         setForm(prev => ({
@@ -168,10 +167,11 @@ export default function Profile() {
       });
       const updatedData = updated?.data || updated;
 
-      const syncedUser = { ...prev, ...updatedData };
+      const syncedUser = { ...(user || {}), ...updatedData };
       setUser(syncedUser);
+      setKpis((prevKpis) => ({ ...(prevKpis || {}), ...updatedData }));
       setUserInCookie(syncedUser, 7);
-      setCookie("userProfile", JSON.stringify(updatedData), 7);
+      setCookie("userProfile", JSON.stringify({ ...(kpis || {}), ...updatedData }), 7);
       setEditMode(false);
     } catch (err) {
       setError(err.message);

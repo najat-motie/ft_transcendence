@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../../services/api";
 import {
   alertError,
@@ -19,7 +20,9 @@ const shellStyle = {
 };
 
 export default function ForgotPassword() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
+  const [question, setQuestion] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -30,17 +33,25 @@ export default function ForgotPassword() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setError("");
 
     setLoading(true);
     try {
-      await apiRequest(
+      const response = await apiRequest(
         "/auth/reset-password",
         {
           method: "POST",
-          body: JSON.stringify({ email }),
+          body: JSON.stringify({ email, question }),
         },
         true,
       );
+
+      const resetToken = response?.data?.resetToken;
+
+      if (resetToken) {
+        navigate(`/reset-password/${resetToken}`);
+        return;
+      }
 
       setSubmitted(true);
     } catch (err) {
@@ -67,7 +78,7 @@ export default function ForgotPassword() {
           {error ? <p className={alertError}>{error}</p> : null}
           <h1 className={cn(slabHeading, "m-0 text-[clamp(1.7rem,3vw,2.2rem)] text-slate-50")}>Forgot your password?</h1>
           <p className="m-0 text-[0.95rem] leading-[1.6] text-slate-400">
-            Enter your email address and we'll send you a link to reset your password.
+            Enter your email and password recovery answer to continue to password reset.
           </p>
 
           {!submitted ? (
@@ -87,8 +98,23 @@ export default function ForgotPassword() {
                 />
               </div>
 
+              <div>
+                <label className="mb-[0.35rem] block text-[0.82rem] font-semibold uppercase tracking-[0.04em] text-slate-300" htmlFor="forgot-question">
+                  Password recovery
+                </label>
+                <input
+                  id="forgot-question"
+                  type="text"
+                  className={inputSky}
+                  placeholder="What is your favorite book?"
+                  required
+                  value={question}
+                  onChange={(event) => setQuestion(event.target.value)}
+                />
+              </div>
+
               <button className={goldButton} type="submit" disabled={loading}>
-                {loading ? "Sending..." : "Send reset link"}
+                {loading ? "Checking..." : "Continue"}
               </button>
             </>
           ) : (

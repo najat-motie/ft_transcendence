@@ -30,6 +30,10 @@ const validateRegistration = [
     .optional()
     .isLength({ min: 3, max: 30 })
     .withMessage('Username must be between 3 and 30 characters'),
+  body('question')
+    .trim()
+    .isLength({ min: 2, max: 255 })
+    .withMessage('Password recovery answer must be between 2 and 255 characters'),
   body('avatar')
     .optional()
     .isString()
@@ -57,6 +61,10 @@ const validateResetPasswordRequest = [
     .isEmail()
     .withMessage('Please provide a valid email')
     .normalizeEmail(),
+  body('question')
+    .trim()
+    .isLength({ min: 2, max: 255 })
+    .withMessage('Password recovery answer is required'),
 ];
 
 const validateResetPasswordComplete = [

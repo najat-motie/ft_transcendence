@@ -67,7 +67,6 @@ export default function Register() {
       if (!file) return;
 
       try {
-        const file = e.target.files?.[0];
         const image = await readImageFile(file);
     
         setForm(prev => ({
@@ -296,6 +295,7 @@ export default function Register() {
                     <input
                       id="register-avatar"
                       type="file"
+                      name="avatar"
                       accept="image/*"
                       onChange={handleChange}
                       className={fileInputGold}

@@ -7,7 +7,20 @@ import { getWsBaseUrl } from "../lib/runtime-config";
 const DEFAULT_WS_BASE_URL = getWsBaseUrl();
 
 const buildSocketUrl = (path, baseUrl, token) => {
-  const url = path.startsWith("ws") ? path : `${baseUrl}${path}`;
+  const normalizedPath = path
+    ? path.startsWith("/")
+      ? path
+      : `/${path}`
+    : "";
+
+  const normalizedBaseUrl = baseUrl.endsWith("/")
+    ? baseUrl.slice(0, -1)
+    : baseUrl;
+
+  const url = path.startsWith("ws")
+    ? path
+    : `${normalizedBaseUrl}${normalizedPath}`;
+
   if (!token) return url;
   return `${url}${url.includes("?") ? "&" : "?"}token=${encodeURIComponent(token)}`;
 };

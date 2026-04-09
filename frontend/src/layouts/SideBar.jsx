@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { FiMenu, FiPlay, FiX } from "react-icons/fi";
 import logo from "../assets/logo.png";
 import { apiRequest } from "../services/api.js";
-import { logout } from "../services/auth.js";
+import { getUser, logout } from "../services/auth.js";
 import { getUserFromCookie, getUserProfileFromCookie } from "../utils/cookies.js";
 import { cn } from "../lib/cn.js";
 
@@ -49,7 +49,15 @@ export default function SideBar() {
 
   const handleLogout = async () => {
     try {
-      await apiRequest("/logout", { method: "POST" });
+      const session = getUser();
+      await apiRequest(
+        "/auth/logout",
+        {
+          method: "POST",
+          body: JSON.stringify({ refreshToken: session?.refreshToken }),
+        },
+        true,
+      );
     } catch {} 
     finally {
       logout(user?.userId);
