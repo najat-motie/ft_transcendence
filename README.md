@@ -1,4 +1,4 @@
-*This project has been created as part of the 42 curriculum by* **nmotie-**, **jmayou**, **abattagi**, **ien-niou**.
+*This project has been created as part of the 42 curriculum by* **nmotie-**, **abattagi**, **jmayou**, **ien-niou**.
 
 # ft_transcendence — Real-Time Multiplayer Tic-Tac-Toe Platform
 
@@ -34,7 +34,6 @@ The selected concept, a ***Real-Time Multiplayer Tic-Tac-Toe Platform***, provid
 - Authentication System with OAuth (42 Intra)
 - User Management (Profiles & Friend System)
 - Real-Time Multiplayer (WebSocket-based synchronization)
-- Remote Players (Real-time play across separate devices)
 - Multiple Game Modes (Local, AI, Matchmaking, Private Rooms)
 - Gamification System (XP and player statistics)
 - Game Customization (Board styles, settings)
@@ -51,14 +50,12 @@ The selected concept, a ***Real-Time Multiplayer Tic-Tac-Toe Platform***, provid
 | User Profiles                   | abattagi, nmotie- | User profile management with avatars and editable information       |
 | Friends System                  | abattagi          | Friend request system with add, accept, reject, and status tracking |
 | Real-Time Multiplayer           | jmayou, nmotie-   | WebSocket-based real-time gameplay synchronization between players  |
-| Game Engine (Core Logic)        | jmayou            | Tic-Tac-Toe rules, turn handling, and win/draw detection            |
 | Matchmaking System              | jmayou            | Automatic player pairing for online matches                         |
 | AI Opponent                     | jmayou            | Single-player mode with AI opponent and difficulty logic            |
 | Private Game Rooms              | jmayou            | Custom rooms with create, join, leave, and session management       |
 | Local Game Mode                 | jmayou            | Offline two-player mode on the same device without authentication   |
 | Game Customization              | ien-niou          | Themes, board styles, and X/O skins customization                   |
 | Gamification System             | ien-niou          | XP progression system with wins, losses, matches, and win rate      |
-| API Layer                       | nmotie-           | Centralized handling of frontend-backend communication              |
 | UI/UX (Responsive & Accessible) | ien-niou, nmotie- | Responsive design and accessibility support across devices          |
 
 ---
@@ -69,12 +66,12 @@ The selected concept, a ***Real-Time Multiplayer Tic-Tac-Toe Platform***, provid
 | --------------------------------| ------ | -------------------------------------------------------------| ---------------------------------------------------------- | ------------------ |
 | Frameworks (Frontend + Backend) | 2      | Required for full-stack SPA and API architecture             | React (Vite + Router) frontend + Express backend APIs      | nmotie-, abattagi  |
 | User Management & Authentication| 2      | Core system for security and user identity                   | JWT auth, refresh tokens, profiles, friends system         | abattagi, nmotie-  |
-| OAuth 2.0 (42 Login)            | 1      | Enables external authentication integration                  | 42 OAuth login + callback flow                             | abattagi           |
-| ORM (Prisma)                    | 1      | Simplifies database access and schema management             | Prisma schema, migrations, DB queries                      | abattagi           |
-| AI Opponent                     | 2      | Adds single-player gameplay experience                       | AI logic for Tic-Tac-Toe with balanced difficulty          | jmayou             |
 | Web-Based Multiplayer Game      | 2      | Core playable game feature                                   | Game rules, win/draw detection, online matchmaking         | jmayou             |
 | Real-Time Features (WebSockets) | 2      | Core requirement for real-time multiplayer gameplay          | WebSocket rooms, live game-state sync, disconnect handling | jmayou, nmotie-    |
+| AI Opponent                     | 2      | Adds single-player gameplay experience                       | AI logic for Tic-Tac-Toe with balanced difficulty          | jmayou             |
 | Remote players                  | 2      | Enable two players on different devices to play in real time | Sync, latency handling, reconnection system                | jmayou, nmotie-    |
+| ORM (Prisma)                    | 1      | Simplifies database access and schema management             | Prisma schema, migrations, DB queries                      | abattagi           |
+| OAuth 2.0 (42 Login)            | 1      | Enables external authentication integration                  | 42 OAuth login + callback flow                             | abattagi           |
 | Game Customization              | 1      | Improves user experience and personalization                 | Themes, skins, sound settings, defaults                    | ien-niou           |
 | Gamification System             | 1      | Increases engagement and progression                         | XP, wins/losses, matches, win rate                         | ien-niou           |
 
@@ -130,7 +127,7 @@ The backend handles business logic, authentication, and real-time communication:
 - **Docker Compose** – Manages multi-container services
 - **Environment variables (.env)** – Secure configuration management
 
-### Technical Choices & Justification
+### Major Technical Choices & Justification
 
 - **React + Vite** – Fast development and optimized frontend performance
 - **Node.js + Express** – Unified JavaScript stack for scalability and maintainability
@@ -368,8 +365,8 @@ Implements features and collaborates on gameplay systems.
 - Ensured compatibility with the latest stable version of Google Chrome, with no console warnings or errors
 
 **Challenges & Solutions**:
-- *Challenge*: Designing a database that handles users, friends, OAuth, and game data without becoming too complex.  
-  *Solution*: Structured the schema with clear relationships using Prisma, added proper constraints (unique keys, foreign keys), and kept things modular so it stays easy to maintain and extend.
+- *Challenge*: Designing a database that handles users, friends, OAuth, and game data without becoming too complex  
+  *Solution*: Structured the schema with clear relationships using Prisma, added proper constraints (unique keys, foreign keys), and kept things modular so it stays easy to maintain and extend
 
 ### nmotie-
 
@@ -388,8 +385,8 @@ Implements features and collaborates on gameplay systems.
 - Wrote and organized the README file
 
 **Challenges & Solutions**:
-- *Challenge*: Handling session expiration without breaking the user experience or requiring manual re-login on every token expiry.  
-  *Solution*: Introduced an automatic token refresh mechanism using the refresh token, with fallback to logout and redirect only when refresh fails.
+- *Challenge*: Handling session expiration without breaking the user experience or requiring manual re-login on every token expiry  
+  *Solution*: Introduced an automatic token refresh mechanism using the refresh token, with fallback to logout and redirect only when refresh fails
 
 ### ien-niou
 
@@ -410,8 +407,8 @@ Implements features and collaborates on gameplay systems.
 - Configured Docker environment and reverse proxy setup, with Makefile automation for streamlined project management
 
 **Challenges & Solutions**:
-- *Challenge*: Keeping the app stable when errors happen.  
-  *Solution*: Used Error Boundaries to catch errors and show a simple fallback screen instead of crashing the whole app.
+- *Challenge*: Keeping the app stable when errors happen  
+  *Solution*: Used Error Boundaries to catch errors and show a simple fallback screen instead of crashing the whole app
 
 ### jmayou
 

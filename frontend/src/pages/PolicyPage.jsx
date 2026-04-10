@@ -50,7 +50,7 @@ export default function PrivacyPolicy() {
 
           <div className="mt-4 flex flex-wrap gap-3 max-[700px]:flex-col">
             <Link to="/" className={primaryButtonClass}>
-              Back to Home
+              Go to Home
             </Link>
             <Link to="/terms-of-service" className={ghostButtonClass}>
               View Terms of Service

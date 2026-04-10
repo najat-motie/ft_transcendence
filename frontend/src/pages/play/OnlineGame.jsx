@@ -78,7 +78,6 @@ export default function OnlineGame() {
     let isMounted = true;
 
     connectSocket(wsPath, {
-      autoReconnect: false,
       onOpen: (_, openedSocket) => {
         if (!isMounted || openedSocket.readyState !== WebSocket.OPEN) {
           return;
@@ -107,11 +106,13 @@ export default function OnlineGame() {
         if (data.message) setMessage(data.message);
         if (data.error) setMessage(data.error);
       },
-      onClose: () => {
-        if (!isMounted) {
-          return;
-        }
-        setMessage("Connection to the game was lost. You can restart or leave the match.");
+      onClose: (event) => {
+        if (!isMounted) return;
+
+        if(event.reason)
+          setMessage(event.reason);
+        else
+          setMessage("Connection to the game was lost. You can restart or leave the match.");
       },
     });
 

@@ -1,5 +1,4 @@
 let socket = null;
-let connectionId = 0;
 
 import { getUser } from "./auth";
 import { getWsBaseUrl } from "../lib/runtime-config";
@@ -17,7 +16,7 @@ const buildSocketUrl = (path, baseUrl, token) => {
     ? baseUrl.slice(0, -1)
     : baseUrl;
 
-  const url = path.startsWith("ws")
+  const url = path && path.startsWith("ws")
     ? path
     : `${normalizedBaseUrl}${normalizedPath}`;
 
@@ -32,41 +31,41 @@ export const connectSocket = (path = "", options = {}) => {
 
   const targetUrl = buildSocketUrl(path, baseUrl, token);
 
-  if (socket && socket.readyState === WebSocket.OPEN && socket.url === targetUrl) {
+  if (
+    socket &&
+    (socket.readyState === WebSocket.OPEN ||
+     socket.readyState === WebSocket.CONNECTING) &&
+    socket.url === targetUrl
+  ) {
     return socket;
   }
 
-  const myId = ++connectionId;
 
-  if (socket) {
+  if (socket && socket.readyState !== WebSocket.CLOSED) {
     socket.close();
   }
 
   socket = new WebSocket(targetUrl);
 
   socket.addEventListener("open", (event) => {
-    if (connectionId !== myId) return;
     if (typeof options.onOpen === "function") {
       options.onOpen(event, socket);
     }
   });
 
   socket.addEventListener("message", (event) => {
-    if (connectionId !== myId) return;
     if (typeof options.onMessage === "function") {
       options.onMessage(event, socket);
     }
   });
 
   socket.addEventListener("error", (event) => {
-    if (connectionId !== myId) return;
     if (typeof options.onError === "function") {
       options.onError(event, socket);
     }
   });
 
   socket.addEventListener("close", (event) => {
-    if (connectionId !== myId) return;
     if (typeof options.onClose === "function") {
       options.onClose(event, socket);
     }
@@ -79,7 +78,6 @@ export const connectSocket = (path = "", options = {}) => {
 export const getSocket = () => socket;
 
 export const closeSocket = () => {
-  connectionId++;
   if (socket) {
     socket.close();
     socket = null;

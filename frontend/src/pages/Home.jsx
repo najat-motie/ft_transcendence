@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { cn } from "../lib/cn";
 import { slabHeading } from "../lib/ui";
 
@@ -22,14 +22,12 @@ const joinStyle = {
 };
 
 const primaryButtonClass = "inline-flex min-h-12 items-center justify-center rounded-xl bg-[linear-gradient(135deg,#facc15,#f59e0b)] px-5 py-3 font-bold text-slate-900 shadow-[0_14px_28px_rgba(245,158,11,0.25)] transition duration-200 hover:-translate-y-px hover:shadow-[0_18px_34px_rgba(245,158,11,0.3)] hover:no-underline max-[680px]:flex-1 max-[680px]:basis-full";
-const ghostButtonClass = "inline-flex min-h-12 items-center justify-center rounded-xl border border-slate-400/30 bg-slate-900/50 px-5 py-3 font-bold text-slate-200 transition duration-200 hover:-translate-y-px hover:border-slate-400/50 hover:bg-slate-800/70 hover:no-underline max-[680px]:flex-1 max-[680px]:basis-full";
 const statCardClass = "rounded-xl border border-slate-400/15 bg-slate-900/50 px-[0.9rem] py-[0.95rem]";
 const cellBaseClass = "flex items-center justify-center rounded-[14px] border border-slate-400/25 bg-[linear-gradient(180deg,rgba(15,23,42,0.96),rgba(12,19,33,0.95))] text-[clamp(2rem,5vw,2.5rem)] font-extrabold text-slate-200";
 const featureCardClass = "rounded-[18px] border border-slate-400/15 bg-[linear-gradient(180deg,rgba(30,41,59,0.8),rgba(15,23,42,0.9))] p-[clamp(1rem,2.2vw,1.55rem)] text-left transition duration-200 hover:-translate-y-[5px] hover:border-sky-400/35 hover:shadow-[0_16px_32px_rgba(2,6,23,0.32)]";
 const containerClass = "mx-auto w-full max-w-[1160px] px-[clamp(1rem,3vw,2rem)]";
 
 export default function Home() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     document.title = "ft_transcendence - Home";
@@ -50,10 +48,6 @@ export default function Home() {
               Challenge friends or players worldwide in quick, tactical matches.
               Jump into ranked games, train against AI, or run private room battles.
             </p>
-
-            <div className="mt-[1.7rem] flex flex-wrap gap-[0.8rem]">
-              <Link to="/play" className={primaryButtonClass}>Play Now</Link>
-            </div>
 
             <div className="mt-[1.8rem] grid gap-[0.7rem] min-[681px]:grid-cols-3 max-[680px]:grid-cols-1" aria-label="Platform statistics">
               <div className={statCardClass}>
@@ -82,9 +76,6 @@ export default function Home() {
               <div className={`${cellBaseClass} text-yellow-400 [text-shadow:0_0_12px_rgba(250,204,21,0.34)]`}>O</div>
               <div className={cellBaseClass}></div>
               <div className={cellBaseClass}></div>
-            </div>
-            <div className="absolute bottom-4 right-4 rounded-full border border-sky-400/25 bg-sky-400/15 px-[0.7rem] py-[0.42rem] text-[0.72rem] font-bold uppercase tracking-[0.06em] text-sky-300 max-[680px]:bottom-[0.8rem] max-[680px]:right-[0.8rem]">
-              Your move
             </div>
           </div>
         </div>

@@ -49,7 +49,7 @@ export default function TermsOfService() {
           </div>
 
           <div className="mt-4 flex flex-wrap gap-3 max-[700px]:flex-col">
-            <Link to="/" className={primaryButtonClass}>
+            <Link to="/play" className={primaryButtonClass}>
               Start Playing
             </Link>
             <Link to="/privacy-policy" className={ghostButtonClass}>

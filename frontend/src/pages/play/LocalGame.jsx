@@ -75,7 +75,6 @@ export default function LocalGame() {
       }
 
       connectSocket(session.ws_path, {
-        autoReconnect: false,
         onMessage: (event) => {
           if (connectionId !== connectionRef.current) {
             return;
